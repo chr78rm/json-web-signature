@@ -56,9 +56,11 @@ public class JWSBase {
     }
     
     final JWSStruct jwsStruct;
+    final JWSAlgorithm jwa;
 
     JWSBase(JWSStruct jwsStruct) {
         this.jwsStruct = jwsStruct;
+        this.jwa = this.jwsStruct.algorithm();
     }
 
     public String getStrJoseHeader() {

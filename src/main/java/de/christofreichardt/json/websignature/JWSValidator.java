@@ -13,27 +13,10 @@ import java.security.Key;
  */
 public class JWSValidator extends JWSBase implements Traceable {
 
-//    final String compactSerialization;
-    
     final String signature;
-    final JWSAlgorithm jwa;
-
-//    public JWSValidator(String compactSerialization) {
-//        this.compactSerialization = compactSerialization;
-//        String[] splits = this.compactSerialization.split("\\.");
-//        if (splits.length != 3) {
-//            throw new IllegalArgumentException("Not a JWS compact serialization.");
-//        }
-//        String strJoseHeader = decode(splits[0]);
-//        String strPayload = decode(splits[1]);
-//        this.jwsStruct = new JWSStruct(read(strJoseHeader).asJsonObject(), strJoseHeader, read(strPayload), strPayload);
-//        this.jwa = this.jwsStruct.algorithm();
-//        this.signature = splits[2];
-//    }
     
     public JWSValidator(JWSCompactSerialization compactSerialization) {
         super(compactSerialization.toJWSStruct());
-        this.jwa = this.jwsStruct.algorithm();
         this.signature = compactSerialization.signature();
     }
     

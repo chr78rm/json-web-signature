@@ -15,20 +15,16 @@ import javax.json.JsonStructure;
  */
 public class JWSSigner extends JWSBase implements Traceable {
 
-    final JWSAlgorithm jwa;
-
     public JWSSigner(JsonObject joseHeader, JsonStructure payload) {
         this(joseHeader, payload, JsonStructure::toString);
     }
 
     public JWSSigner(JsonObject joseHeader, JsonStructure payload, Json2StringConverter converter) {
         super(new JWSStruct(joseHeader, converter.convert(joseHeader), payload, converter.convert(payload)));
-        this.jwa = this.jwsStruct.algorithm();
     }
 
     public JWSSigner(String strJoseHeader, String strPayload) {
         super(new JWSStruct(read(strJoseHeader).asJsonObject(), strJoseHeader, read(strPayload), strPayload));
-        this.jwa = this.jwsStruct.algorithm();
     }
 
     public JWSCompactSerialization sign(Key signingKey) throws GeneralSecurityException {
