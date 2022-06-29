@@ -17,7 +17,7 @@ public class JWSBase {
 
     static final Base64.Encoder BASE64_URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
     static final Base64.Decoder BASE64_URL_DECODER = Base64.getUrlDecoder();
-    static final Map<String, Class<? extends JWSAlgorithm>> ALGO_MAP = Map.of("HS256", HmacSHA256.class);
+    static final Map<String, Class<? extends JWSAlgorithm>> ALGO_MAP = Map.of("HS256", HmacSHA256.class, "RS256", RSASSA_PKCS1_v1_5.class);
 
     static String encode(String input) {
         return BASE64_URL_ENCODER.encodeToString(input.getBytes(StandardCharsets.UTF_8));
@@ -54,7 +54,7 @@ public class JWSBase {
             try {
                 return ALGO_MAP.get(alg).getDeclaredConstructor().newInstance();
             } catch (ReflectiveOperationException ex) {
-                throw new RuntimeException(ex);
+                throw new Error(ex);
             }
         }
     }

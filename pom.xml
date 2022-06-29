@@ -34,6 +34,7 @@
                         <include>de/christofreichardt/json/websignature/DummyUnit.java</include>
                         <include>de/christofreichardt/json/websignature/ExampleJWSUnit.java</include>
                         <include>de/christofreichardt/json/websignature/HmacSHA256JWSUnit.java</include>
+                        <include>de/christofreichardt/json/websignature/RSASSA_PKCS1_v1_5Unit.java</include>
                     </includes>
                     <argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
                     <systemPropertyVariables>

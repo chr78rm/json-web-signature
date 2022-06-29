@@ -10,8 +10,8 @@ import java.security.Key;
  */
 public interface JWSAlgorithm extends Traceable {
     void init(Key key) throws GeneralSecurityException;
-    void update(byte[] data);
-    byte[] signature();
-    boolean verify(byte[] signature);
+    void update(byte[] data) throws GeneralSecurityException;
+    byte[] signature() throws GeneralSecurityException;
+    boolean verify(byte[] signature) throws GeneralSecurityException;
     String algorithm();
 }
