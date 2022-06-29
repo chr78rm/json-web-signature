@@ -4,6 +4,7 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.TracerFactory;
 import java.security.InvalidKeyException;
 import java.security.Key;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import javax.crypto.Mac;
 
@@ -36,7 +37,7 @@ public class HmacSHA256 implements JWSAlgorithm {
 
     @Override
     public boolean verify(byte[] signature) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return MessageDigest.isEqual(this.mac.doFinal(), signature);
     }
 
     @Override

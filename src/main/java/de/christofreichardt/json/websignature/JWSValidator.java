@@ -13,11 +13,11 @@ import java.security.Key;
  */
 public class JWSValidator extends JWSBase implements Traceable {
 
-    final String signature;
+    final byte[] signatureOctets;
     
     public JWSValidator(JWSCompactSerialization compactSerialization) {
         super(compactSerialization.toJWSStruct());
-        this.signature = compactSerialization.signature();
+        this.signatureOctets = decode(compactSerialization.signature().getBytes(StandardCharsets.ISO_8859_1));
     }
     
     public boolean validate(Key signingKey) throws GeneralSecurityException {
@@ -31,10 +31,8 @@ public class JWSValidator extends JWSBase implements Traceable {
             String signingInput = String.format("%s.%s", encodedHeader, encodedPayload);
             byte[] signingInputOctets = signingInput.getBytes(StandardCharsets.US_ASCII);
             this.jwa.update(signingInputOctets);
-            byte[] signatureOctets = this.jwa.signature();
-            String encodedSignature = encode(signatureOctets);
             
-            return encodedSignature.equals(this.signature);
+            return this.jwa.verify(this.signatureOctets);
         } finally {
             tracer.wayout();
         }
