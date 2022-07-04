@@ -20,14 +20,14 @@ public class JWSValidator extends JWSBase implements Traceable {
         this.signatureOctets = decode(compactSerialization.signature().getBytes(StandardCharsets.ISO_8859_1));
     }
     
-    public boolean validate(Key signingKey) throws GeneralSecurityException {
+    public boolean validate(Key key) throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("boolean", this, "validate(Key signingKey)");
 
         try {
             String encodedHeader = encode(this.jwsStruct.strJoseHeader());
             String encodedPayload = encode(this.jwsStruct.strPayload());
-            this.jwa.init(signingKey);
+            this.jwa.init(key);
             String signingInput = String.format("%s.%s", encodedHeader, encodedPayload);
             byte[] signingInputOctets = signingInput.getBytes(StandardCharsets.US_ASCII);
             this.jwa.update(signingInputOctets);

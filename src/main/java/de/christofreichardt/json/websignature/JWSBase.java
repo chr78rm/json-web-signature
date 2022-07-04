@@ -34,6 +34,10 @@ public class JWSBase {
     static byte[] decode(byte[] input) {
         return BASE64_URL_DECODER.decode(input);
     }
+    
+    static byte[] decodeToBytes(String input) {
+        return BASE64_URL_DECODER.decode(input);
+    }
 
     static JsonStructure read(String input) {
         try ( JsonReader jsonReader = Json.createReader(new StringReader(input))) {
