@@ -1,4 +1,4 @@
 *.log
 target
 nb-configuration.xml
-
+.idea
