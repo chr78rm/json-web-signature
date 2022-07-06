@@ -16,7 +16,7 @@ public class JWSValidator extends JWSBase implements Traceable {
     final byte[] signatureOctets;
     
     public JWSValidator(JWSCompactSerialization compactSerialization) {
-        super(compactSerialization.toJWSStruct());
+        super(compactSerialization.makeJWSStruct());
         this.signatureOctets = decode(compactSerialization.signature().getBytes(StandardCharsets.ISO_8859_1));
     }
     

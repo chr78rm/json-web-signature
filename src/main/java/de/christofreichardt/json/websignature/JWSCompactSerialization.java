@@ -8,7 +8,7 @@ import de.christofreichardt.json.websignature.JWSBase.JWSStruct;
  */
 public record JWSCompactSerialization(String header, String payload, String signature) {
     
-    JWSStruct toJWSStruct() {
+    JWSStruct makeJWSStruct() {
         String strJoseHeader = JWSBase.decode(this.header);
         String strJWSPayload = JWSBase.decode(this.payload);
         
