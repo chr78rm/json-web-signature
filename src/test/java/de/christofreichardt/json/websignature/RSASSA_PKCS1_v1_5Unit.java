@@ -6,6 +6,8 @@ import de.christofreichardt.diagnosis.TracerFactory;
 import java.io.StringReader;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
@@ -162,6 +164,42 @@ public class RSASSA_PKCS1_v1_5Unit implements Traceable, WithAssertions {
             assertThat(jwsValidator.getStrPayload()).isEqualTo(strPayload);
             RSAPublicKey publicKey = new RSAPublicKey(modulus, e);
             assertThat(jwsValidator.validate(publicKey)).isTrue();
+        } finally {
+            tracer.wayout();
+        }
+    }
+    
+    @Test
+    void withJsonObjects() throws GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "withJsonObjects()");
+
+        try {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            keyPairGenerator.initialize(2048);
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+            tracer.out().printfIndentln("keyPair.getPrivate().getClass().getName() = %s", keyPair.getPrivate().getClass().getName());
+
+            JsonObject joseHeader = Json.createObjectBuilder()
+                    .add("alg", "RS256")
+                    .build();
+
+            JsonObject payload = Json.createObjectBuilder()
+                    .add("iss", "joe")
+                    .add("exp", 1300819380)
+                    .add("http://example.com/is_root", "true")
+                    .build();
+
+            JWSSigner jwsSigner = new JWSSigner(joseHeader, payload);
+            assertThat(jwsSigner.jwa.algorithm()).isEqualTo("SHA256withRSA");
+            JWSCompactSerialization compactSerialization = jwsSigner.sign(keyPair.getPrivate());
+            tracer.out().printfIndentln("compactSerialization = %s", compactSerialization);
+
+            JWSValidator jwsValidator = new JWSValidator(compactSerialization);
+            assertThat(jwsValidator.jwa.algorithm()).isEqualTo("SHA256withRSA");
+            assertThat(jwsValidator.getStrJoseHeader()).isEqualTo(joseHeader.toString());
+            assertThat(jwsValidator.getStrPayload()).isEqualTo(payload.toString());
+            assertThat(jwsValidator.validate(keyPair.getPublic())).isTrue();
         } finally {
             tracer.wayout();
         }
