@@ -200,6 +200,17 @@ public class RSASSA_PKCS1_v1_5Unit implements Traceable, WithAssertions {
             assertThat(jwsValidator.getStrJoseHeader()).isEqualTo(joseHeader.toString());
             assertThat(jwsValidator.getStrPayload()).isEqualTo(payload.toString());
             assertThat(jwsValidator.validate(keyPair.getPublic())).isTrue();
+
+            JsonObject fakePayload = Json.createObjectBuilder()
+                    .add("iss", "harry")
+                    .add("exp", 1300819380)
+                    .add("http://example.com/is_root", "true")
+                    .build();
+
+            jwsSigner = new JWSSigner(joseHeader, fakePayload);
+            JWSCompactSerialization fakeSerialization = new JWSCompactSerialization(compactSerialization.header(), jwsSigner.sign(keyPair.getPrivate()).payload(), compactSerialization.signature());
+            jwsValidator = new JWSValidator(fakeSerialization);
+            assertThat(jwsValidator.validate(keyPair.getPublic())).isFalse();
         } finally {
             tracer.wayout();
         }

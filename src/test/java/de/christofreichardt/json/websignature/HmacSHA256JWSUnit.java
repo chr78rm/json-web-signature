@@ -50,9 +50,9 @@ public class HmacSHA256JWSUnit implements Traceable, WithAssertions {
     }
 
     @Test
-    void hmacSha256WithObjects() throws GeneralSecurityException {
+    void hmacSha256WithJsonObjects() throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
-        tracer.entry("void", this, "hmacSha256WithObjects()");
+        tracer.entry("void", this, "hmacSha256WithJsonObjects()");
 
         try {
             KeyGenerator keyGenerator = KeyGenerator.getInstance("HmacSHA256");
@@ -83,6 +83,16 @@ public class HmacSHA256JWSUnit implements Traceable, WithAssertions {
             tracer.out().printfIndentln("jwsSigner.getStrPayload() = %s", jwsSigner.getStrPayload());
             assertThat(jwsValidator.getStrPayload()).isEqualTo(payload.toString());
             assertThat(jwsValidator.validate(secretKey)).isTrue();
+
+            JsonObject fakePayload = Json.createObjectBuilder()
+                    .add("iss", "harry")
+                    .add("http://example.com/is_root", "true")
+                    .build();
+
+            jwsSigner = new JWSSigner(joseHeader, fakePayload);
+            JWSCompactSerialization fakeSerialization = new JWSCompactSerialization(compactSerialization.header(), jwsSigner.sign(secretKey).payload(), compactSerialization.signature());
+            jwsValidator = new JWSValidator(fakeSerialization);
+            assertThat(jwsValidator.validate(secretKey)).isFalse();
         } finally {
             tracer.wayout();
         }
