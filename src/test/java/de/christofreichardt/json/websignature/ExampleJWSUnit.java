@@ -63,6 +63,12 @@ public class ExampleJWSUnit implements Traceable, WithAssertions {
         }
     }
 
+    /**
+     * Example taken from RFC 7515: JSON Web Signature (JWS).
+     * @see<a href="https://www.rfc-editor.org/rfc/rfc7515.html#appendix-A.1">Example JWS Using HMAC SHA-256</a>
+     * 
+     * @throws GeneralSecurityException 
+     */
     @Test
     void example_1() throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();

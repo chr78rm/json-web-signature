@@ -108,6 +108,12 @@ public class RSASSA_PKCS1_v1_5Unit implements Traceable, WithAssertions {
 
     }
 
+    /**
+     * Example taken from RFC 7515: JSON Web Signature (JWS).
+     * @see <a href="https://www.rfc-editor.org/rfc/rfc7515.html#appendix-A.2">A.2 Example JWS Using RSASSA-PKCS1-v1_5 SHA-256</a>
+     * 
+     * @throws GeneralSecurityException 
+     */
     @Test
     void withStrings() throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();

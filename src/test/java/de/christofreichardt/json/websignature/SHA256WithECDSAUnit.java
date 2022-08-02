@@ -11,9 +11,9 @@ import org.junit.jupiter.api.TestInstance;
 
 import javax.json.Json;
 import javax.json.JsonObject;
-import java.math.BigInteger;
 import java.security.*;
 import java.security.interfaces.ECPrivateKey;
+import java.security.spec.ECFieldFp;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.ECParameterSpec;
 
@@ -35,6 +35,14 @@ public class SHA256WithECDSAUnit implements Traceable, WithAssertions {
         }
     }
 
+    /**
+     * The JSON Web Algorithm (JWA) 'ES256' specified in RFC 7518 requires the use of the NIST curve P-256. The test case prints the relevant curve parameter which can be checked against
+     * the specification of the NIST. 
+     * @see <a href="https://www.rfc-editor.org/rfc/rfc7518.html#section-3.4">3.4. Digital Signature with ECDSA</a>
+     * @see <a href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf">Digital Signature Standard (DSS)</a>
+     * 
+     * @throws GeneralSecurityException 
+     */
     @Test
     void withJsonObjects() throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
@@ -48,9 +56,14 @@ public class SHA256WithECDSAUnit implements Traceable, WithAssertions {
             ECPrivateKey ecPrivateKey = (ECPrivateKey) keyPair.getPrivate();
             ECParameterSpec ecParameterSpec = ecPrivateKey.getParams();
             tracer.out().printfIndentln("n = %s", ecParameterSpec.getOrder());
-            tracer.out().printfIndentln("bitlength(n) = %s", ecParameterSpec.getOrder().subtract(BigInteger.ONE).bitLength());
-            tracer.out().printfIndentln("signum(n) = %s", ecParameterSpec.getOrder().subtract(BigInteger.ONE).signum());
-            assertThat(ecParameterSpec.getOrder()).isEqualTo(new BigInteger("115792089210356248762697446949407573529996955224135760342422259061068512044369"));
+            tracer.out().printfIndentln("bitlength(%d) = %d", ecParameterSpec.getOrder(), ecParameterSpec.getOrder().bitLength());
+            tracer.out().printfIndentln("cofactor = %d", ecParameterSpec.getCofactor());
+            if (ecParameterSpec.getCurve().getField() instanceof ECFieldFp ecFieldFp) {
+                tracer.out().printfIndentln("curve[a=%s, b=%s, p=%d]", 
+                        ecParameterSpec.getCurve().getA().subtract(ecFieldFp.getP()), ecParameterSpec.getCurve().getB().toString(16), ecFieldFp.getP());
+                tracer.out().printfIndentln("generator[x=%s, y=%s]", 
+                        ecParameterSpec.getGenerator().getAffineX().toString(16), ecParameterSpec.getGenerator().getAffineY().toString(16));
+            }
 
             JsonObject joseHeader = Json.createObjectBuilder()
                     .add("alg", "ES256")
