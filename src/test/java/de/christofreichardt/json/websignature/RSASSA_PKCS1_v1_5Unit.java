@@ -3,8 +3,13 @@ package de.christofreichardt.json.websignature;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
+import de.christofreichardt.json.JsonTracer;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.StringReader;
 import java.math.BigInteger;
+import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -23,6 +28,17 @@ import org.junit.jupiter.api.TestInstance;
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RSASSA_PKCS1_v1_5Unit implements Traceable, WithAssertions {
+    
+    class MyJsonTracer extends JsonTracer {
+
+        @Override
+        public AbstractTracer getCurrentTracer() {
+            return RSASSA_PKCS1_v1_5Unit.this.getCurrentTracer();
+        }
+        
+    }
+    
+    final MyJsonTracer jsonTracer = new MyJsonTracer();
 
     @BeforeAll
     void init() {
@@ -217,6 +233,39 @@ public class RSASSA_PKCS1_v1_5Unit implements Traceable, WithAssertions {
             JWSCompactSerialization fakeSerialization = new JWSCompactSerialization(compactSerialization.header(), jwsSigner.sign(keyPair.getPrivate()).payload(), compactSerialization.signature());
             jwsValidator = new JWSValidator(fakeSerialization);
             assertThat(jwsValidator.validate(keyPair.getPublic())).isFalse();
+        } finally {
+            tracer.wayout();
+        }
+    }
+    
+    @Test
+    void oidcToken() throws FileNotFoundException, GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "oidcToken()");
+
+        try {
+            File tokenFile = Path.of(".", "tokens", "test-token.json").toFile();
+            JsonObject token;
+            try ( JsonReader jsonReader = Json.createReader(new FileReader(tokenFile))) {
+                token = jsonReader.readObject();
+            }
+            this.jsonTracer.trace(token);
+            String accessToken = token.getString("access_token");
+            JWSCompactSerialization compactSerialization = JWSCompactSerialization.of(accessToken);
+
+            String encodedModulus = "oyfV3I-K1z6O5FRQWJY6tWet2eZpOSs0rdJwv3YiGKrT3BfFfiJqoYAeNDbVXW6vLx-5jhl_RIFsQjGB4R0HiHaMEPvXAneO2brU6yGqwUMA5IAMYU6Km3kfmXgqLyx5mIvwdCHZw-6oHpUnwzIz9wSgiY-qIany-4jKXlJlZ7smo8He1xoRbT74lbmd6LdFCPHcFx3c9PrYJPhdhDK4dqEK02t5OLiaZuOGhKqCHU5RKTaPJzG_ypTlpUywEule7NdL9UDJRFz-IyXOBNTL0Jl2c7HaReHDJrFa13Kk5MlVtrv2mRkMzoJiKdS-stoAzyxcNFj-MSyOo_3mqm299Q";
+            String encodedExponent = "AQAB";
+            BigInteger modulus, e;
+            modulus = new BigInteger(1, JWSBase.decodeToBytes(encodedModulus));
+            e = new BigInteger(1, JWSBase.decodeToBytes(encodedExponent));
+            tracer.out().printfIndentln("modulus = %d", modulus);
+            tracer.out().printfIndentln("e = %d", e);
+
+            JWSValidator jwsValidator = new JWSValidator(compactSerialization);
+            this.jsonTracer.trace(jwsValidator.getJoseHeader());
+            this.jsonTracer.trace(jwsValidator.getPayload());
+            RSAPublicKey publicKey = new RSAPublicKey(modulus, e);
+            assertThat(jwsValidator.validate(publicKey)).isTrue();
         } finally {
             tracer.wayout();
         }
