@@ -41,7 +41,7 @@ public class SHA256WithECDSAUnit implements Traceable, WithAssertions {
      * @see <a href="https://www.rfc-editor.org/rfc/rfc7518.html#section-3.4">3.4. Digital Signature with ECDSA</a>
      * @see <a href="https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.186-4.pdf">Digital Signature Standard (DSS)</a>
      * 
-     * @throws GeneralSecurityException 
+     * @throws GeneralSecurityException indicates problems when generating the key pair
      */
     @Test
     void withJsonObjects() throws GeneralSecurityException {
@@ -55,6 +55,7 @@ public class SHA256WithECDSAUnit implements Traceable, WithAssertions {
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
             ECPrivateKey ecPrivateKey = (ECPrivateKey) keyPair.getPrivate();
             ECParameterSpec ecParameterSpec = ecPrivateKey.getParams();
+            tracer.out().printfIndentln("ecParameterSpec = %s", ecParameterSpec);
             tracer.out().printfIndentln("n = %s", ecParameterSpec.getOrder());
             tracer.out().printfIndentln("bitlength(%d) = %d", ecParameterSpec.getOrder(), ecParameterSpec.getOrder().bitLength());
             tracer.out().printfIndentln("cofactor = %d", ecParameterSpec.getCofactor());

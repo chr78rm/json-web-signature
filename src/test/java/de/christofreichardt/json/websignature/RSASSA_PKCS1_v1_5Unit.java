@@ -4,6 +4,15 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.json.JsonTracer;
+import org.assertj.core.api.WithAssertions;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -13,14 +22,6 @@ import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import org.assertj.core.api.WithAssertions;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 
 /**
  *
@@ -201,6 +202,10 @@ public class RSASSA_PKCS1_v1_5Unit implements Traceable, WithAssertions {
             keyPairGenerator.initialize(2048);
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
             tracer.out().printfIndentln("keyPair.getPrivate().getClass().getName() = %s", keyPair.getPrivate().getClass().getName());
+            tracer.out().printfIndentln("keyPair.getPublic().getClass().getName() = %s", keyPair.getPublic().getClass().getName());
+            if (keyPair.getPublic() instanceof java.security.interfaces.RSAPublicKey publicKey) {
+                tracer.out().printfIndentln("rsaPublicKey.getParams() = %s", publicKey.getParams());
+            }
 
             JsonObject joseHeader = Json.createObjectBuilder()
                     .add("alg", "RS256")
