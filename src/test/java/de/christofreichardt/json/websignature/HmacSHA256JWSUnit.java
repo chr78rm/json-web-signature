@@ -58,7 +58,7 @@ public class HmacSHA256JWSUnit implements Traceable, WithAssertions {
             KeyGenerator keyGenerator = KeyGenerator.getInstance("HmacSHA256");
             SecretKey secretKey = keyGenerator.generateKey();
             HexFormat hexFormat = HexFormat.of().withDelimiter(", ").withPrefix("0x");
-            tracer.out().printfIndentln("keysize = %d, octets = %s", secretKey.getEncoded().length, hexFormat.formatHex(secretKey.getEncoded()));
+            tracer.out().printfIndentln("alg = %s, keysize = %d, octets = %s", secretKey.getAlgorithm(), secretKey.getEncoded().length, hexFormat.formatHex(secretKey.getEncoded()));
             
             JsonObject joseHeader = Json.createObjectBuilder()
                     .add("alg", "HS256")
