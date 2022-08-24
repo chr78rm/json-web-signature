@@ -14,7 +14,11 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.ECGenParameterSpec;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.RSAKeyGenParameterSpec;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import org.assertj.core.api.WithAssertions;
@@ -141,7 +145,7 @@ public class JWKUnit implements Traceable, WithAssertions {
     }
 
     @Test
-    void jwkWithECPublicKey() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+    void jwkWithECPublicKey() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeySpecException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "jwkWithECPublicKey()");
 
@@ -154,27 +158,48 @@ public class JWKUnit implements Traceable, WithAssertions {
             JsonWebKey jsonWebKey = JsonWebKey.of(keyPair.getPublic())
                     .withKid(kid)
                     .build();
+
+            if (keyPair.getPublic() instanceof ECPublicKey ecGenPublicKey) {
+                tracer.out().printfIndentln("x = %d", ecGenPublicKey.getW().getAffineX());
+                tracer.out().printfIndentln("y = %d", ecGenPublicKey.getW().getAffineY());
+            } else {
+                throw new RuntimeException();
+            }
             this.jsonTracer.trace(jsonWebKey.toJson());
+
             assertThat(jsonWebKey.getKid()).isEqualTo(kid);
             assertThat(jsonWebKey.toJson().getString("crv")).contains("NIST P-256");
             assertThat(jsonWebKey.getPublicKey()).isNotNull();
             assertThat(jsonWebKey.getPublicKey().getAlgorithm()).isEqualTo("EC");
             assertThat(jsonWebKey.getPrivateKey()).isNull();
             assertThat(jsonWebKey.getSecretKey()).isNull();
+
+            JsonWebKey recoveredJsonWebKey = JsonWebKey.fromJson(jsonWebKey.toJson());
+            if (recoveredJsonWebKey.getPublicKey() instanceof ECPublicKey ecRecPublicKey) {
+                assertThat(ecGenPublicKey.equals(ecRecPublicKey)).isTrue();
+            } else {
+                throw new RuntimeException();
+            }
         } finally {
             tracer.wayout();
         }
     }
 
     @Test
-    void jwkWithRSAPublicKey() throws NoSuchAlgorithmException {
+    void jwkWithRSAPublicKey() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "jwkWithRSAPublicKey()");
 
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-            keyPairGenerator.initialize(2048);
+            AlgorithmParameterSpec algorithmParameterSpec = new RSAKeyGenParameterSpec(2048, RSAKeyGenParameterSpec.F4);
+            keyPairGenerator.initialize(algorithmParameterSpec);
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
+            if (keyPair.getPublic() instanceof RSAPublicKey rsaPublicKey) {
+                if (rsaPublicKey.getParams() instanceof RSAKeyGenParameterSpec rsaKeyGenParameterSpec) {
+                    tracer.out().printfIndentln("rsaKeyGenParameterSpec = %s", rsaKeyGenParameterSpec);
+                }
+            }
             String kid = "bcc3ed94-5fac-4d07-9264-490d93b00036";
             JsonWebKey jsonWebKey = JsonWebKey.of(keyPair.getPublic())
                     .withKid(kid)
