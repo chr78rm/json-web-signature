@@ -119,7 +119,7 @@ public class JWKUnit implements Traceable, WithAssertions {
     }
 
     @Test
-    void jwkWithECKeyPair() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+    void jwkWithECKeyPair() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException, InvalidKeySpecException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "jwkWithECKeyPair()");
 
@@ -132,6 +132,19 @@ public class JWKUnit implements Traceable, WithAssertions {
             JsonWebKey jsonWebKey = JsonWebKey.of(keyPair)
                     .withKid(kid)
                     .build();
+
+            if (keyPair.getPublic() instanceof ECPublicKey ecGenPublicKey) {
+                tracer.out().printfIndentln("x = %d", ecGenPublicKey.getW().getAffineX());
+                tracer.out().printfIndentln("y = %d", ecGenPublicKey.getW().getAffineY());
+            } else {
+                throw new RuntimeException();
+            }
+            if (keyPair.getPrivate() instanceof ECPrivateKey ecGenPrivateKey) {
+                tracer.out().printfIndentln("ecGenPrivateKey.getS() = %d", ecGenPrivateKey.getS());
+            } else {
+                throw new RuntimeException();
+            }
+
             this.jsonTracer.trace(jsonWebKey.toJson());
             assertThat(jsonWebKey.getKid()).isEqualTo(kid);
             assertThat(jsonWebKey.toJson().getString("crv")).contains("NIST P-256");
@@ -139,6 +152,21 @@ public class JWKUnit implements Traceable, WithAssertions {
             assertThat(jsonWebKey.getPublicKey().getAlgorithm()).isEqualTo("EC");
             assertThat(jsonWebKey.getPrivateKey()).isNotNull();
             assertThat(jsonWebKey.getSecretKey()).isNull();
+
+            JsonWebKey recoveredJsonWebKey = JsonWebKey.fromJson(jsonWebKey.toJson());
+            assertThat(recoveredJsonWebKey.getKid()).isEqualTo(kid);
+            if (recoveredJsonWebKey.getPublicKey() instanceof ECPublicKey ecRecPublicKey) {
+                assertThat(ecGenPublicKey.equals(ecRecPublicKey)).isTrue();
+            } else {
+                throw new RuntimeException();
+            }
+            assertThat(recoveredJsonWebKey.getPublicKey().getAlgorithm()).isEqualTo("EC");
+            if (recoveredJsonWebKey.getPrivateKey() instanceof ECPrivateKey ecRecPrivateKey) {
+                assertThat(ecGenPrivateKey.equals(ecRecPrivateKey)).isTrue();
+            } else {
+                throw new RuntimeException();
+            }
+            assertThat(recoveredJsonWebKey.getSecretKey()).isNull();
         } finally {
             tracer.wayout();
         }
@@ -175,11 +203,15 @@ public class JWKUnit implements Traceable, WithAssertions {
             assertThat(jsonWebKey.getSecretKey()).isNull();
 
             JsonWebKey recoveredJsonWebKey = JsonWebKey.fromJson(jsonWebKey.toJson());
+            assertThat(recoveredJsonWebKey.getKid()).isEqualTo(kid);
             if (recoveredJsonWebKey.getPublicKey() instanceof ECPublicKey ecRecPublicKey) {
                 assertThat(ecGenPublicKey.equals(ecRecPublicKey)).isTrue();
             } else {
                 throw new RuntimeException();
             }
+            assertThat(recoveredJsonWebKey.getPublicKey().getAlgorithm()).isEqualTo("EC");
+            assertThat(recoveredJsonWebKey.getPrivateKey()).isNull();
+            assertThat(recoveredJsonWebKey.getSecretKey()).isNull();
         } finally {
             tracer.wayout();
         }
