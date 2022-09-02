@@ -6,10 +6,10 @@ final public class JsonWebSecretKey extends JsonWebKey {
         super("", "oct");
     }
 
-    public static class Builder extends JsonWebKey.Builder {
+    public static class Builder extends JsonWebKey.Builder<Builder> {
 
         @Override
-        JsonWebKey build() {
+        JsonWebSecretKey build() {
             return null;
         }
     }

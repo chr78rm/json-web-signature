@@ -2,9 +2,6 @@ package de.christofreichardt.json.webkey;
 
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
-import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.spec.ECFieldFp;
 import java.security.spec.ECParameterSpec;
 import java.security.spec.ECPoint;
@@ -12,7 +9,6 @@ import java.security.spec.EllipticCurve;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import javax.crypto.SecretKey;
 
 abstract public sealed class JsonWebKey permits JsonWebKeyPair, JsonWebPublicKey, JsonWebSecretKey {
 
@@ -34,25 +30,17 @@ abstract public sealed class JsonWebKey permits JsonWebKeyPair, JsonWebPublicKey
         EC_PARAMETER_SPEC_MAP.put("secp256r1", ecParameterSpec);
     }
 
-    static <T extends JsonWebKey> Builder of(Class<T> clazz) {
-        return switch (clazz.getSimpleName()) {
-            case "JsonWebKeyPair" -> new JsonWebKeyPair.Builder();
-            case "JsonWebPublicKey" -> new JsonWebPublicKey.Builder();
-            case "JsonWebSecretKey" -> new JsonWebSecretKey.Builder();
-            default -> throw new UnsupportedOperationException();
-        };
-    }
-
-    abstract public static class Builder<T extends JsonWebKey> {
+    abstract public static class Builder<T extends Builder<T>> {
         String kid = UUID.randomUUID().toString();
 
-        public Builder withKid(String kid) {
+        public T withKid(String kid) {
             this.kid = kid;
-            return this;
+            return (T) this;
         }
 
-        abstract T build() throws GeneralSecurityException;
+        abstract JsonWebKey build() throws GeneralSecurityException;
     }
+
 
     final String kid;
     final String keyType;

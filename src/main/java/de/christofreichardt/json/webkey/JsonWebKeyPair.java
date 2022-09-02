@@ -15,14 +15,20 @@ import java.util.Objects;
 
 final public class JsonWebKeyPair extends JsonWebKey {
 
-    KeyPair keyPair;
-    AlgorithmParameterSpec algorithmParameterSpec;
+    static Builder of() {
+        return new Builder();
+    }
+
+    final KeyPair keyPair;
+    final AlgorithmParameterSpec algorithmParameterSpec;
 
     public JsonWebKeyPair(Builder builder) {
         super(builder.kid, builder.keyPair.getPublic().getAlgorithm());
         this.keyPair = builder.keyPair;
         if (this.keyPair.getPublic() instanceof ECPublicKey ecPublicKey) {
             this.algorithmParameterSpec = ecPublicKey.getParams();
+        } else {
+            this.algorithmParameterSpec = null;
         }
     }
 
@@ -35,12 +41,12 @@ final public class JsonWebKeyPair extends JsonWebKey {
         return String.format("JsonWebKeyPair[kid=%s, keyType=%S, params=%s]", this.kid, this.keyType, params);
     }
 
-    public static class Builder extends JsonWebKey.Builder<JsonWebKeyPair> {
+    public static class Builder extends JsonWebKey.Builder<Builder> {
 
         KeyPair keyPair;
         AlgorithmParameterSpec algorithmGenParameterSpec = new ECGenParameterSpec("secp256r1");
 
-        Builder withKeyPair(KeyPair keyPair) {
+        public Builder withKeyPair(KeyPair keyPair) {
             this.keyPair = keyPair;
             if (this.keyPair.getPrivate() instanceof ECPrivateKey ecPrivateKey) {
                 this.algorithmGenParameterSpec = ecPrivateKey.getParams();
@@ -50,7 +56,7 @@ final public class JsonWebKeyPair extends JsonWebKey {
             return this;
         }
 
-        Builder withAlgorithmParameterSpec(AlgorithmParameterSpec algorithmParameterSpec) {
+        public Builder withAlgorithmParameterSpec(AlgorithmParameterSpec algorithmParameterSpec) {
             if (!(algorithmParameterSpec instanceof ECGenParameterSpec) && !(algorithmParameterSpec instanceof RSAKeyGenParameterSpec)) {
                 throw new IllegalArgumentException();
             }

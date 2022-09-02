@@ -6,10 +6,10 @@ final public class JsonWebPublicKey extends JsonWebKey {
         super(builder.kid, "");
     }
 
-    public static class Builder extends JsonWebKey.Builder {
+    public static class Builder extends JsonWebKey.Builder<Builder> {
 
         @Override
-        JsonWebKey build() {
+        JsonWebPublicKey build() {
             return null;
         }
     }
