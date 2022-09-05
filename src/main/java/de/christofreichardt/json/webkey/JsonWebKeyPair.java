@@ -15,7 +15,7 @@ import java.util.Objects;
 
 final public class JsonWebKeyPair extends JsonWebKey {
 
-    static Builder of() {
+    public static Builder of() {
         return new Builder();
     }
 
@@ -38,7 +38,7 @@ final public class JsonWebKeyPair extends JsonWebKey {
         if (this.algorithmParameterSpec instanceof ECParameterSpec ecParameterSpec) {
             params = ecParameterSpec.toString();
         }
-        return String.format("JsonWebKeyPair[kid=%s, keyType=%S, params=%s]", this.kid, this.keyType, params);
+        return String.format("%s[kid=%s, keyType=%S, params=%s]", this.getClass().getSimpleName(), this.kid, this.keyType, params);
     }
 
     public static class Builder extends JsonWebKey.Builder<Builder> {
@@ -57,6 +57,9 @@ final public class JsonWebKeyPair extends JsonWebKey {
         }
 
         public Builder withAlgorithmParameterSpec(AlgorithmParameterSpec algorithmParameterSpec) {
+            if (Objects.nonNull(this.keyPair)) {
+                throw new IllegalStateException();
+            }
             if (!(algorithmParameterSpec instanceof ECGenParameterSpec) && !(algorithmParameterSpec instanceof RSAKeyGenParameterSpec)) {
                 throw new IllegalArgumentException();
             }

@@ -135,6 +135,29 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
         }
     }
 
+    @Test
+    void withParameterSpecAfterKeyPair() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "withParameterSpecAfterKeyPair()");
+
+        try {
+            String kid = UUID.randomUUID().toString();
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
+            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256r1");
+            keyPairGenerator.initialize(ecGenParameterSpec);
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+            assertThatExceptionOfType(IllegalStateException.class)
+                    .isThrownBy(() -> JsonWebKeyPair.of()
+                            .withKeyPair(keyPair)
+                            .withKid(kid)
+                            .withAlgorithmParameterSpec(ecGenParameterSpec)
+                            .build()
+                    );
+        } finally {
+            tracer.wayout();
+        }
+    }
+
     @AfterAll
     void exit() {
         AbstractTracer tracer = getCurrentTracer();
