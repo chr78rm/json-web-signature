@@ -38,7 +38,7 @@ final public class JsonWebKeyPair extends JsonWebKey {
         if (this.algorithmParameterSpec instanceof ECParameterSpec ecParameterSpec) {
             params = ecParameterSpec.toString();
         }
-        return String.format("%s[kid=%s, keyType=%S, params=%s]", this.getClass().getSimpleName(), this.kid, this.keyType, params);
+        return String.format("%s[kid=%s, keyType=%s, params=%s]", this.getClass().getSimpleName(), this.kid, this.keyType, params);
     }
 
     public static class Builder extends JsonWebKey.Builder<Builder> {

@@ -69,6 +69,7 @@ public class JsonWebPublicKeyUnit implements Traceable, WithAssertions {
             JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.of(keyPair.getPublic())
                     .withKid(kid)
                     .build();
+            tracer.out().printfIndentln("jsonWebPublicKey = %s", jsonWebPublicKey);
             assertThat(jsonWebPublicKey.keyType).isEqualTo("RSA");
             assertThat(jsonWebPublicKey.algorithmParameterSpec).isNull();
             assertThat(jsonWebPublicKey.publicKey).isInstanceOf(RSAPublicKey.class);

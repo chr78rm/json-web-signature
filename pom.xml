@@ -40,6 +40,7 @@
                         <include>de/christofreichardt/json/websignature/JOSEHeaderUnit.java</include>
                         <include>de/christofreichardt/json/webkey/JsonWebKeyPairUnit.java</include>
                         <include>de/christofreichardt/json/webkey/JsonWebPublicKeyUnit.java</include>
+                        <include>de/christofreichardt/json/webkey/JsonWebSecretKeyUnit.java</include>
                     </includes>
                     <argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
                     <systemPropertyVariables>
