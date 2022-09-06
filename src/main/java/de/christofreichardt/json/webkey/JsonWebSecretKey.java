@@ -2,7 +2,6 @@ package de.christofreichardt.json.webkey;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.spec.ECParameterSpec;
 import java.util.Map;
 import java.util.Objects;
 import javax.crypto.KeyGenerator;
@@ -10,7 +9,7 @@ import javax.crypto.SecretKey;
 
 final public class JsonWebSecretKey extends JsonWebKey {
 
-    final static public Map<String, String> JDK2JSON_ALGO_MAP = Map.of("HmacSHA256", "HS256");
+    final static public Map<String, String> JDK2JSON_ALGO_MAP = Map.of("HmacSHA256", "HS256", "HmacSHA512", "HS512");
 
     public static Builder of() {
         return new Builder();
@@ -27,7 +26,8 @@ final public class JsonWebSecretKey extends JsonWebKey {
 
     @Override
     public String toString() {
-        return String.format("%s[kid=%s, keyType=%s, algorithm=%s]", this.getClass().getSimpleName(), this.kid, this.keyType, this.secretKey.getAlgorithm());
+        return String.format("%s[kid=%s, keyType=%s, algorithm=%s, keysize=%d]", this.getClass().getSimpleName(),
+                this.kid, this.keyType, this.secretKey.getAlgorithm(), Objects.nonNull(this.secretKey.getEncoded()) ? this.secretKey.getEncoded().length * 8 : -1);
     }
 
     public static class Builder extends JsonWebKey.Builder<Builder> {
@@ -37,7 +37,7 @@ final public class JsonWebSecretKey extends JsonWebKey {
         int keysize = 256;
 
         public Builder withSecretKey(SecretKey secretKey) throws InvalidKeyException {
-            if (!JDK2JSON_ALGO_MAP.containsKey(this.secretKey.getAlgorithm())) {
+            if (!JDK2JSON_ALGO_MAP.containsKey(secretKey.getAlgorithm())) {
                 throw new InvalidKeyException();
             }
             this.secretKey = secretKey;
@@ -45,6 +45,9 @@ final public class JsonWebSecretKey extends JsonWebKey {
         }
 
         public Builder withKeysize(int keysize) {
+            if (Objects.nonNull(this.secretKey)) {
+                throw new IllegalStateException();
+            }
             this.keysize = keysize;
             return this;
         }
