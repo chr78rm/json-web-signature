@@ -3,6 +3,7 @@ package de.christofreichardt.json.webkey;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
+import de.christofreichardt.json.JsonTracer;
 import java.security.*;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
@@ -21,6 +22,16 @@ import org.junit.jupiter.api.TestInstance;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
+
+    class MyJsonTracer extends JsonTracer {
+
+        @Override
+        public AbstractTracer getCurrentTracer() {
+            return JsonWebKeyPairUnit.this.getCurrentTracer();
+        }
+    }
+
+    final MyJsonTracer jsonTracer = new MyJsonTracer();
 
     @BeforeAll
     void init() {
@@ -41,7 +52,10 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
         try {
             JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
                     .build();
+
             tracer.out().printfIndentln("jsonWebKeyPair = %s", jsonWebKeyPair);
+            this.jsonTracer.trace(jsonWebKeyPair.toJson());
+
             assertThat(jsonWebKeyPair.algorithmParameterSpec instanceof ECParameterSpec).isTrue();
             assertThat(jsonWebKeyPair.keyType).isEqualTo("EC");
             assertThat(jsonWebKeyPair.keyPair.getPrivate()).isInstanceOf(ECPrivateKey.class);
@@ -62,7 +76,10 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
             JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
                     .withKid(kid)
                     .build();
+
             tracer.out().printfIndentln("jsonWebKeyPair = %s", jsonWebKeyPair);
+            this.jsonTracer.trace(jsonWebKeyPair.toJson());
+
             assertThat(jsonWebKeyPair.algorithmParameterSpec instanceof ECParameterSpec).isTrue();
             assertThat(jsonWebKeyPair.keyType).isEqualTo("EC");
             assertThat(jsonWebKeyPair.kid).isEqualTo(kid);
@@ -83,7 +100,10 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
             JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
                     .withAlgorithmParameterSpec(ecGenParameterSpec)
                     .build();
+
             tracer.out().printfIndentln("jsonWebKeyPair = %s", jsonWebKeyPair);
+            this.jsonTracer.trace(jsonWebKeyPair.toJson());
+
             assertThat(jsonWebKeyPair.algorithmParameterSpec instanceof ECParameterSpec).isTrue();
             assertThat(jsonWebKeyPair.keyType).isEqualTo("EC");
             assertThat(jsonWebKeyPair.keyPair.getPrivate()).isInstanceOf(ECPrivateKey.class);
@@ -109,6 +129,10 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
                     .withKeyPair(keyPair)
                     .withKid(kid)
                     .build();
+
+            tracer.out().printfIndentln("jsonWebKeyPair = %s", jsonWebKeyPair);
+            this.jsonTracer.trace(jsonWebKeyPair.toJson());
+
             assertThat(jsonWebKeyPair.algorithmParameterSpec instanceof ECParameterSpec).isTrue();
             assertThat(jsonWebKeyPair.keyType).isEqualTo("EC");
             assertThat(jsonWebKeyPair.keyPair.getPrivate()).isInstanceOf(ECPrivateKey.class);
@@ -129,6 +153,10 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
             JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
                     .withAlgorithmParameterSpec(algorithmParameterSpec)
                     .build();
+
+            tracer.out().printfIndentln("jsonWebKeyPair = %s", jsonWebKeyPair);
+            this.jsonTracer.trace(jsonWebKeyPair.toJson());
+
             assertThat(jsonWebKeyPair.keyType).isEqualTo("RSA");
             assertThat(jsonWebKeyPair.keyPair.getPrivate()).isInstanceOf(RSAPrivateKey.class);
             assertThat(jsonWebKeyPair.keyPair.getPublic()).isInstanceOf(RSAPublicKey.class);

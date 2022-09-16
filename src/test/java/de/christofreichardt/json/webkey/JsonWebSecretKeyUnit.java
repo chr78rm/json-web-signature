@@ -3,6 +3,7 @@ package de.christofreichardt.json.webkey;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
+import de.christofreichardt.json.JsonTracer;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
@@ -16,6 +17,16 @@ import org.junit.jupiter.api.TestInstance;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class JsonWebSecretKeyUnit implements Traceable, WithAssertions {
+
+    class MyJsonTracer extends JsonTracer {
+
+        @Override
+        public AbstractTracer getCurrentTracer() {
+            return JsonWebSecretKeyUnit.this.getCurrentTracer();
+        }
+    }
+
+    final MyJsonTracer jsonTracer = new MyJsonTracer();
 
     @BeforeAll
     void init() {
@@ -38,7 +49,10 @@ public class JsonWebSecretKeyUnit implements Traceable, WithAssertions {
             final String DEFAULT_ALGORITHM = "HmacSHA256";
             JsonWebSecretKey jsonWebSecretKey = JsonWebSecretKey.of()
                     .build();
+
             tracer.out().printfIndentln("jsonWebSecretKey = %s", jsonWebSecretKey);
+            this.jsonTracer.trace(jsonWebSecretKey.toJson());
+
             assertThat(jsonWebSecretKey.secretKey).isNotNull();
             assertThat(jsonWebSecretKey.secretKey.getAlgorithm()).isEqualTo(DEFAULT_ALGORITHM);
             assertThat(jsonWebSecretKey.secretKey.getEncoded().length).isEqualTo(DEFAULT_KEY_SIZE / 8);
@@ -62,7 +76,10 @@ public class JsonWebSecretKeyUnit implements Traceable, WithAssertions {
                     .withAlgorithm(ALGORITHM)
                     .withKeysize(KEY_SIZE)
                     .build();
+
             tracer.out().printfIndentln("jsonWebSecretKey = %s", jsonWebSecretKey);
+            this.jsonTracer.trace(jsonWebSecretKey.toJson());
+
             assertThat(jsonWebSecretKey.secretKey).isNotNull();
             assertThat(jsonWebSecretKey.secretKey.getAlgorithm()).isEqualTo(ALGORITHM);
             assertThat(jsonWebSecretKey.algorithm).isEqualTo(JsonWebSecretKey.JDK2JSON_ALGO_MAP.get(ALGORITHM));
@@ -86,7 +103,10 @@ public class JsonWebSecretKeyUnit implements Traceable, WithAssertions {
             JsonWebSecretKey jsonWebSecretKey = JsonWebSecretKey.of()
                     .withKid(kid)
                     .build();
+
             tracer.out().printfIndentln("jsonWebSecretKey = %s", jsonWebSecretKey);
+            this.jsonTracer.trace(jsonWebSecretKey.toJson());
+
             assertThat(jsonWebSecretKey.secretKey).isNotNull();
             assertThat(jsonWebSecretKey.secretKey.getAlgorithm()).isEqualTo(DEFAULT_ALGORITHM);
             assertThat(jsonWebSecretKey.secretKey.getEncoded().length).isEqualTo(DEFAULT_KEY_SIZE / 8);
@@ -114,7 +134,10 @@ public class JsonWebSecretKeyUnit implements Traceable, WithAssertions {
                     .withKid(kid)
                     .withSecretKey(secretKey)
                     .build();
+
             tracer.out().printfIndentln("jsonWebSecretKey = %s", jsonWebSecretKey);
+            this.jsonTracer.trace(jsonWebSecretKey.toJson());
+
             assertThat(jsonWebSecretKey.secretKey).isNotNull();
             assertThat(jsonWebSecretKey.secretKey.getAlgorithm()).isEqualTo(ALGORITHM);
             assertThat(jsonWebSecretKey.algorithm).isEqualTo(JsonWebSecretKey.JDK2JSON_ALGO_MAP.get(ALGORITHM));

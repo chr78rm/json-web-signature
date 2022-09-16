@@ -9,6 +9,7 @@ import java.security.spec.ECFieldFp;
 import java.security.spec.ECParameterSpec;
 import java.security.spec.ECPoint;
 import java.security.spec.EllipticCurve;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -18,8 +19,9 @@ import javax.json.JsonObjectBuilder;
 
 abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyPair, JsonWebPublicKey, JsonWebSecretKey {
 
-    final static public Map<String, String> JDK2JSON_ALGO_MAP = Map.of("HmacSHA256", "HS256");
-    final static public Map<String, ECParameterSpec> EC_PARAMETER_SPEC_MAP = new HashMap<>();
+    static final Map<String, String> JDK2JSON_ALGO_MAP = Map.of("HmacSHA256", "HS256");
+    static final Map<String, ECParameterSpec> EC_PARAMETER_SPEC_MAP = new HashMap<>();
+    static final Base64.Encoder BASE64_URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
 
     static {
         BigInteger p = new BigInteger("115792089210356248762697446949407573530086143415290314195533631308867097853951");
@@ -41,7 +43,10 @@ abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyP
 
         public T withKid(String kid) {
             this.kid = kid;
-            return (T) this;
+            @SuppressWarnings("unchecked")
+            T t = (T) this;
+
+            return t;
         }
 
         abstract JsonWebKey build() throws GeneralSecurityException;
@@ -68,9 +73,10 @@ abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyP
             JsonObjectBuilder jsonObjectBuilder = Json.createObjectBuilder()
                     .add("kty", this.keyType);
             if (Objects.nonNull(this.kid)) {
-
+                jsonObjectBuilder.add("kid", this.kid);
             }
-            return null;
+
+            return jsonObjectBuilder.build();
         } finally {
             tracer.wayout();
         }

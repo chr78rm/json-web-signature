@@ -3,6 +3,7 @@ package de.christofreichardt.json.webkey;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
+import de.christofreichardt.json.JsonTracer;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -22,6 +23,16 @@ import org.junit.jupiter.api.TestInstance;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class JsonWebPublicKeyUnit implements Traceable, WithAssertions {
+
+    class MyJsonTracer extends JsonTracer {
+
+        @Override
+        public AbstractTracer getCurrentTracer() {
+            return JsonWebPublicKeyUnit.this.getCurrentTracer();
+        }
+    }
+
+    final MyJsonTracer jsonTracer = new MyJsonTracer();
 
     @BeforeAll
     void init() {
@@ -46,7 +57,10 @@ public class JsonWebPublicKeyUnit implements Traceable, WithAssertions {
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
             JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.of(keyPair.getPublic())
                     .build();
+
             tracer.out().printfIndentln("jsonWebPublicKey = %s", jsonWebPublicKey);
+            this.jsonTracer.trace(jsonWebPublicKey.toJson());
+
             assertThat(jsonWebPublicKey.keyType).isEqualTo("EC");
             assertThat(jsonWebPublicKey.algorithmParameterSpec).isInstanceOf(ECParameterSpec.class);
             assertThat(jsonWebPublicKey.publicKey).isInstanceOf(ECPublicKey.class);
@@ -70,7 +84,10 @@ public class JsonWebPublicKeyUnit implements Traceable, WithAssertions {
             JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.of(keyPair.getPublic())
                     .withKid(kid)
                     .build();
+
             tracer.out().printfIndentln("jsonWebPublicKey = %s", jsonWebPublicKey);
+            this.jsonTracer.trace(jsonWebPublicKey.toJson());
+
             assertThat(jsonWebPublicKey.keyType).isEqualTo("RSA");
             assertThat(jsonWebPublicKey.algorithmParameterSpec).isNull();
             assertThat(jsonWebPublicKey.publicKey).isInstanceOf(RSAPublicKey.class);

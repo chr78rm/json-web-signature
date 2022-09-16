@@ -1,12 +1,16 @@
 package de.christofreichardt.json.webkey;
 
+import de.christofreichardt.diagnosis.AbstractTracer;
+import de.christofreichardt.json.websignature.JWSUtils;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Objects;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 
 final public class JsonWebSecretKey extends JsonWebKey {
 
@@ -33,7 +37,19 @@ final public class JsonWebSecretKey extends JsonWebKey {
 
     @Override
     JsonObject toJson() {
-        return null;
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("JsonObject", this, "toJson()");
+
+        try {
+            JsonObjectBuilder jsonObjectBuilder = Json.createObjectBuilder(super.toJson());
+            tracer.out().printfIndentln("octets(secretKey) = %s", JWSUtils.formatBytes(this.secretKey.getEncoded()));
+            jsonObjectBuilder.add("k", BASE64_URL_ENCODER.encodeToString(this.secretKey.getEncoded()));
+            jsonObjectBuilder.add("alg", this.algorithm);
+
+            return jsonObjectBuilder.build();
+        } finally {
+            tracer.wayout();
+        }
     }
 
     public static class Builder extends JsonWebKey.Builder<Builder> {
