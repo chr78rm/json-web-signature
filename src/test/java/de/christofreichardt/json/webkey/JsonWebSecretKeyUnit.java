@@ -44,7 +44,7 @@ public class JsonWebSecretKeyUnit implements Traceable, WithAssertions {
             assertThat(jsonWebSecretKey.secretKey.getEncoded().length).isEqualTo(DEFAULT_KEY_SIZE / 8);
             assertThat(jsonWebSecretKey.algorithm).isEqualTo(JsonWebSecretKey.JDK2JSON_ALGO_MAP.get(DEFAULT_ALGORITHM));
             assertThat(jsonWebSecretKey.keyType).isEqualTo("oct");
-            assertThat(jsonWebSecretKey.kid).isNotNull();
+            assertThat(jsonWebSecretKey.kid).isNull();
         } finally {
             tracer.wayout();
         }
@@ -68,7 +68,7 @@ public class JsonWebSecretKeyUnit implements Traceable, WithAssertions {
             assertThat(jsonWebSecretKey.algorithm).isEqualTo(JsonWebSecretKey.JDK2JSON_ALGO_MAP.get(ALGORITHM));
             assertThat(jsonWebSecretKey.secretKey.getEncoded().length).isEqualTo(KEY_SIZE / 8);
             assertThat(jsonWebSecretKey.keyType).isEqualTo("oct");
-            assertThat(jsonWebSecretKey.kid).isNotNull();
+            assertThat(jsonWebSecretKey.kid).isNull();
         } finally {
             tracer.wayout();
         }

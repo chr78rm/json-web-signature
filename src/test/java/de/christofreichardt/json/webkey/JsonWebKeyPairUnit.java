@@ -46,6 +46,7 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
             assertThat(jsonWebKeyPair.keyType).isEqualTo("EC");
             assertThat(jsonWebKeyPair.keyPair.getPrivate()).isInstanceOf(ECPrivateKey.class);
             assertThat(jsonWebKeyPair.keyPair.getPublic()).isInstanceOf(ECPublicKey.class);
+            assertThat(jsonWebKeyPair.kid).isNull();
         } finally {
             tracer.wayout();
         }
@@ -87,6 +88,7 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
             assertThat(jsonWebKeyPair.keyType).isEqualTo("EC");
             assertThat(jsonWebKeyPair.keyPair.getPrivate()).isInstanceOf(ECPrivateKey.class);
             assertThat(jsonWebKeyPair.keyPair.getPublic()).isInstanceOf(ECPublicKey.class);
+            assertThat(jsonWebKeyPair.kid).isNull();
         } finally {
             tracer.wayout();
         }
@@ -130,6 +132,7 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
             assertThat(jsonWebKeyPair.keyType).isEqualTo("RSA");
             assertThat(jsonWebKeyPair.keyPair.getPrivate()).isInstanceOf(RSAPrivateKey.class);
             assertThat(jsonWebKeyPair.keyPair.getPublic()).isInstanceOf(RSAPublicKey.class);
+            assertThat(jsonWebKeyPair.kid).isNull();
         } finally {
             tracer.wayout();
         }

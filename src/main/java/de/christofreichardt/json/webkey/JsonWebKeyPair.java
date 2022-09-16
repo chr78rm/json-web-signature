@@ -12,6 +12,7 @@ import java.security.spec.ECGenParameterSpec;
 import java.security.spec.ECParameterSpec;
 import java.security.spec.RSAKeyGenParameterSpec;
 import java.util.Objects;
+import javax.json.JsonObject;
 
 final public class JsonWebKeyPair extends JsonWebKey {
 
@@ -39,6 +40,11 @@ final public class JsonWebKeyPair extends JsonWebKey {
             params = ecParameterSpec.toString();
         }
         return String.format("%s[kid=%s, keyType=%s, params=%s]", this.getClass().getSimpleName(), this.kid, this.keyType, params);
+    }
+
+    @Override
+    public JsonObject toJson() {
+        return null;
     }
 
     public static class Builder extends JsonWebKey.Builder<Builder> {

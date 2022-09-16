@@ -50,6 +50,7 @@ public class JsonWebPublicKeyUnit implements Traceable, WithAssertions {
             assertThat(jsonWebPublicKey.keyType).isEqualTo("EC");
             assertThat(jsonWebPublicKey.algorithmParameterSpec).isInstanceOf(ECParameterSpec.class);
             assertThat(jsonWebPublicKey.publicKey).isInstanceOf(ECPublicKey.class);
+            assertThat(jsonWebPublicKey.kid).isNull();
         } finally {
             tracer.wayout();
         }

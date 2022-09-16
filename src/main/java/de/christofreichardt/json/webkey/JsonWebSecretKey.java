@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Objects;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.json.JsonObject;
 
 final public class JsonWebSecretKey extends JsonWebKey {
 
@@ -28,6 +29,11 @@ final public class JsonWebSecretKey extends JsonWebKey {
     public String toString() {
         return String.format("%s[kid=%s, keyType=%s, algorithm=%s, keysize=%d]", this.getClass().getSimpleName(),
                 this.kid, this.keyType, this.secretKey.getAlgorithm(), Objects.nonNull(this.secretKey.getEncoded()) ? this.secretKey.getEncoded().length * 8 : -1);
+    }
+
+    @Override
+    JsonObject toJson() {
+        return null;
     }
 
     public static class Builder extends JsonWebKey.Builder<Builder> {

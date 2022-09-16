@@ -1,5 +1,8 @@
 package de.christofreichardt.json.webkey;
 
+import de.christofreichardt.diagnosis.AbstractTracer;
+import de.christofreichardt.diagnosis.Traceable;
+import de.christofreichardt.diagnosis.TracerFactory;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.spec.ECFieldFp;
@@ -8,9 +11,12 @@ import java.security.spec.ECPoint;
 import java.security.spec.EllipticCurve;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
+import java.util.Objects;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 
-abstract public sealed class JsonWebKey permits JsonWebKeyPair, JsonWebPublicKey, JsonWebSecretKey {
+abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyPair, JsonWebPublicKey, JsonWebSecretKey {
 
     final static public Map<String, String> JDK2JSON_ALGO_MAP = Map.of("HmacSHA256", "HS256");
     final static public Map<String, ECParameterSpec> EC_PARAMETER_SPEC_MAP = new HashMap<>();
@@ -31,7 +37,7 @@ abstract public sealed class JsonWebKey permits JsonWebKeyPair, JsonWebPublicKey
     }
 
     abstract public static class Builder<T extends Builder<T>> {
-        String kid = UUID.randomUUID().toString();
+        String kid = null;
 
         public T withKid(String kid) {
             this.kid = kid;
@@ -40,7 +46,6 @@ abstract public sealed class JsonWebKey permits JsonWebKeyPair, JsonWebPublicKey
 
         abstract JsonWebKey build() throws GeneralSecurityException;
     }
-
 
     final String kid;
     final String keyType;
@@ -53,5 +58,26 @@ abstract public sealed class JsonWebKey permits JsonWebKeyPair, JsonWebPublicKey
     @Override
     public String toString() {
         return String.format("JsonWebKey[class=%s, kid=%s]", this.getClass().getSimpleName(), this.kid);
+    }
+
+    JsonObject toJson() {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("JsonObject", this, "toJson()");
+
+        try {
+            JsonObjectBuilder jsonObjectBuilder = Json.createObjectBuilder()
+                    .add("kty", this.keyType);
+            if (Objects.nonNull(this.kid)) {
+
+            }
+            return null;
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Override
+    public AbstractTracer getCurrentTracer() {
+        return TracerFactory.getInstance().getCurrentPoolTracer();
     }
 }

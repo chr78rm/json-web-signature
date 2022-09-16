@@ -4,6 +4,7 @@ import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.ECParameterSpec;
+import javax.json.JsonObject;
 
 final public class JsonWebPublicKey extends JsonWebKey {
 
@@ -31,6 +32,11 @@ final public class JsonWebPublicKey extends JsonWebKey {
             params = ecParameterSpec.toString();
         }
         return String.format("%s[kid=%s, keyType=%s, params=%s]", this.getClass().getSimpleName(), this.kid, this.keyType, params);
+    }
+
+    @Override
+    JsonObject toJson() {
+        return null;
     }
 
     public static class Builder extends JsonWebKey.Builder<Builder> {
