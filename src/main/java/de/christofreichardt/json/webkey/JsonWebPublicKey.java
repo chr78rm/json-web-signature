@@ -1,15 +1,25 @@
 package de.christofreichardt.json.webkey;
 
 import de.christofreichardt.diagnosis.AbstractTracer;
+import de.christofreichardt.json.JsonUtils;
 import de.christofreichardt.json.websignature.JWSUtils;
+import java.math.BigInteger;
+import java.security.GeneralSecurityException;
+import java.security.KeyFactory;
 import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.ECParameterSpec;
+import java.security.spec.ECPoint;
+import java.security.spec.ECPublicKeySpec;
+import java.security.spec.RSAPublicKeySpec;
+import java.util.Objects;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
+import javax.json.JsonString;
+import javax.json.JsonValue;
 
 final public class JsonWebPublicKey extends JsonWebKey {
 
@@ -37,6 +47,45 @@ final public class JsonWebPublicKey extends JsonWebKey {
             params = ecParameterSpec.toString();
         }
         return String.format("%s[kid=%s, keyType=%s, params=%s]", this.getClass().getSimpleName(), this.kid, this.keyType, params);
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("boolean", this, "equals(Object object)");
+
+        try {
+            if (this == object) return true;
+            if (object == null || getClass() != object.getClass()) return false;
+            JsonWebPublicKey that = (JsonWebPublicKey) object;
+            tracer.out().printfIndentln("this.publicKey.getClass().getName() = %s, that.publicKey.getClass().getName() = %s",
+                    this.publicKey.getClass().getName(), that.publicKey.getClass().getName());
+            boolean isAlgoTheSame;
+            if (this.algorithmParameterSpec instanceof ECParameterSpec ecParameterSpec1 && that.algorithmParameterSpec instanceof ECParameterSpec ecParameterSpec2) {
+                tracer.out().printfIndentln("ecParameterSpec1.getClass().getName() = %s", ecParameterSpec1.getClass().getName());
+                tracer.out().printfIndentln("ecParameterSpec2.getClass().getName() = %s", ecParameterSpec2.getClass().getName());
+                isAlgoTheSame = Objects.equals(ecParameterSpec1.toString(), ecParameterSpec2.toString());
+            } else if (this.algorithmParameterSpec instanceof ECParameterSpec && !(that.algorithmParameterSpec instanceof ECParameterSpec)) {
+                isAlgoTheSame = false;
+            } else if (that.algorithmParameterSpec instanceof ECParameterSpec && !(this.algorithmParameterSpec instanceof ECParameterSpec)) {
+                isAlgoTheSame = false;
+            } else if (Objects.isNull(this.algorithmParameterSpec) && Objects.isNull(that.algorithmParameterSpec)) {
+                isAlgoTheSame = true;
+            } else {
+                throw new IllegalArgumentException();
+            }
+            return Objects.equals(this.publicKey, that.publicKey)
+                    && isAlgoTheSame
+                    && Objects.equals(this.kid, that.kid)
+                    && Objects.equals(this.keyType, that.keyType);
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.publicKey, this.algorithmParameterSpec, this.kid, this.keyType);
     }
 
     @Override
@@ -92,5 +141,53 @@ final public class JsonWebPublicKey extends JsonWebKey {
         JsonWebPublicKey build() {
             return new JsonWebPublicKey(this);
         }
+    }
+
+    public static JsonWebPublicKey fromJson(JsonObject jwkView) throws GeneralSecurityException {
+        if (!jwkView.containsKey("kty") || jwkView.get("kty").getValueType() != JsonValue.ValueType.STRING) {
+            throw new IllegalArgumentException("Required 'kty' parameter missing or wrong type.");
+        }
+        String keyType = jwkView.getString("kty");
+        JsonWebPublicKey jsonWebPublicKey = switch (keyType) {
+            case "EC" -> {
+                if (!jwkView.containsKey("crv") || jwkView.get("crv").getValueType() != JsonValue.ValueType.STRING) {
+                    throw new IllegalArgumentException("Required 'crv' parameter missing or wrong type.");
+                }
+                String curve = jwkView.getString("crv");
+                if (!curve.startsWith("secp256r1")) {
+                    throw new UnsupportedOperationException();
+                }
+                ECParameterSpec ecParameterSpec = EC_PARAMETER_SPEC_MAP.get("secp256r1");
+                if (!jwkView.containsKey("x") || jwkView.get("x").getValueType() != JsonValue.ValueType.STRING) {
+                    throw new IllegalArgumentException("Required 'x' parameter missing or wrong type.");
+                }
+                if (!jwkView.containsKey("y") || jwkView.get("y").getValueType() != JsonValue.ValueType.STRING) {
+                    throw new IllegalArgumentException("Required 'crv' parameter missing or wrong type.");
+                }
+                BigInteger x = new BigInteger(1, BASE64_URL_DECODER.decode(jwkView.getString("x")));
+                BigInteger y = new BigInteger(1, BASE64_URL_DECODER.decode(jwkView.getString("y")));
+                ECPoint w = new ECPoint(x, y);
+                ECPublicKeySpec ecPublicKeySpec = new ECPublicKeySpec(w, ecParameterSpec);
+                KeyFactory keyFactory = KeyFactory.getInstance("EC");
+                PublicKey publicKey = keyFactory.generatePublic(ecPublicKeySpec);
+                String kid = jwkView.getString("kid", null);
+                yield JsonWebPublicKey.of(publicKey)
+                        .withKid(kid)
+                        .build();
+            }
+            case "RSA" -> {
+                BigInteger n = new BigInteger(1, BASE64_URL_DECODER.decode(JsonUtils.getOrElseThrow(jwkView, "n", JsonString.class).getString()));
+                BigInteger e = new BigInteger(1, BASE64_URL_DECODER.decode(JsonUtils.getOrElseThrow(jwkView, "e", JsonString.class).getString()));
+                RSAPublicKeySpec rsaPublicKeySpec = new RSAPublicKeySpec(n, e);
+                KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+                PublicKey publicKey = keyFactory.generatePublic(rsaPublicKeySpec);
+                String kid = jwkView.getString("kid", null);
+                yield JsonWebPublicKey.of(publicKey)
+                        .withKid(kid)
+                        .build();
+            }
+            default -> throw new UnsupportedOperationException();
+        };
+        return jsonWebPublicKey;
     }
 }

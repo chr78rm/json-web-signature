@@ -22,6 +22,7 @@ abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyP
     static final Map<String, String> JDK2JSON_ALGO_MAP = Map.of("HmacSHA256", "HS256");
     static final Map<String, ECParameterSpec> EC_PARAMETER_SPEC_MAP = new HashMap<>();
     static final Base64.Encoder BASE64_URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
+    static final Base64.Decoder BASE64_URL_DECODER = Base64.getUrlDecoder();
 
     static {
         BigInteger p = new BigInteger("115792089210356248762697446949407573530086143415290314195533631308867097853951");
@@ -34,7 +35,7 @@ abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyP
                 new BigInteger("36134250956749795798585127919587881956611106672985015071877198253568414405109")
         );
         BigInteger order = new BigInteger("115792089210356248762697446949407573529996955224135760342422259061068512044369");
-        ECParameterSpec ecParameterSpec = new ECParameterSpec(secp256r1, generator, order, 1);
+        ECParameterSpec ecParameterSpec = new NamedECParameterSpec("secp256r1 [NIST P-256,X9.62 prime256v1] (1.2.840.10045.3.1.7)", secp256r1, generator, order, 1);
         EC_PARAMETER_SPEC_MAP.put("secp256r1", ecParameterSpec);
     }
 
@@ -50,6 +51,16 @@ abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyP
         }
 
         abstract JsonWebKey build() throws GeneralSecurityException;
+    }
+
+    public static <T extends JsonWebKey> T fromJson(JsonObject webKeyView, Class<T> clazz) throws GeneralSecurityException {
+        if (JsonWebPublicKey.class.isAssignableFrom(clazz)) {
+            @SuppressWarnings("unchecked")
+            T t = (T) JsonWebPublicKey.fromJson(webKeyView);
+            return t;
+        } else {
+            throw new UnsupportedOperationException();
+        }
     }
 
     final String kid;

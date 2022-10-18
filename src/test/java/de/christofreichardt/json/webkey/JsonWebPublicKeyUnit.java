@@ -4,10 +4,9 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.json.JsonTracer;
-import java.security.InvalidAlgorithmParameterException;
+import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.AlgorithmParameterSpec;
@@ -46,7 +45,7 @@ public class JsonWebPublicKeyUnit implements Traceable, WithAssertions {
     }
 
     @Test
-    void withECPublicKey() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+    void withECPublicKey() throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "withECPublicKey()");
 
@@ -65,13 +64,22 @@ public class JsonWebPublicKeyUnit implements Traceable, WithAssertions {
             assertThat(jsonWebPublicKey.algorithmParameterSpec).isInstanceOf(ECParameterSpec.class);
             assertThat(jsonWebPublicKey.publicKey).isInstanceOf(ECPublicKey.class);
             assertThat(jsonWebPublicKey.kid).isNull();
+
+            JsonWebPublicKey recoveredJsonWebPublicKey = JsonWebKey.fromJson(jsonWebPublicKey.toJson(), JsonWebPublicKey.class);
+
+            tracer.out().printfIndentln("recoveredJsonWebPublicKey = %s", recoveredJsonWebPublicKey);
+            this.jsonTracer.trace(recoveredJsonWebPublicKey.toJson());
+
+            assertThat(recoveredJsonWebPublicKey.equals(jsonWebPublicKey)).isTrue();
+            assertThat(jsonWebPublicKey.equals(jsonWebPublicKey)).isTrue();
+            assertThat(jsonWebPublicKey.equals(recoveredJsonWebPublicKey)).isTrue();
         } finally {
             tracer.wayout();
         }
     }
 
     @Test
-    void withKidAndRSAPublicKey() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+    void withKidAndRSAPublicKey() throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "withKidAndRSAPublicKey()");
 
@@ -92,6 +100,15 @@ public class JsonWebPublicKeyUnit implements Traceable, WithAssertions {
             assertThat(jsonWebPublicKey.algorithmParameterSpec).isNull();
             assertThat(jsonWebPublicKey.publicKey).isInstanceOf(RSAPublicKey.class);
             assertThat(jsonWebPublicKey.kid).isEqualTo(kid);
+
+            JsonWebPublicKey recoveredJsonWebPublicKey = JsonWebKey.fromJson(jsonWebPublicKey.toJson(), JsonWebPublicKey.class);
+
+            tracer.out().printfIndentln("recoveredJsonWebPublicKey = %s", recoveredJsonWebPublicKey);
+            this.jsonTracer.trace(recoveredJsonWebPublicKey.toJson());
+
+            assertThat(recoveredJsonWebPublicKey.equals(jsonWebPublicKey)).isTrue();
+            assertThat(jsonWebPublicKey.equals(jsonWebPublicKey)).isTrue();
+            assertThat(jsonWebPublicKey.equals(recoveredJsonWebPublicKey)).isTrue();
         } finally {
             tracer.wayout();
         }
