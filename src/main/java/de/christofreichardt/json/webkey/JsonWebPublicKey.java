@@ -65,9 +65,9 @@ final public class JsonWebPublicKey extends JsonWebKey {
                 tracer.out().printfIndentln("ecParameterSpec1.getClass().getName() = %s", ecParameterSpec1.getClass().getName());
                 tracer.out().printfIndentln("ecParameterSpec2.getClass().getName() = %s", ecParameterSpec2.getClass().getName());
                 isAlgoTheSame = Objects.equals(ecParameterSpec1.toString(), ecParameterSpec2.toString());
-            } else if (this.algorithmParameterSpec instanceof ECParameterSpec && !(that.algorithmParameterSpec instanceof ECParameterSpec)) {
+            } else if (this.algorithmParameterSpec instanceof ECParameterSpec) {
                 isAlgoTheSame = false;
-            } else if (that.algorithmParameterSpec instanceof ECParameterSpec && !(this.algorithmParameterSpec instanceof ECParameterSpec)) {
+            } else if (that.algorithmParameterSpec instanceof ECParameterSpec) {
                 isAlgoTheSame = false;
             } else if (Objects.isNull(this.algorithmParameterSpec) && Objects.isNull(that.algorithmParameterSpec)) {
                 isAlgoTheSame = true;
@@ -85,7 +85,11 @@ final public class JsonWebPublicKey extends JsonWebKey {
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.publicKey, this.algorithmParameterSpec, this.kid, this.keyType);
+        if (this.algorithmParameterSpec instanceof ECParameterSpec ecParameterSpec) {
+            return Objects.hash(this.publicKey, ecParameterSpec.toString(), this.kid, this.keyType);
+        } else {
+            return Objects.hash(this.publicKey, this.algorithmParameterSpec, this.kid, this.keyType);
+        }
     }
 
     @Override
@@ -148,24 +152,16 @@ final public class JsonWebPublicKey extends JsonWebKey {
             throw new IllegalArgumentException("Required 'kty' parameter missing or wrong type.");
         }
         String keyType = jwkView.getString("kty");
-        JsonWebPublicKey jsonWebPublicKey = switch (keyType) {
+
+        return switch (keyType) {
             case "EC" -> {
-                if (!jwkView.containsKey("crv") || jwkView.get("crv").getValueType() != JsonValue.ValueType.STRING) {
-                    throw new IllegalArgumentException("Required 'crv' parameter missing or wrong type.");
-                }
-                String curve = jwkView.getString("crv");
+                String curve = JsonUtils.getOrElseThrow(jwkView, "crv", JsonString.class).getString();
                 if (!curve.startsWith("secp256r1")) {
                     throw new UnsupportedOperationException();
                 }
                 ECParameterSpec ecParameterSpec = EC_PARAMETER_SPEC_MAP.get("secp256r1");
-                if (!jwkView.containsKey("x") || jwkView.get("x").getValueType() != JsonValue.ValueType.STRING) {
-                    throw new IllegalArgumentException("Required 'x' parameter missing or wrong type.");
-                }
-                if (!jwkView.containsKey("y") || jwkView.get("y").getValueType() != JsonValue.ValueType.STRING) {
-                    throw new IllegalArgumentException("Required 'crv' parameter missing or wrong type.");
-                }
-                BigInteger x = new BigInteger(1, BASE64_URL_DECODER.decode(jwkView.getString("x")));
-                BigInteger y = new BigInteger(1, BASE64_URL_DECODER.decode(jwkView.getString("y")));
+                BigInteger x = new BigInteger(1, BASE64_URL_DECODER.decode(JsonUtils.getOrElseThrow(jwkView, "x", JsonString.class).getString()));
+                BigInteger y = new BigInteger(1, BASE64_URL_DECODER.decode(JsonUtils.getOrElseThrow(jwkView, "y", JsonString.class).getString()));
                 ECPoint w = new ECPoint(x, y);
                 ECPublicKeySpec ecPublicKeySpec = new ECPublicKeySpec(w, ecParameterSpec);
                 KeyFactory keyFactory = KeyFactory.getInstance("EC");
@@ -188,6 +184,5 @@ final public class JsonWebPublicKey extends JsonWebKey {
             }
             default -> throw new UnsupportedOperationException();
         };
-        return jsonWebPublicKey;
     }
 }

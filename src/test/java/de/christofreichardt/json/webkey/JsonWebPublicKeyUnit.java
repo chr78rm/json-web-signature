@@ -4,6 +4,8 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.json.JsonTracer;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -13,7 +15,12 @@ import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.ECParameterSpec;
 import java.security.spec.RSAKeyGenParameterSpec;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
 import org.assertj.core.api.WithAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -69,10 +76,18 @@ public class JsonWebPublicKeyUnit implements Traceable, WithAssertions {
 
             tracer.out().printfIndentln("recoveredJsonWebPublicKey = %s", recoveredJsonWebPublicKey);
             this.jsonTracer.trace(recoveredJsonWebPublicKey.toJson());
+            tracer.out().printfIndentln("jsonWebPublicKey.hashCode() = %d, recoveredJsonWebPublicKey.hashCode() = %d",
+                    jsonWebPublicKey.hashCode(), recoveredJsonWebPublicKey.hashCode());
 
             assertThat(recoveredJsonWebPublicKey.equals(jsonWebPublicKey)).isTrue();
             assertThat(jsonWebPublicKey.equals(jsonWebPublicKey)).isTrue();
             assertThat(jsonWebPublicKey.equals(recoveredJsonWebPublicKey)).isTrue();
+            assertThat(jsonWebPublicKey.hashCode()).isEqualTo(recoveredJsonWebPublicKey.hashCode());
+
+            Set<JsonWebKey> keys = new HashSet<>();
+            keys.add(jsonWebPublicKey);
+
+            assertThat(keys.contains(recoveredJsonWebPublicKey)).isTrue();
         } finally {
             tracer.wayout();
         }
@@ -105,10 +120,37 @@ public class JsonWebPublicKeyUnit implements Traceable, WithAssertions {
 
             tracer.out().printfIndentln("recoveredJsonWebPublicKey = %s", recoveredJsonWebPublicKey);
             this.jsonTracer.trace(recoveredJsonWebPublicKey.toJson());
+            tracer.out().printfIndentln("jsonWebPublicKey.hashCode() = %d, recoveredJsonWebPublicKey.hashCode() = %d",
+                    jsonWebPublicKey.hashCode(), recoveredJsonWebPublicKey.hashCode());
 
             assertThat(recoveredJsonWebPublicKey.equals(jsonWebPublicKey)).isTrue();
             assertThat(jsonWebPublicKey.equals(jsonWebPublicKey)).isTrue();
             assertThat(jsonWebPublicKey.equals(recoveredJsonWebPublicKey)).isTrue();
+            assertThat(jsonWebPublicKey.hashCode()).isEqualTo(recoveredJsonWebPublicKey.hashCode());
+
+            Set<JsonWebKey> keys = new HashSet<>();
+            keys.add(jsonWebPublicKey);
+
+            assertThat(keys.contains(recoveredJsonWebPublicKey)).isTrue();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void missingCrvParameter() throws FileNotFoundException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "missingCrvParameter()");
+
+        try {
+            assertThatExceptionOfType(IllegalArgumentException.class)
+                    .isThrownBy(() -> {
+                        JsonObject jsonObject;
+                        try (JsonReader jsonReader = Json.createReader(new FileInputStream("keys/missing-crv-param.json"))) {
+                            jsonObject = jsonReader.readObject();
+                        }
+                        JsonWebKey.fromJson(jsonObject, JsonWebPublicKey.class);
+                    });
         } finally {
             tracer.wayout();
         }
