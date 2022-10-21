@@ -13,6 +13,8 @@ import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.ECParameterSpec;
 import java.security.spec.RSAKeyGenParameterSpec;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import org.assertj.core.api.WithAssertions;
 import org.junit.jupiter.api.AfterAll;
@@ -61,6 +63,23 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
             assertThat(jsonWebKeyPair.keyPair.getPrivate()).isInstanceOf(ECPrivateKey.class);
             assertThat(jsonWebKeyPair.keyPair.getPublic()).isInstanceOf(ECPublicKey.class);
             assertThat(jsonWebKeyPair.kid).isNull();
+
+            JsonWebKeyPair recoveredJsonWebKeyPair = JsonWebKey.fromJson(jsonWebKeyPair.toJson(), JsonWebKeyPair.class);
+
+            tracer.out().printfIndentln("recoveredJsonWebPublicKey = %s", recoveredJsonWebKeyPair);
+            this.jsonTracer.trace(recoveredJsonWebKeyPair.toJson());
+            tracer.out().printfIndentln("jsonWebKeyPair.hashCode() = %d, recoveredJsonWebKeyPair.hashCode() = %d",
+                    jsonWebKeyPair.hashCode(), recoveredJsonWebKeyPair.hashCode());
+
+            assertThat(recoveredJsonWebKeyPair).isEqualTo(jsonWebKeyPair);
+            assertThat(jsonWebKeyPair).isEqualTo(jsonWebKeyPair);
+            assertThat(jsonWebKeyPair).isEqualTo(recoveredJsonWebKeyPair);
+            assertThat(jsonWebKeyPair.hashCode()).isEqualTo(recoveredJsonWebKeyPair.hashCode());
+
+            Set<JsonWebKey> keys = new HashSet<>();
+            keys.add(jsonWebKeyPair);
+
+            assertThat(keys.contains(recoveredJsonWebKeyPair)).isTrue();
         } finally {
             tracer.wayout();
         }
@@ -85,13 +104,30 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
             assertThat(jsonWebKeyPair.kid).isEqualTo(kid);
             assertThat(jsonWebKeyPair.keyPair.getPrivate()).isInstanceOf(ECPrivateKey.class);
             assertThat(jsonWebKeyPair.keyPair.getPublic()).isInstanceOf(ECPublicKey.class);
+
+            JsonWebKeyPair recoveredJsonWebKeyPair = JsonWebKey.fromJson(jsonWebKeyPair.toJson(), JsonWebKeyPair.class);
+
+            tracer.out().printfIndentln("recoveredJsonWebPublicKey = %s", recoveredJsonWebKeyPair);
+            this.jsonTracer.trace(recoveredJsonWebKeyPair.toJson());
+            tracer.out().printfIndentln("jsonWebKeyPair.hashCode() = %d, recoveredJsonWebKeyPair.hashCode() = %d",
+                    jsonWebKeyPair.hashCode(), recoveredJsonWebKeyPair.hashCode());
+
+            assertThat(recoveredJsonWebKeyPair).isEqualTo(jsonWebKeyPair);
+            assertThat(jsonWebKeyPair).isEqualTo(jsonWebKeyPair);
+            assertThat(jsonWebKeyPair).isEqualTo(recoveredJsonWebKeyPair);
+            assertThat(jsonWebKeyPair.hashCode()).isEqualTo(recoveredJsonWebKeyPair.hashCode());
+
+            Set<JsonWebKey> keys = new HashSet<>();
+            keys.add(jsonWebKeyPair);
+
+            assertThat(keys.contains(recoveredJsonWebKeyPair)).isTrue();
         } finally {
             tracer.wayout();
         }
     }
 
     @Test
-    void withECGenParameterSpec() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException {
+    void withECGenParameterSpec() throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "withECGenParameterSpec()");
 
@@ -109,13 +145,30 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
             assertThat(jsonWebKeyPair.keyPair.getPrivate()).isInstanceOf(ECPrivateKey.class);
             assertThat(jsonWebKeyPair.keyPair.getPublic()).isInstanceOf(ECPublicKey.class);
             assertThat(jsonWebKeyPair.kid).isNull();
+
+            JsonWebKeyPair recoveredJsonWebKeyPair = JsonWebKey.fromJson(jsonWebKeyPair.toJson(), JsonWebKeyPair.class);
+
+            tracer.out().printfIndentln("recoveredJsonWebPublicKey = %s", recoveredJsonWebKeyPair);
+            this.jsonTracer.trace(recoveredJsonWebKeyPair.toJson());
+            tracer.out().printfIndentln("jsonWebKeyPair.hashCode() = %d, recoveredJsonWebKeyPair.hashCode() = %d",
+                    jsonWebKeyPair.hashCode(), recoveredJsonWebKeyPair.hashCode());
+
+            assertThat(recoveredJsonWebKeyPair).isEqualTo(jsonWebKeyPair);
+            assertThat(jsonWebKeyPair).isEqualTo(jsonWebKeyPair);
+            assertThat(jsonWebKeyPair).isEqualTo(recoveredJsonWebKeyPair);
+            assertThat(jsonWebKeyPair.hashCode()).isEqualTo(recoveredJsonWebKeyPair.hashCode());
+
+            Set<JsonWebKey> keys = new HashSet<>();
+            keys.add(jsonWebKeyPair);
+
+            assertThat(keys.contains(recoveredJsonWebKeyPair)).isTrue();
         } finally {
             tracer.wayout();
         }
     }
 
     @Test
-    void withECKeyPairAndKid() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+    void withECKeyPairAndKid() throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "withECKeyPairAndKid()");
 
@@ -138,13 +191,30 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
             assertThat(jsonWebKeyPair.keyPair.getPrivate()).isInstanceOf(ECPrivateKey.class);
             assertThat(jsonWebKeyPair.keyPair.getPublic()).isInstanceOf(ECPublicKey.class);
             assertThat(jsonWebKeyPair.kid).isEqualTo(kid);
+
+            JsonWebKeyPair recoveredJsonWebKeyPair = JsonWebKey.fromJson(jsonWebKeyPair.toJson(), JsonWebKeyPair.class);
+
+            tracer.out().printfIndentln("recoveredJsonWebPublicKey = %s", recoveredJsonWebKeyPair);
+            this.jsonTracer.trace(recoveredJsonWebKeyPair.toJson());
+            tracer.out().printfIndentln("jsonWebKeyPair.hashCode() = %d, recoveredJsonWebKeyPair.hashCode() = %d",
+                    jsonWebKeyPair.hashCode(), recoveredJsonWebKeyPair.hashCode());
+
+            assertThat(recoveredJsonWebKeyPair).isEqualTo(jsonWebKeyPair);
+            assertThat(jsonWebKeyPair).isEqualTo(jsonWebKeyPair);
+            assertThat(jsonWebKeyPair).isEqualTo(recoveredJsonWebKeyPair);
+            assertThat(jsonWebKeyPair.hashCode()).isEqualTo(recoveredJsonWebKeyPair.hashCode());
+
+            Set<JsonWebKey> keys = new HashSet<>();
+            keys.add(jsonWebKeyPair);
+
+            assertThat(keys.contains(recoveredJsonWebKeyPair)).isTrue();
         } finally {
             tracer.wayout();
         }
     }
 
     @Test
-    void withRSAKeyGenParameterSpec() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException {
+    void withRSAKeyGenParameterSpec() throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "withRSAKeyGenParameterSpec()");
 
@@ -161,6 +231,23 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
             assertThat(jsonWebKeyPair.keyPair.getPrivate()).isInstanceOf(RSAPrivateKey.class);
             assertThat(jsonWebKeyPair.keyPair.getPublic()).isInstanceOf(RSAPublicKey.class);
             assertThat(jsonWebKeyPair.kid).isNull();
+
+            JsonWebKeyPair recoveredJsonWebKeyPair = JsonWebKey.fromJson(jsonWebKeyPair.toJson(), JsonWebKeyPair.class);
+
+            tracer.out().printfIndentln("recoveredJsonWebPublicKey = %s", recoveredJsonWebKeyPair);
+            this.jsonTracer.trace(recoveredJsonWebKeyPair.toJson());
+            tracer.out().printfIndentln("jsonWebKeyPair.hashCode() = %d, recoveredJsonWebKeyPair.hashCode() = %d",
+                    jsonWebKeyPair.hashCode(), recoveredJsonWebKeyPair.hashCode());
+
+            assertThat(recoveredJsonWebKeyPair).isEqualTo(jsonWebKeyPair);
+            assertThat(jsonWebKeyPair).isEqualTo(jsonWebKeyPair);
+            assertThat(jsonWebKeyPair).isEqualTo(recoveredJsonWebKeyPair);
+            assertThat(jsonWebKeyPair.hashCode()).isEqualTo(recoveredJsonWebKeyPair.hashCode());
+
+            Set<JsonWebKey> keys = new HashSet<>();
+            keys.add(jsonWebKeyPair);
+
+            assertThat(keys.contains(recoveredJsonWebKeyPair)).isTrue();
         } finally {
             tracer.wayout();
         }

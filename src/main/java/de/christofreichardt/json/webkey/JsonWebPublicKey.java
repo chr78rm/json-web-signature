@@ -19,7 +19,6 @@ import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonString;
-import javax.json.JsonValue;
 
 final public class JsonWebPublicKey extends JsonWebKey {
 
@@ -148,11 +147,7 @@ final public class JsonWebPublicKey extends JsonWebKey {
     }
 
     public static JsonWebPublicKey fromJson(JsonObject jwkView) throws GeneralSecurityException {
-        if (!jwkView.containsKey("kty") || jwkView.get("kty").getValueType() != JsonValue.ValueType.STRING) {
-            throw new IllegalArgumentException("Required 'kty' parameter missing or wrong type.");
-        }
-        String keyType = jwkView.getString("kty");
-
+        String keyType = JsonUtils.getOrElseThrow(jwkView, "kty", JsonString.class).getString();
         return switch (keyType) {
             case "EC" -> {
                 String curve = JsonUtils.getOrElseThrow(jwkView, "crv", JsonString.class).getString();
