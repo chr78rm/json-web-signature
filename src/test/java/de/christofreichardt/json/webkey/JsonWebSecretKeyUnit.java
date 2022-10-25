@@ -5,8 +5,9 @@ import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.json.JsonTracer;
 import java.security.GeneralSecurityException;
-import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -63,15 +64,27 @@ public class JsonWebSecretKeyUnit implements Traceable, WithAssertions {
 
             JsonWebSecretKey recoveredJsonWebSecretKey = JsonWebKey.fromJson(jsonWebSecretKey.toJson(), JsonWebSecretKey.class);
 
-            tracer.out().printfIndentln("recoveredJsonWebPublicKey = %s", recoveredJsonWebSecretKey);
+            tracer.out().printfIndentln("recoveredJsonWebSecretKey = %s", recoveredJsonWebSecretKey);
             this.jsonTracer.trace(recoveredJsonWebSecretKey.toJson());
+            tracer.out().printfIndentln("jsonWebSecretKey.hashCode() = %d, recoveredJsonWebSecretKey.hashCode() = %d",
+                    jsonWebSecretKey.hashCode(), recoveredJsonWebSecretKey.hashCode());
+
+            assertThat(recoveredJsonWebSecretKey.equals(jsonWebSecretKey)).isTrue();
+            assertThat(jsonWebSecretKey.equals(jsonWebSecretKey)).isTrue();
+            assertThat(jsonWebSecretKey.equals(recoveredJsonWebSecretKey)).isTrue();
+            assertThat(jsonWebSecretKey.hashCode()).isEqualTo(jsonWebSecretKey.hashCode());
+
+            Set<JsonWebKey> keys = new HashSet<>();
+            keys.add(jsonWebSecretKey);
+
+            assertThat(keys.contains(recoveredJsonWebSecretKey)).isTrue();
         } finally {
             tracer.wayout();
         }
     }
 
     @Test
-    void withKeysizeAndAlgorithm() throws NoSuchAlgorithmException {
+    void withKeysizeAndAlgorithm() throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "withKeysizeAndAlgorithm()");
 
@@ -92,13 +105,30 @@ public class JsonWebSecretKeyUnit implements Traceable, WithAssertions {
             assertThat(jsonWebSecretKey.secretKey.getEncoded().length).isEqualTo(KEY_SIZE / 8);
             assertThat(jsonWebSecretKey.keyType).isEqualTo("oct");
             assertThat(jsonWebSecretKey.kid).isNull();
+
+            JsonWebSecretKey recoveredJsonWebSecretKey = JsonWebKey.fromJson(jsonWebSecretKey.toJson(), JsonWebSecretKey.class);
+
+            tracer.out().printfIndentln("recoveredJsonWebSecretKey = %s", recoveredJsonWebSecretKey);
+            this.jsonTracer.trace(recoveredJsonWebSecretKey.toJson());
+            tracer.out().printfIndentln("jsonWebSecretKey.hashCode() = %d, recoveredJsonWebSecretKey.hashCode() = %d",
+                    jsonWebSecretKey.hashCode(), recoveredJsonWebSecretKey.hashCode());
+
+            assertThat(recoveredJsonWebSecretKey.equals(jsonWebSecretKey)).isTrue();
+            assertThat(jsonWebSecretKey.equals(jsonWebSecretKey)).isTrue();
+            assertThat(jsonWebSecretKey.equals(recoveredJsonWebSecretKey)).isTrue();
+            assertThat(jsonWebSecretKey.hashCode()).isEqualTo(jsonWebSecretKey.hashCode());
+
+            Set<JsonWebKey> keys = new HashSet<>();
+            keys.add(jsonWebSecretKey);
+
+            assertThat(keys.contains(recoveredJsonWebSecretKey)).isTrue();
         } finally {
             tracer.wayout();
         }
     }
 
     @Test
-    void withKid() throws NoSuchAlgorithmException {
+    void withKid() throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "withKid()");
 
@@ -119,13 +149,30 @@ public class JsonWebSecretKeyUnit implements Traceable, WithAssertions {
             assertThat(jsonWebSecretKey.algorithm).isEqualTo(JsonWebSecretKey.JDK2JSON_ALGO_MAP.get(DEFAULT_ALGORITHM));
             assertThat(jsonWebSecretKey.keyType).isEqualTo("oct");
             assertThat(jsonWebSecretKey.kid).isEqualTo(kid);
+
+            JsonWebSecretKey recoveredJsonWebSecretKey = JsonWebKey.fromJson(jsonWebSecretKey.toJson(), JsonWebSecretKey.class);
+
+            tracer.out().printfIndentln("recoveredJsonWebSecretKey = %s", recoveredJsonWebSecretKey);
+            this.jsonTracer.trace(recoveredJsonWebSecretKey.toJson());
+            tracer.out().printfIndentln("jsonWebSecretKey.hashCode() = %d, recoveredJsonWebSecretKey.hashCode() = %d",
+                    jsonWebSecretKey.hashCode(), recoveredJsonWebSecretKey.hashCode());
+
+            assertThat(recoveredJsonWebSecretKey.equals(jsonWebSecretKey)).isTrue();
+            assertThat(jsonWebSecretKey.equals(jsonWebSecretKey)).isTrue();
+            assertThat(jsonWebSecretKey.equals(recoveredJsonWebSecretKey)).isTrue();
+            assertThat(jsonWebSecretKey.hashCode()).isEqualTo(jsonWebSecretKey.hashCode());
+
+            Set<JsonWebKey> keys = new HashSet<>();
+            keys.add(jsonWebSecretKey);
+
+            assertThat(keys.contains(recoveredJsonWebSecretKey)).isTrue();
         } finally {
             tracer.wayout();
         }
     }
 
     @Test
-    void withKidAndSecretKey() throws InvalidKeyException, NoSuchAlgorithmException {
+    void withKidAndSecretKey() throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "withKidAndSecretKey()");
 
@@ -150,6 +197,31 @@ public class JsonWebSecretKeyUnit implements Traceable, WithAssertions {
             assertThat(jsonWebSecretKey.secretKey.getEncoded().length).isEqualTo(KEY_SIZE / 8);
             assertThat(jsonWebSecretKey.keyType).isEqualTo("oct");
             assertThat(jsonWebSecretKey.kid).isEqualTo(kid);
+
+            JsonWebSecretKey recoveredJsonWebSecretKey = JsonWebKey.fromJson(jsonWebSecretKey.toJson(), JsonWebSecretKey.class);
+
+            tracer.out().printfIndentln("recoveredJsonWebSecretKey = %s", recoveredJsonWebSecretKey);
+            this.jsonTracer.trace(recoveredJsonWebSecretKey.toJson());
+            tracer.out().printfIndentln("jsonWebSecretKey.hashCode() = %d, recoveredJsonWebSecretKey.hashCode() = %d",
+                    jsonWebSecretKey.hashCode(), recoveredJsonWebSecretKey.hashCode());
+
+            assertThat(recoveredJsonWebSecretKey.equals(jsonWebSecretKey)).isTrue();
+            assertThat(jsonWebSecretKey.equals(jsonWebSecretKey)).isTrue();
+            assertThat(jsonWebSecretKey.equals(recoveredJsonWebSecretKey)).isTrue();
+            assertThat(jsonWebSecretKey.hashCode()).isEqualTo(jsonWebSecretKey.hashCode());
+
+            Set<JsonWebKey> keys = new HashSet<>();
+            keys.add(jsonWebSecretKey);
+            JsonWebSecretKey anotherJsonWebSecretKey = JsonWebSecretKey.of()
+                    .withKid(UUID.randomUUID().toString())
+                    .withSecretKey(secretKey)
+                    .build();
+            keys.add(anotherJsonWebSecretKey);
+
+            assertThat(keys.contains(recoveredJsonWebSecretKey)).isTrue();
+            assertThat(keys.contains(anotherJsonWebSecretKey)).isTrue();
+            assertThat(jsonWebSecretKey).isNotEqualTo(anotherJsonWebSecretKey);
+            assertThat(keys.size()).isEqualTo(2);
         } finally {
             tracer.wayout();
         }

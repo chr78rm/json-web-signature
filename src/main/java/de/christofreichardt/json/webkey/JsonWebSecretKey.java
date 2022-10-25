@@ -5,6 +5,7 @@ import de.christofreichardt.json.JsonUtils;
 import de.christofreichardt.json.websignature.JWSUtils;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,6 +44,28 @@ final public class JsonWebSecretKey extends JsonWebKey {
     public String toString() {
         return String.format("%s[kid=%s, keyType=%s, algorithm=%s, keysize=%d]", this.getClass().getSimpleName(),
                 this.kid, this.keyType, this.secretKey.getAlgorithm(), Objects.nonNull(this.secretKey.getEncoded()) ? this.secretKey.getEncoded().length * 8 : -1);
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (object == null || getClass() != object.getClass()) return false;
+        JsonWebSecretKey that = (JsonWebSecretKey) object;
+
+        return Objects.equals(this.secretKey.getAlgorithm(), that.secretKey.getAlgorithm())
+                && MessageDigest.isEqual(this.secretKey.getEncoded(), that.secretKey.getEncoded())
+                && Objects.equals(this.kid, that.kid)
+                && Objects.equals(this.keyType, that.keyType);
+    }
+
+    @Override
+    public int hashCode() {
+        int hashCode = 0;
+        for (int i = 0; i < this.secretKey.getEncoded().length; i++) {
+            hashCode += this.secretKey.getEncoded()[i] * i;
+        }
+
+        return Objects.hash(this.algorithm, this.kid, this.keyType) ^ hashCode;
     }
 
     @Override
