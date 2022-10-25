@@ -257,11 +257,11 @@ final public class JsonWebKeyPair extends JsonWebKey {
                 PublicKey publicKey = keyFactory.generatePublic(ecPublicKeySpec);
                 ECPrivateKeySpec ecPrivateKeySpec = new ECPrivateKeySpec(d, ecParameterSpec);
                 PrivateKey privateKey = keyFactory.generatePrivate(ecPrivateKeySpec);
-                KeyPair keyPair1 = new KeyPair(publicKey, privateKey);
-                String kid1 = jwkView.getString("kid", null);
+                KeyPair keyPair = new KeyPair(publicKey, privateKey);
+                String kid = jwkView.getString("kid", null);
                 yield JsonWebKeyPair.of()
-                        .withKeyPair(keyPair1)
-                        .withKid(kid1)
+                        .withKeyPair(keyPair)
+                        .withKid(kid)
                         .build();
             }
             case "RSA" -> {
@@ -273,11 +273,11 @@ final public class JsonWebKeyPair extends JsonWebKey {
                 PublicKey publicKey = keyFactory.generatePublic(rsaPublicKeySpec);
                 RSAPrivateKeySpec rsaPrivateKeySpec = new RSAPrivateKeySpec(n, d);
                 PrivateKey privateKey = keyFactory.generatePrivate(rsaPrivateKeySpec);
-                KeyPair keyPair1 = new KeyPair(publicKey,privateKey);
-                String kid1 = jwkView.getString("kid", null);
+                KeyPair keyPair = new KeyPair(publicKey,privateKey);
+                String kid = jwkView.getString("kid", null);
                 yield JsonWebKeyPair.of()
-                        .withKeyPair(keyPair1)
-                        .withKid(kid1)
+                        .withKeyPair(keyPair)
+                        .withKid(kid)
                         .build();
             }
             default -> throw new UnsupportedOperationException();

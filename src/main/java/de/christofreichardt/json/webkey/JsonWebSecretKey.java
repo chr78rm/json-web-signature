@@ -1,20 +1,30 @@
 package de.christofreichardt.json.webkey;
 
 import de.christofreichardt.diagnosis.AbstractTracer;
+import de.christofreichardt.json.JsonUtils;
 import de.christofreichardt.json.websignature.JWSUtils;
+import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
+import javax.json.JsonString;
 
 final public class JsonWebSecretKey extends JsonWebKey {
 
     final static public Map<String, String> JDK2JSON_ALGO_MAP = Map.of("HmacSHA256", "HS256", "HmacSHA512", "HS512");
+    final static public Map<String, String> JSON2JDK_ALGO_MAP = new HashMap<>();
+
+    static {
+        JDK2JSON_ALGO_MAP.forEach((key, value) -> JSON2JDK_ALGO_MAP.put(value, key));
+    }
 
     public static Builder of() {
         return new Builder();
@@ -94,5 +104,25 @@ final public class JsonWebSecretKey extends JsonWebKey {
             }
             return new JsonWebSecretKey(this);
         }
+    }
+
+    public static JsonWebSecretKey fromJson(JsonObject jwkView) throws GeneralSecurityException {
+        String keyType = JsonUtils.getOrElseThrow(jwkView, "kty", JsonString.class).getString();
+        if (!keyType.equals("oct")) {
+            throw new UnsupportedOperationException();
+        }
+        byte[] bytes = BASE64_URL_DECODER.decode(JsonUtils.getOrElseThrow(jwkView, "k", JsonString.class).getString());
+        String algorithm = JsonUtils.getOrElseThrow(jwkView, "alg", JsonString.class).getString();
+        if (!JSON2JDK_ALGO_MAP.containsKey(algorithm)) {
+            throw new NoSuchAlgorithmException();
+        }
+        algorithm = JSON2JDK_ALGO_MAP.get(algorithm);
+        SecretKeySpec secretKeySpec = new SecretKeySpec(bytes, algorithm);
+        String kid = jwkView.getString("kid", null);
+
+        return JsonWebSecretKey.of()
+                .withKid(kid)
+                .withSecretKey(secretKeySpec)
+                .build();
     }
 }

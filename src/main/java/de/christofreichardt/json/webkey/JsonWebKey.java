@@ -62,8 +62,11 @@ abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyP
             @SuppressWarnings("unchecked")
             T t = (T) JsonWebKeyPair.fromJson(webKeyView);
             return t;
-        }
-        else {
+        } else if (JsonWebSecretKey.class.isAssignableFrom(clazz)) {
+            @SuppressWarnings("unchecked")
+            T t = (T) JsonWebSecretKey.fromJson(webKeyView);
+            return t;
+        } else {
             throw new UnsupportedOperationException();
         }
     }

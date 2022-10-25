@@ -4,6 +4,7 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.json.JsonTracer;
+import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
@@ -40,7 +41,7 @@ public class JsonWebSecretKeyUnit implements Traceable, WithAssertions {
     }
 
     @Test
-    void withDefaults() throws NoSuchAlgorithmException {
+    void withDefaults() throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "withDefaults()");
 
@@ -59,6 +60,11 @@ public class JsonWebSecretKeyUnit implements Traceable, WithAssertions {
             assertThat(jsonWebSecretKey.algorithm).isEqualTo(JsonWebSecretKey.JDK2JSON_ALGO_MAP.get(DEFAULT_ALGORITHM));
             assertThat(jsonWebSecretKey.keyType).isEqualTo("oct");
             assertThat(jsonWebSecretKey.kid).isNull();
+
+            JsonWebSecretKey recoveredJsonWebSecretKey = JsonWebKey.fromJson(jsonWebSecretKey.toJson(), JsonWebSecretKey.class);
+
+            tracer.out().printfIndentln("recoveredJsonWebPublicKey = %s", recoveredJsonWebSecretKey);
+            this.jsonTracer.trace(recoveredJsonWebSecretKey.toJson());
         } finally {
             tracer.wayout();
         }
