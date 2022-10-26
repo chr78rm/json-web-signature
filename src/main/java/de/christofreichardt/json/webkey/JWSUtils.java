@@ -1,4 +1,4 @@
-package de.christofreichardt.json.websignature;
+package de.christofreichardt.json.webkey;
 
 import java.util.Arrays;
 

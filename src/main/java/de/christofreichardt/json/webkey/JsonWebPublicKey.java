@@ -2,7 +2,6 @@ package de.christofreichardt.json.webkey;
 
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.json.JsonUtils;
-import de.christofreichardt.json.websignature.JWSUtils;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
