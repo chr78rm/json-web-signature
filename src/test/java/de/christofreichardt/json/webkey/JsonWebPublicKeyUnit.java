@@ -73,12 +73,12 @@ public class JsonWebPublicKeyUnit implements Traceable, WithAssertions {
                     assertThat(ecPublicKey.getParams().getCurve().getField().getFieldSize() / 8 == FIELD_SIZE).isTrue();
                     byte[] xBytes = ecPublicKey.getW().getAffineX().toByteArray();
                     byte[] yBytes = ecPublicKey.getW().getAffineY().toByteArray();
-                    tracer.out().printfIndentln("xBytes = %s, xBytes.length = %d", JWSUtils.formatBytes(xBytes), xBytes.length);
-                    tracer.out().printfIndentln("yBytes = %s, yBytes.length = %d", JWSUtils.formatBytes(yBytes), yBytes.length);
-                    byte[] canonicalXBytes = JWSUtils.alignBytes(xBytes, FIELD_SIZE);
-                    byte[] canonicalYBytes = JWSUtils.alignBytes(yBytes, FIELD_SIZE);
-                    tracer.out().printfIndentln("canonicalXBytes = %s, canonicalXBytes.length = %d", JWSUtils.formatBytes(canonicalXBytes), canonicalXBytes.length);
-                    tracer.out().printfIndentln("canonicalYBytes = %s, canonicalYBytes.length = %d", JWSUtils.formatBytes(canonicalYBytes), canonicalYBytes.length);
+                    tracer.out().printfIndentln("xBytes = %s, xBytes.length = %d", JsonWebKeyUtils.formatBytes(xBytes), xBytes.length);
+                    tracer.out().printfIndentln("yBytes = %s, yBytes.length = %d", JsonWebKeyUtils.formatBytes(yBytes), yBytes.length);
+                    byte[] canonicalXBytes = JsonWebKeyUtils.alignBytes(xBytes, FIELD_SIZE);
+                    byte[] canonicalYBytes = JsonWebKeyUtils.alignBytes(yBytes, FIELD_SIZE);
+                    tracer.out().printfIndentln("canonicalXBytes = %s, canonicalXBytes.length = %d", JsonWebKeyUtils.formatBytes(canonicalXBytes), canonicalXBytes.length);
+                    tracer.out().printfIndentln("canonicalYBytes = %s, canonicalYBytes.length = %d", JsonWebKeyUtils.formatBytes(canonicalYBytes), canonicalYBytes.length);
                     assertThat(new BigInteger(1, canonicalXBytes)).isEqualByComparingTo(ecPublicKey.getW().getAffineX());
                     assertThat(new BigInteger(1, canonicalYBytes)).isEqualByComparingTo(ecPublicKey.getW().getAffineY());
                     assertThat(canonicalXBytes.length == FIELD_SIZE).isTrue();
@@ -91,9 +91,9 @@ public class JsonWebPublicKeyUnit implements Traceable, WithAssertions {
                     BigInteger d = ecPrivateKey.getS();
                     byte[] dBytes = d.toByteArray();
                     tracer.out().printfIndentln("order = %1$d, #bytes(order) = %2$d", order, order.bitLength()/8);
-                    tracer.out().printfIndentln("dBytes = %s, dBytes.length = %d", JWSUtils.formatBytes(dBytes), dBytes.length);
-                    byte[] canonicalDBytes = JWSUtils.alignBytes(dBytes, order.bitLength()/8);
-                    tracer.out().printfIndentln("canonicalDBytes = %s, canonicalDBytes.length = %d", JWSUtils.formatBytes(canonicalDBytes), canonicalDBytes.length);
+                    tracer.out().printfIndentln("dBytes = %s, dBytes.length = %d", JsonWebKeyUtils.formatBytes(dBytes), dBytes.length);
+                    byte[] canonicalDBytes = JsonWebKeyUtils.alignBytes(dBytes, order.bitLength()/8);
+                    tracer.out().printfIndentln("canonicalDBytes = %s, canonicalDBytes.length = %d", JsonWebKeyUtils.formatBytes(canonicalDBytes), canonicalDBytes.length);
                     assertThat(canonicalDBytes.length == order.bitLength()/8).isTrue();
                 } else {
                     throw new InvalidKeyException();

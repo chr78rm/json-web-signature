@@ -6,7 +6,7 @@ import java.util.Arrays;
  *
  * @author Christof Reichardt
  */
-public class JWSUtils {
+public class JsonWebKeyUtils {
 
     public static String formatBytes(byte[] bytes) {
         StringBuilder stringBuilder = new StringBuilder();

@@ -105,8 +105,8 @@ final public class JsonWebPublicKey extends JsonWebKey {
                     throw new ArithmeticException();
                 }
                 int fieldSize = ecPublicKey.getParams().getCurve().getField().getFieldSize() / 8;
-                byte[] xBytes = JWSUtils.alignBytes(ecPublicKey.getW().getAffineX().toByteArray(), fieldSize);
-                byte[] yBytes = JWSUtils.alignBytes(ecPublicKey.getW().getAffineY().toByteArray(), fieldSize);
+                byte[] xBytes = JsonWebKeyUtils.alignBytes(ecPublicKey.getW().getAffineX().toByteArray(), fieldSize);
+                byte[] yBytes = JsonWebKeyUtils.alignBytes(ecPublicKey.getW().getAffineY().toByteArray(), fieldSize);
                 jsonObjectBuilder
                         .add("x", BASE64_URL_ENCODER.encodeToString(xBytes))
                         .add("y", BASE64_URL_ENCODER.encodeToString(yBytes));
@@ -114,10 +114,10 @@ final public class JsonWebPublicKey extends JsonWebKey {
             } else if (this.publicKey instanceof RSAPublicKey rsaPublicKey) {
                 int keySize = rsaPublicKey.getModulus().bitLength();
                 tracer.out().printfIndentln("keySize = %d", keySize);
-                byte[] modulusBytes = JWSUtils.skipSurplusZeroes(rsaPublicKey.getModulus().toByteArray(), keySize / 8);
-                tracer.out().printfIndentln("octets(rsaPublicKey) = %s", JWSUtils.formatBytes(modulusBytes));
-                byte[] publicExponentBytes = JWSUtils.skipLeadingZeroes(rsaPublicKey.getPublicExponent().toByteArray());
-                tracer.out().printfIndentln("octets(publicExponentBytes) = %s", JWSUtils.formatBytes(publicExponentBytes));
+                byte[] modulusBytes = JsonWebKeyUtils.skipSurplusZeroes(rsaPublicKey.getModulus().toByteArray(), keySize / 8);
+                tracer.out().printfIndentln("octets(rsaPublicKey) = %s", JsonWebKeyUtils.formatBytes(modulusBytes));
+                byte[] publicExponentBytes = JsonWebKeyUtils.skipLeadingZeroes(rsaPublicKey.getPublicExponent().toByteArray());
+                tracer.out().printfIndentln("octets(publicExponentBytes) = %s", JsonWebKeyUtils.formatBytes(publicExponentBytes));
                 jsonObjectBuilder
                         .add("n", BASE64_URL_ENCODER.encodeToString(modulusBytes))
                         .add("e", BASE64_URL_ENCODER.encodeToString(publicExponentBytes));

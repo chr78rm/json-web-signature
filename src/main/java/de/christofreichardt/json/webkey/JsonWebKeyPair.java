@@ -154,8 +154,8 @@ final public class JsonWebKeyPair extends JsonWebKey {
                     throw new ArithmeticException();
                 }
                 int fieldSize = ecPublicKey.getParams().getCurve().getField().getFieldSize() / 8;
-                byte[] xBytes = JWSUtils.alignBytes(ecPublicKey.getW().getAffineX().toByteArray(), fieldSize);
-                byte[] yBytes = JWSUtils.alignBytes(ecPublicKey.getW().getAffineY().toByteArray(), fieldSize);
+                byte[] xBytes = JsonWebKeyUtils.alignBytes(ecPublicKey.getW().getAffineX().toByteArray(), fieldSize);
+                byte[] yBytes = JsonWebKeyUtils.alignBytes(ecPublicKey.getW().getAffineY().toByteArray(), fieldSize);
                 jsonObjectBuilder
                         .add("x", BASE64_URL_ENCODER.encodeToString(xBytes))
                         .add("y", BASE64_URL_ENCODER.encodeToString(yBytes));
@@ -163,10 +163,10 @@ final public class JsonWebKeyPair extends JsonWebKey {
             } else if (this.keyPair.getPublic() instanceof RSAPublicKey rsaPublicKey) {
                 int keySize = rsaPublicKey.getModulus().bitLength();
                 tracer.out().printfIndentln("keySize = %d", keySize);
-                byte[] modulusBytes = JWSUtils.skipSurplusZeroes(rsaPublicKey.getModulus().toByteArray(), keySize / 8);
-                tracer.out().printfIndentln("octets(rsaPublicKey) = %s", JWSUtils.formatBytes(modulusBytes));
-                byte[] publicExponentBytes = JWSUtils.skipLeadingZeroes(rsaPublicKey.getPublicExponent().toByteArray());
-                tracer.out().printfIndentln("octets(publicExponentBytes) = %s", JWSUtils.formatBytes(publicExponentBytes));
+                byte[] modulusBytes = JsonWebKeyUtils.skipSurplusZeroes(rsaPublicKey.getModulus().toByteArray(), keySize / 8);
+                tracer.out().printfIndentln("octets(rsaPublicKey) = %s", JsonWebKeyUtils.formatBytes(modulusBytes));
+                byte[] publicExponentBytes = JsonWebKeyUtils.skipLeadingZeroes(rsaPublicKey.getPublicExponent().toByteArray());
+                tracer.out().printfIndentln("octets(publicExponentBytes) = %s", JsonWebKeyUtils.formatBytes(publicExponentBytes));
                 jsonObjectBuilder
                         .add("n", BASE64_URL_ENCODER.encodeToString(modulusBytes))
                         .add("e", BASE64_URL_ENCODER.encodeToString(publicExponentBytes));
@@ -176,11 +176,11 @@ final public class JsonWebKeyPair extends JsonWebKey {
 
             if (this.keyPair.getPrivate() instanceof ECPrivateKey ecPrivateKey) {
                 BigInteger order = ecPrivateKey.getParams().getOrder();
-                byte[] dBytes = JWSUtils.alignBytes(ecPrivateKey.getS().toByteArray(), order.bitLength() / 8);
+                byte[] dBytes = JsonWebKeyUtils.alignBytes(ecPrivateKey.getS().toByteArray(), order.bitLength() / 8);
                 jsonObjectBuilder.add("d", BASE64_URL_ENCODER.encodeToString(dBytes));
             } else if (this.keyPair.getPrivate() instanceof RSAPrivateKey rsaPrivateKey) {
-                byte[] privateExponentBytes = JWSUtils.skipLeadingZeroes(rsaPrivateKey.getPrivateExponent().toByteArray());
-                tracer.out().printfIndentln("octets(privateExponentBytes) = %s", JWSUtils.formatBytes(privateExponentBytes));
+                byte[] privateExponentBytes = JsonWebKeyUtils.skipLeadingZeroes(rsaPrivateKey.getPrivateExponent().toByteArray());
+                tracer.out().printfIndentln("octets(privateExponentBytes) = %s", JsonWebKeyUtils.formatBytes(privateExponentBytes));
                 jsonObjectBuilder.add("d", BASE64_URL_ENCODER.encodeToString(privateExponentBytes));
             } else {
                 throw new UnsupportedOperationException();

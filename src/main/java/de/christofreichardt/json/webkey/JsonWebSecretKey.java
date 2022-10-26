@@ -74,7 +74,7 @@ final public class JsonWebSecretKey extends JsonWebKey {
 
         try {
             JsonObjectBuilder jsonObjectBuilder = Json.createObjectBuilder(super.toJson());
-            tracer.out().printfIndentln("octets(secretKey) = %s", JWSUtils.formatBytes(this.secretKey.getEncoded()));
+            tracer.out().printfIndentln("octets(secretKey) = %s", JsonWebKeyUtils.formatBytes(this.secretKey.getEncoded()));
             jsonObjectBuilder.add("k", BASE64_URL_ENCODER.encodeToString(this.secretKey.getEncoded()));
             jsonObjectBuilder.add("alg", this.algorithm);
 
