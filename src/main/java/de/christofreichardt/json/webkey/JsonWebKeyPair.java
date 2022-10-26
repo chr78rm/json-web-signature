@@ -220,7 +220,7 @@ final public class JsonWebKeyPair extends JsonWebKey {
         }
 
         @Override
-        JsonWebKeyPair build() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+        public JsonWebKeyPair build() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
             if (Objects.isNull(this.keyPair)) {
                 KeyPairGenerator keyPairGenerator;
                 if (this.algorithmGenParameterSpec instanceof ECGenParameterSpec) {

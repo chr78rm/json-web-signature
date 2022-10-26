@@ -92,7 +92,7 @@ final public class JsonWebPublicKey extends JsonWebKey {
     }
 
     @Override
-    JsonObject toJson() {
+    public JsonObject toJson() {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("JsonObject", this, "toJson()");
 
@@ -141,7 +141,7 @@ final public class JsonWebPublicKey extends JsonWebKey {
         }
 
         @Override
-        JsonWebPublicKey build() {
+        public JsonWebPublicKey build() {
             return new JsonWebPublicKey(this);
         }
     }

@@ -84,7 +84,7 @@ abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyP
         return String.format("JsonWebKey[class=%s, kid=%s]", this.getClass().getSimpleName(), this.kid);
     }
 
-    JsonObject toJson() {
+    public JsonObject toJson() {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("JsonObject", this, "toJson()");
 

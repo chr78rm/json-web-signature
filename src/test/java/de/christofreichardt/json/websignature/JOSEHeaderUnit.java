@@ -4,17 +4,17 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.json.JsonTracer;
-import org.assertj.core.api.WithAssertions;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-
+import de.christofreichardt.json.webkey.JsonWebPublicKey;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.ECGenParameterSpec;
+import org.assertj.core.api.WithAssertions;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class JOSEHeaderUnit implements Traceable, WithAssertions {
@@ -53,7 +53,7 @@ public class JOSEHeaderUnit implements Traceable, WithAssertions {
             String kid = "12f6accb-4619-4bc2-91fb-07f6f691f121";
             JOSEHeader joseHeader = JOSEHeader.of("ES256")
                     .withKid(kid)
-                    .withJsonWebKey(JsonWebKey.of(keyPair.getPublic())
+                    .withJsonWebKey(JsonWebPublicKey.of(keyPair.getPublic())
                             .withKid(kid)
                             .build()
                     )

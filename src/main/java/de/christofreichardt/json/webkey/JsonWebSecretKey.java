@@ -69,7 +69,7 @@ final public class JsonWebSecretKey extends JsonWebKey {
     }
 
     @Override
-    JsonObject toJson() {
+    public JsonObject toJson() {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("JsonObject", this, "toJson()");
 
@@ -119,7 +119,7 @@ final public class JsonWebSecretKey extends JsonWebKey {
         }
 
         @Override
-        JsonWebSecretKey build() throws NoSuchAlgorithmException {
+        public JsonWebSecretKey build() throws NoSuchAlgorithmException {
             if (Objects.isNull(this.secretKey)) {
                 KeyGenerator keyGenerator = KeyGenerator.getInstance(this.algorithm);
                 keyGenerator.init(this.keysize);

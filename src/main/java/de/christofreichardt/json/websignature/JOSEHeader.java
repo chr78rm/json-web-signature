@@ -1,5 +1,6 @@
 package de.christofreichardt.json.websignature;
 
+import de.christofreichardt.json.webkey.JsonWebKey;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
