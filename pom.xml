@@ -36,11 +36,11 @@
                         <include>de/christofreichardt/json/websignature/HmacSHA256JWSUnit.java</include>
                         <include>de/christofreichardt/json/websignature/RSASSA_PKCS1_v1_5Unit.java</include>
                         <include>de/christofreichardt/json/websignature/SHA256WithECDSAUnit.java</include>
-                        <include>de/christofreichardt/json/websignature/JWKUnit.java</include>
                         <include>de/christofreichardt/json/websignature/JOSEHeaderUnit.java</include>
                         <include>de/christofreichardt/json/webkey/JsonWebKeyPairUnit.java</include>
                         <include>de/christofreichardt/json/webkey/JsonWebPublicKeyUnit.java</include>
                         <include>de/christofreichardt/json/webkey/JsonWebSecretKeyUnit.java</include>
+                        <include>de/christofreichardt/json/webkey/JsonWebKeySetUnit.java</include>
                     </includes>
                     <argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
                     <systemPropertyVariables>
