@@ -74,6 +74,14 @@ abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyP
     final String kid;
     final String keyType;
 
+    public String getKid() {
+        return kid;
+    }
+
+    public String getKeyType() {
+        return keyType;
+    }
+
     public JsonWebKey(String kid, String keyType) {
         this.kid = kid;
         this.keyType = keyType;

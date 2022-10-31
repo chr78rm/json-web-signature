@@ -1,6 +1,8 @@
 package de.christofreichardt.json.websignature;
 
-import de.christofreichardt.json.webkey.JsonWebKey;
+import de.christofreichardt.json.webkey.JsonWebPublicKey;
+import java.security.spec.ECParameterSpec;
+import java.util.Objects;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
@@ -10,13 +12,47 @@ public class JOSEHeader {
     final String alg;
     final String typ;
     final String kid;
-    final JsonWebKey jsonWebKey;
+    final JsonWebPublicKey jsonWebPublicKey;
 
     public JOSEHeader(Builder builder) {
+        if (!JWSBase.ALGO_MAP.containsKey(builder.alg)) {
+            throw new IllegalArgumentException(String.format("Unsupported algorithm %s.", builder.alg));
+        }
         this.alg = builder.alg;
         this.typ = builder.typ;
-        this.kid = builder.kid;
-        this.jsonWebKey = builder.jsonWebKey;
+        if (Objects.isNull(builder.kid)) {
+            if (Objects.nonNull(builder.jsonWebPublicKey)) {
+                this.kid = builder.jsonWebPublicKey.getKid();
+            } else {
+                this.kid = null;
+            }
+        }
+        else if (Objects.equals(builder.kid, builder.jsonWebPublicKey.getKid())) {
+            this.kid = builder.kid;
+        } else {
+            throw new IllegalArgumentException("Ambigous kid.");
+        }
+        if (Objects.nonNull(builder.jsonWebPublicKey)) {
+            if (Objects.equals("ES256", this.alg)) {
+                if (builder.jsonWebPublicKey.getAlgorithmParameterSpec() instanceof ECParameterSpec ecParameterSpec) {
+                    if (!ecParameterSpec.toString().startsWith("secp256r1")) {
+                        throw new IllegalArgumentException(String.format("Inappropriate curve '%s' for algorithm '%s'.", ecParameterSpec, this.alg));
+                    }
+                } else {
+                    throw new IllegalArgumentException("Inappropriate algorithm parameters.");
+                }
+                if (!Objects.equals("EC", builder.jsonWebPublicKey.getKeyType())) {
+                    throw new IllegalArgumentException(String.format("Inappropriate key type '%s' for algorithm '%s'.", builder.jsonWebPublicKey.getKeyType(), this.alg));
+                }
+            } else if (Objects.equals("RS256", this.alg)) {
+                if (!Objects.equals("RSA", builder.jsonWebPublicKey.getKeyType())) {
+                    throw new IllegalArgumentException(String.format("Inappropriate key type '%s' for algorithm '%s'.", builder.jsonWebPublicKey.getKeyType(), this.alg));
+                }
+            } else if (Objects.equals("HS256", this.alg)) {
+                throw new IllegalArgumentException("Symmetric algorithm with secret key specified.");
+            }
+        }
+        this.jsonWebPublicKey = builder.jsonWebPublicKey;
     }
 
     public static Builder of (String alg) {
@@ -27,7 +63,7 @@ public class JOSEHeader {
         final String alg;
         String typ = null;
         String kid = null;
-        JsonWebKey jsonWebKey = null;
+        JsonWebPublicKey jsonWebPublicKey = null;
 
         public Builder(String alg) {
             this.alg = alg;
@@ -43,8 +79,8 @@ public class JOSEHeader {
             return this;
         }
 
-        public Builder withJsonWebKey(JsonWebKey jsonWebKey) {
-            this.jsonWebKey = jsonWebKey;
+        public Builder withJsonWebPublicKey(JsonWebPublicKey jsonWebPublicKey) {
+            this.jsonWebPublicKey = jsonWebPublicKey;
             return this;
         }
 
@@ -62,8 +98,8 @@ public class JOSEHeader {
         if (this.kid != null) {
             jsonObjectBuilder.add("kid", this.kid);
         }
-        if (this.jsonWebKey != null) {
-            jsonObjectBuilder.add("jwk", this.jsonWebKey.toJson());
+        if (this.jsonWebPublicKey != null) {
+            jsonObjectBuilder.add("jwk", this.jsonWebPublicKey.toJson());
         }
 
         return jsonObjectBuilder.build();

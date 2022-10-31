@@ -28,6 +28,14 @@ final public class JsonWebPublicKey extends JsonWebKey {
     final PublicKey publicKey;
     final AlgorithmParameterSpec algorithmParameterSpec;
 
+    public PublicKey getPublicKey() {
+        return publicKey;
+    }
+
+    public AlgorithmParameterSpec getAlgorithmParameterSpec() {
+        return algorithmParameterSpec;
+    }
+
     public JsonWebPublicKey(Builder builder) {
         super(builder.kid, builder.publicKey.getAlgorithm());
         this.publicKey = builder.publicKey;

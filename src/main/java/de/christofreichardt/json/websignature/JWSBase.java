@@ -45,9 +45,9 @@ public class JWSBase {
         }
     }
 
-    static record JWSStruct(JsonObject joseHeader, String strJoseHeader, JsonStructure payload, String strPayload) {
+    record JWSStruct(JsonObject joseHeader, String strJoseHeader, JsonStructure payload, String strPayload) {
 
-        final JWSAlgorithm algorithm() {
+        JWSAlgorithm algorithm() {
             if (!this.joseHeader.containsKey("alg")) {
                 throw new RuntimeException("Required header parameter 'alg' is missing.");
             }
