@@ -102,6 +102,33 @@ public class SHA256WithECDSAUnit implements Traceable, WithAssertions {
         }
     }
 
+    @Test
+    void invalidKey() throws GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "invalidKey()");
+
+        try {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            keyPairGenerator.initialize(2048);
+            final KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+            JsonObject joseHeader = Json.createObjectBuilder()
+                    .add("alg", "ES256")
+                    .build();
+
+            JsonObject payload = Json.createObjectBuilder()
+                    .add("iss", "joe")
+                    .add("exp", 1300819380)
+                    .add("http://example.com/is_root", "true")
+                    .build();
+
+            final JWSSigner jwsSigner = new JWSSigner(joseHeader, payload);
+            assertThatExceptionOfType(InvalidKeyException.class).isThrownBy(() -> jwsSigner.sign(keyPair.getPrivate()));
+        } finally {
+            tracer.wayout();
+        }
+    }
+
     @AfterAll
     void exit() {
         AbstractTracer tracer = getCurrentTracer();

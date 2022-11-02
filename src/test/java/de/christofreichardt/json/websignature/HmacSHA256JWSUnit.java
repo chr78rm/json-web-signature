@@ -6,6 +6,9 @@ import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.json.JsonTracer;
 import java.io.StringReader;
 import java.security.GeneralSecurityException;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.util.Base64;
 import java.util.HexFormat;
 import javax.crypto.KeyGenerator;
@@ -187,6 +190,33 @@ public class HmacSHA256JWSUnit implements Traceable, WithAssertions {
             this.jsonTracer.trace(jwsValidator.getJoseHeader());
             assertThat(jwsValidator.getStrPayload()).isEqualTo(strPayload);
             assertThat(jwsValidator.validate(secretKey)).isTrue();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void invalidKey() throws GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "invalidKey()");
+
+        try {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            keyPairGenerator.initialize(2048);
+            final KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+            JsonObject joseHeader = Json.createObjectBuilder()
+                    .add("alg", "HS256")
+                    .add("typ", "JWT")
+                    .build();
+
+            JsonObject payload = Json.createObjectBuilder()
+                    .add("iss", "Joe")
+                    .add("exp", 1300819380)
+                    .build();
+
+            final JWSSigner jwsSigner = new JWSSigner(joseHeader, payload);
+            assertThatExceptionOfType(InvalidKeyException.class).isThrownBy(() -> jwsSigner.sign(keyPair.getPrivate()));
         } finally {
             tracer.wayout();
         }

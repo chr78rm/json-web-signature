@@ -4,15 +4,6 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.json.JsonTracer;
-import org.assertj.core.api.WithAssertions;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -20,8 +11,19 @@ import java.io.StringReader;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import org.assertj.core.api.WithAssertions;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
 /**
  *
@@ -271,6 +273,32 @@ public class RSASSA_PKCS1_v1_5Unit implements Traceable, WithAssertions {
             this.jsonTracer.trace(jwsValidator.getPayload());
             RSAPublicKey publicKey = new RSAPublicKey(modulus, e);
             assertThat(jwsValidator.validate(publicKey)).isTrue();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void invalidKey() throws GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "invalidKey()");
+
+        try {
+            KeyGenerator keyGenerator = KeyGenerator.getInstance("HmacSHA256");
+            SecretKey secretKey = keyGenerator.generateKey();
+
+            JsonObject joseHeader = Json.createObjectBuilder()
+                    .add("alg", "RS256")
+                    .build();
+
+            JsonObject payload = Json.createObjectBuilder()
+                    .add("iss", "joe")
+                    .add("exp", 1300819380)
+                    .add("http://example.com/is_root", "true")
+                    .build();
+
+            final JWSSigner jwsSigner = new JWSSigner(joseHeader, payload);
+            assertThatExceptionOfType(InvalidKeyException.class).isThrownBy(() -> jwsSigner.sign(secretKey));
         } finally {
             tracer.wayout();
         }
