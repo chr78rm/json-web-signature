@@ -1,5 +1,6 @@
 package de.christofreichardt.json.websignature;
 
+import de.christofreichardt.json.JsonUtils;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -7,6 +8,7 @@ import java.util.Map;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonReader;
+import javax.json.JsonString;
 import javax.json.JsonStructure;
 
 /**
@@ -48,10 +50,8 @@ public class JWSBase {
     record JWSStruct(JsonObject joseHeader, String strJoseHeader, JsonStructure payload, String strPayload) {
 
         JWSAlgorithm algorithm() {
-            if (!this.joseHeader.containsKey("alg")) {
-                throw new RuntimeException("Required header parameter 'alg' is missing.");
-            }
-            String alg = this.joseHeader.getString("alg");
+
+            String alg = JsonUtils.orElseThrow(joseHeader, "alg", JsonString.class, () -> new IllegalArgumentException("Required header parameter 'alg' is missing.")).getString();
             if (!ALGO_MAP.containsKey(alg)) {
                 throw new RuntimeException(String.format("Unsupported algorithm %s.", alg));
             }

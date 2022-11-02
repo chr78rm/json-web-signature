@@ -129,12 +129,12 @@ final public class JsonWebSecretKey extends JsonWebKey {
     }
 
     public static JsonWebSecretKey fromJson(JsonObject jwkView) throws GeneralSecurityException {
-        String keyType = JsonUtils.getOrElseThrow(jwkView, "kty", JsonString.class).getString();
+        String keyType = JsonUtils.orElseThrow(jwkView, "kty", JsonString.class).getString();
         if (!keyType.equals("oct")) {
             throw new UnsupportedOperationException();
         }
-        byte[] bytes = BASE64_URL_DECODER.decode(JsonUtils.getOrElseThrow(jwkView, "k", JsonString.class).getString());
-        String algorithm = JsonUtils.getOrElseThrow(jwkView, "alg", JsonString.class).getString();
+        byte[] bytes = BASE64_URL_DECODER.decode(JsonUtils.orElseThrow(jwkView, "k", JsonString.class).getString());
+        String algorithm = JsonUtils.orElseThrow(jwkView, "alg", JsonString.class).getString();
         if (!JSON2JDK_ALGO_MAP.containsKey(algorithm)) {
             throw new NoSuchAlgorithmException();
         }

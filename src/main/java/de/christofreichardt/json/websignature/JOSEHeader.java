@@ -49,7 +49,7 @@ public class JOSEHeader {
                     throw new IllegalArgumentException(String.format("Inappropriate key type '%s' for algorithm '%s'.", builder.jsonWebPublicKey.getKeyType(), this.alg));
                 }
             } else if (Objects.equals("HS256", this.alg)) {
-                throw new IllegalArgumentException("Symmetric algorithm with secret key specified.");
+                throw new IllegalArgumentException("Symmetric algorithms don't use public keys.");
             }
         }
         this.jsonWebPublicKey = builder.jsonWebPublicKey;

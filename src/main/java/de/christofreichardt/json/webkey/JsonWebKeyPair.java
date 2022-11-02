@@ -238,18 +238,18 @@ final public class JsonWebKeyPair extends JsonWebKey {
     }
 
     public static JsonWebKeyPair fromJson(JsonObject jwkView) throws GeneralSecurityException {
-        String keyType = JsonUtils.getOrElseThrow(jwkView, "kty", JsonString.class).getString();
+        String keyType = JsonUtils.orElseThrow(jwkView, "kty", JsonString.class).getString();
 
         return switch (keyType) {
             case "EC" -> {
-                String curve = JsonUtils.getOrElseThrow(jwkView, "crv", JsonString.class).getString();
+                String curve = JsonUtils.orElseThrow(jwkView, "crv", JsonString.class).getString();
                 if (!curve.startsWith("secp256r1")) {
                     throw new UnsupportedOperationException();
                 }
                 ECParameterSpec ecParameterSpec = EC_PARAMETER_SPEC_MAP.get("secp256r1");
-                BigInteger x = new BigInteger(1, BASE64_URL_DECODER.decode(JsonUtils.getOrElseThrow(jwkView, "x", JsonString.class).getString()));
-                BigInteger y = new BigInteger(1, BASE64_URL_DECODER.decode(JsonUtils.getOrElseThrow(jwkView, "y", JsonString.class).getString()));
-                BigInteger d = new BigInteger(1, BASE64_URL_DECODER.decode(JsonUtils.getOrElseThrow(jwkView, "d", JsonString.class).getString()));
+                BigInteger x = new BigInteger(1, BASE64_URL_DECODER.decode(JsonUtils.orElseThrow(jwkView, "x", JsonString.class).getString()));
+                BigInteger y = new BigInteger(1, BASE64_URL_DECODER.decode(JsonUtils.orElseThrow(jwkView, "y", JsonString.class).getString()));
+                BigInteger d = new BigInteger(1, BASE64_URL_DECODER.decode(JsonUtils.orElseThrow(jwkView, "d", JsonString.class).getString()));
                 ECPoint w = new ECPoint(x, y);
                 ECPublicKeySpec ecPublicKeySpec = new ECPublicKeySpec(w, ecParameterSpec);
                 KeyFactory keyFactory = KeyFactory.getInstance("EC");
@@ -264,9 +264,9 @@ final public class JsonWebKeyPair extends JsonWebKey {
                         .build();
             }
             case "RSA" -> {
-                BigInteger n = new BigInteger(1, BASE64_URL_DECODER.decode(JsonUtils.getOrElseThrow(jwkView, "n", JsonString.class).getString()));
-                BigInteger e = new BigInteger(1, BASE64_URL_DECODER.decode(JsonUtils.getOrElseThrow(jwkView, "e", JsonString.class).getString()));
-                BigInteger d = new BigInteger(1, BASE64_URL_DECODER.decode(JsonUtils.getOrElseThrow(jwkView, "d", JsonString.class).getString()));
+                BigInteger n = new BigInteger(1, BASE64_URL_DECODER.decode(JsonUtils.orElseThrow(jwkView, "n", JsonString.class).getString()));
+                BigInteger e = new BigInteger(1, BASE64_URL_DECODER.decode(JsonUtils.orElseThrow(jwkView, "e", JsonString.class).getString()));
+                BigInteger d = new BigInteger(1, BASE64_URL_DECODER.decode(JsonUtils.orElseThrow(jwkView, "d", JsonString.class).getString()));
                 RSAPublicKeySpec rsaPublicKeySpec = new RSAPublicKeySpec(n, e);
                 KeyFactory keyFactory = KeyFactory.getInstance("RSA");
                 PublicKey publicKey = keyFactory.generatePublic(rsaPublicKeySpec);
