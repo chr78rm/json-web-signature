@@ -14,9 +14,25 @@ public class JOSEHeader {
     final String kid;
     final JsonWebPublicKey jsonWebPublicKey;
 
+    public String getAlg() {
+        return alg;
+    }
+
+    public String getTyp() {
+        return typ;
+    }
+
+    public String getKid() {
+        return kid;
+    }
+
+    public JsonWebPublicKey getJsonWebPublicKey() {
+        return jsonWebPublicKey;
+    }
+
     public JOSEHeader(Builder builder) {
         if (!JWSBase.ALGO_MAP.containsKey(builder.alg)) {
-            throw new IllegalArgumentException(String.format("Unsupported algorithm %s.", builder.alg));
+            throw new IllegalArgumentException(String.format("Unsupported algorithm '%s'.", builder.alg));
         }
         this.alg = builder.alg;
         this.typ = builder.typ;
@@ -26,11 +42,16 @@ public class JOSEHeader {
             } else {
                 this.kid = null;
             }
-        }
-        else if (Objects.equals(builder.kid, builder.jsonWebPublicKey.getKid())) {
-            this.kid = builder.kid;
         } else {
-            throw new IllegalArgumentException("Ambigous kid.");
+            if (Objects.nonNull(builder.jsonWebPublicKey)) {
+                if (Objects.equals(builder.kid, builder.jsonWebPublicKey.getKid())) {
+                    this.kid = builder.kid;
+                } else {
+                    throw new IllegalArgumentException("Ambigous kid.");
+                }
+            } else {
+                this.kid = builder.kid;
+            }
         }
         if (Objects.nonNull(builder.jsonWebPublicKey)) {
             if (Objects.equals("ES256", this.alg)) {
