@@ -158,7 +158,7 @@ final public class JsonWebPublicKey extends JsonWebKey {
         return switch (keyType) {
             case "EC" -> {
                 String curve = JsonUtils.orElseThrow(jwkView, "crv", JsonString.class).getString();
-                if (!curve.startsWith("secp256r1")) {
+                if (!curve.startsWith("secp256r1")) { // todo: support 'secp384r1' curve
                     throw new UnsupportedOperationException();
                 }
                 ECParameterSpec ecParameterSpec = EC_PARAMETER_SPEC_MAP.get("secp256r1");

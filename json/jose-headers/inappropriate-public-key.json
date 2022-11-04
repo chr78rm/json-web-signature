@@ -1,0 +1,11 @@
+{
+  "alg": "ES256",
+  "typ": "JWT",
+  "kid": "51c3c056-fec0-4fbb-9fb0-08525b372904",
+  "jwk": {
+    "kty": "RSA",
+    "kid": "51c3c056-fec0-4fbb-9fb0-08525b372904",
+    "n": "1tTHWSMy0m2VqlKQVSarHogHiFGKYT-h2kEszviRgoB8YaQsQPfM_BuibghImXJFXHuc-ZKq2f1y3ExbMr2muKXNVTNGPsGfS7NAm8ysr0pE06VUyduQJ8XbaGoUp-8khDEpd8OtYAbdDYeVmsUebGDKktwRtE42dS1JNfZnHhjBCFBfNKt3khr3KhwC3yLZWndAvoruasS8uqmcxEQFS8_C7HE8jgxD_YJwuR8sSBgLDut4Ly4jmcMdPKJFHmmdMPYOGaWYw8MFsfzynirSNZbU6odnPVYR18RJeMHHDfJhi7xjblauODKHrtZj6op9O3OCf-psN9P_wU809i1cqw",
+    "e": "AQAB"
+  }
+}

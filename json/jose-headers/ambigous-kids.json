@@ -1,0 +1,12 @@
+{
+  "alg": "ES256",
+  "typ": "JWT",
+  "kid": "9dbd2970-420f-4a71-9866-ee207d858cb2",
+  "jwk": {
+    "kty": "EC",
+    "kid": "ae0842f4-e5cb-4aa7-bc73-b2566867855b",
+    "crv": "secp256r1 [NIST P-256,X9.62 prime256v1] (1.2.840.10045.3.1.7)",
+    "x": "e1XGDC_KRzkGsv1dgUVcnoYgIIeRcwRb7JINrVxOOWc",
+    "y": "THGoWooNtoHyJBHqTMZR9-J-kWLN336JDMaYF5uEtDo"
+  }
+}

@@ -5,6 +5,10 @@ import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.json.JsonTracer;
 import de.christofreichardt.json.webkey.JsonWebPublicKey;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -12,6 +16,7 @@ import java.security.spec.ECGenParameterSpec;
 import java.util.UUID;
 import javax.json.Json;
 import javax.json.JsonObject;
+import javax.json.JsonReader;
 import org.assertj.core.api.WithAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -56,9 +61,7 @@ public class JOSEHeaderUnit implements Traceable, WithAssertions {
             JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.of(keyPair.getPublic())
                     .withKid(kid)
                     .build();
-            JOSEHeader joseHeader = JOSEHeader.of(alg)
-                    .withKid(kid)
-                    .withJsonWebPublicKey(jsonWebPublicKey)
+            JOSEHeader joseHeader = JOSEHeader.of(jsonWebPublicKey)
                     .withTyp(typ)
                     .build();
             JsonObject joseHeaderView = joseHeader.toJson();
@@ -67,6 +70,10 @@ public class JOSEHeaderUnit implements Traceable, WithAssertions {
             assertThat(joseHeaderView.getString("kid")).isEqualTo(kid);
             assertThat(joseHeaderView.getString("typ")).isEqualTo(typ);
             assertThat(joseHeaderView.getString("alg")).isEqualTo(alg);
+
+            JOSEHeader recoveredJoseHeader = JOSEHeader.fromJson(joseHeaderView);
+            this.jsonTracer.trace(recoveredJoseHeader.toJson());
+            assertThat(recoveredJoseHeader).isEqualTo(joseHeader);
 
             JsonObject payload = Json.createObjectBuilder()
                     .add("iss", "joe")
@@ -96,9 +103,7 @@ public class JOSEHeaderUnit implements Traceable, WithAssertions {
             JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.of(keyPair.getPublic())
                     .withKid(kid)
                     .build();
-            JOSEHeader joseHeader = JOSEHeader.of(alg)
-                    .withKid(kid)
-                    .withJsonWebPublicKey(jsonWebPublicKey)
+            JOSEHeader joseHeader = JOSEHeader.of(jsonWebPublicKey)
                     .withTyp(typ)
                     .build();
             JsonObject joseHeaderView = joseHeader.toJson();
@@ -107,6 +112,10 @@ public class JOSEHeaderUnit implements Traceable, WithAssertions {
             assertThat(joseHeaderView.getString("kid")).isEqualTo(kid);
             assertThat(joseHeaderView.getString("typ")).isEqualTo(typ);
             assertThat(joseHeaderView.getString("alg")).isEqualTo(alg);
+
+            JOSEHeader recoveredJoseHeader = JOSEHeader.fromJson(joseHeaderView);
+            this.jsonTracer.trace(recoveredJoseHeader.toJson());
+            assertThat(recoveredJoseHeader).isEqualTo(joseHeader);
 
             JsonObject payload = Json.createObjectBuilder()
                     .add("iss", "joe")
@@ -123,7 +132,7 @@ public class JOSEHeaderUnit implements Traceable, WithAssertions {
     }
 
     @Test
-    void withoutPublicKey() {
+    void withoutPublicKey() throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "exit()");
 
@@ -139,63 +148,53 @@ public class JOSEHeaderUnit implements Traceable, WithAssertions {
             assertThat(joseHeaderView.getString("kid")).isEqualTo(kid);
             assertThat(joseHeaderView.getString("typ")).isEqualTo(typ);
             assertThat(joseHeaderView.getString("alg")).isEqualTo(alg);
+
+            JOSEHeader recoveredJoseHeader = JOSEHeader.fromJson(joseHeaderView);
+            this.jsonTracer.trace(recoveredJoseHeader.toJson());
+            assertThat(recoveredJoseHeader).isEqualTo(joseHeader);
         } finally {
             tracer.wayout();
         }
     }
 
     @Test
-    void ambigousKids() throws GeneralSecurityException {
+    void ambigousKids() throws FileNotFoundException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "ambigousKids()");
 
         try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
-            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256r1");
-            keyPairGenerator.initialize(ecGenParameterSpec);
-            KeyPair keyPair = keyPairGenerator.generateKeyPair();
-            String kid1 = UUID.randomUUID().toString(), kid2 = UUID.randomUUID().toString(), typ = "JWT", alg = "ES256";
-            JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.of(keyPair.getPublic())
-                    .withKid(kid1)
-                    .build();
+            JsonObject joseHeader;
+            File joseHeaderFile = Path.of("json", "jose-headers", "ambigous-kids.json").toFile();
+            try (JsonReader jsonReader = Json.createReader(new FileInputStream(joseHeaderFile))) {
+                joseHeader = jsonReader.readObject();
+            }
             assertThatExceptionOfType(IllegalArgumentException.class)
-                    .isThrownBy(() -> JOSEHeader.of(alg)
-                            .withKid(kid2)
-                            .withJsonWebPublicKey(jsonWebPublicKey)
-                            .withTyp(typ)
-                            .build());
+                    .isThrownBy(() -> JOSEHeader.fromJson(joseHeader));
         } finally {
             tracer.wayout();
         }
     }
 
     @Test
-    void inappropriatePublicKey() throws GeneralSecurityException {
+    void inappropriatePublicKey() throws FileNotFoundException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "inappropriatePublicKey()");
 
         try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
-            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256r1");
-            keyPairGenerator.initialize(ecGenParameterSpec);
-            KeyPair keyPair = keyPairGenerator.generateKeyPair();
-            String kid = UUID.randomUUID().toString(), typ = "JWT", alg = "RS256";
-            JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.of(keyPair.getPublic())
-                    .withKid(kid)
-                    .build();
+            JsonObject joseHeader;
+            File joseHeaderFile = Path.of("json", "jose-headers", "inappropriate-public-key.json").toFile();
+            try (JsonReader jsonReader = Json.createReader(new FileInputStream(joseHeaderFile))) {
+                joseHeader = jsonReader.readObject();
+            }
             assertThatExceptionOfType(IllegalArgumentException.class)
-                    .isThrownBy(() -> JOSEHeader.of(alg)
-                            .withKid(kid)
-                            .withJsonWebPublicKey(jsonWebPublicKey)
-                            .withTyp(typ)
-                            .build());
+                    .isThrownBy(() -> JOSEHeader.fromJson(joseHeader));
         } finally {
             tracer.wayout();
         }
     }
 
     @Test
-    void inappropriateCurve() throws GeneralSecurityException {
+    void inappropriateCurve() throws GeneralSecurityException, FileNotFoundException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "inappropriateCurve()");
 
@@ -204,16 +203,18 @@ public class JOSEHeaderUnit implements Traceable, WithAssertions {
             ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp384r1");
             keyPairGenerator.initialize(ecGenParameterSpec);
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
-            String kid = UUID.randomUUID().toString(), typ = "JWT", alg = "ES256";
             JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.of(keyPair.getPublic())
-                    .withKid(kid)
+                    .withKid(UUID.randomUUID().toString())
                     .build();
-            assertThatExceptionOfType(IllegalArgumentException.class)
-                    .isThrownBy(() -> JOSEHeader.of(alg)
-                            .withKid(kid)
-                            .withJsonWebPublicKey(jsonWebPublicKey)
-                            .withTyp(typ)
-                            .build());
+            this.jsonTracer.trace(jsonWebPublicKey.toJson());
+
+            JsonObject joseHeader;
+            File joseHeaderFile = Path.of("json", "jose-headers", "inappropriate-curve.json").toFile();
+            try (JsonReader jsonReader = Json.createReader(new FileInputStream(joseHeaderFile))) {
+                joseHeader = jsonReader.readObject();
+            }
+            assertThatExceptionOfType(UnsupportedOperationException.class)  // todo: this should really be an IllegalArgumentException
+                    .isThrownBy(() -> JOSEHeader.fromJson(joseHeader));
         } finally {
             tracer.wayout();
         }
