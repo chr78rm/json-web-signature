@@ -6,6 +6,7 @@ import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.json.JsonTracer;
 import java.io.FileInputStream;
 import java.math.BigInteger;
+import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -196,10 +197,11 @@ public class JsonWebPublicKeyUnit implements Traceable, WithAssertions {
         tracer.entry("void", this, "missingCrvParameter()");
 
         try {
+            final Path keyFile = Path.of("json", "keys", "missing-crv-param.json");
             assertThatExceptionOfType(IllegalArgumentException.class)
                     .isThrownBy(() -> {
                         JsonObject jsonObject;
-                        try (JsonReader jsonReader = Json.createReader(new FileInputStream("keys/missing-crv-param.json"))) {
+                        try (JsonReader jsonReader = Json.createReader(new FileInputStream(keyFile.toFile()))) {
                             jsonObject = jsonReader.readObject();
                         }
                         JsonWebKey.fromJson(jsonObject, JsonWebPublicKey.class);

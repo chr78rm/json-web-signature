@@ -31,7 +31,7 @@ public class JsonWebKeySetUnit implements Traceable, WithAssertions {
         tracer.entry("void", this, "jwkSetUrl()");
 
         try {
-            Path jwkSet_0 = Path.of(".", "keys", "jwk-set-0.json");
+            Path jwkSet_0 = Path.of(".", "json", "keys", "jwk-set-0.json");
             assertThat(Files.exists(jwkSet_0)).isTrue();
             tracer.out().printfIndentln("jwkSet_0.toUri() = %s", jwkSet_0.normalize().toUri());
             assertThat(Files.exists(Path.of(jwkSet_0.normalize().toUri()))).isTrue();
