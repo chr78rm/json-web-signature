@@ -54,15 +54,19 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
         try {
             JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
                     .build();
+            JsonWebPublicKey jsonWebPublicKey = jsonWebKeyPair.jsonWebPublicKey();
 
             tracer.out().printfIndentln("jsonWebKeyPair = %s", jsonWebKeyPair);
             this.jsonTracer.trace(jsonWebKeyPair.toJson());
+            this.jsonTracer.trace(jsonWebPublicKey.toJson());
 
             assertThat(jsonWebKeyPair.algorithmParameterSpec instanceof ECParameterSpec).isTrue();
             assertThat(jsonWebKeyPair.keyType).isEqualTo("EC");
             assertThat(jsonWebKeyPair.keyPair.getPrivate()).isInstanceOf(ECPrivateKey.class);
             assertThat(jsonWebKeyPair.keyPair.getPublic()).isInstanceOf(ECPublicKey.class);
             assertThat(jsonWebKeyPair.kid).isNull();
+            assertThat(jsonWebKeyPair.getKeyPair().getPublic()).isEqualTo(jsonWebPublicKey.getPublicKey());
+            assertThat(jsonWebKeyPair.getKid()).isEqualTo(jsonWebPublicKey.getKid());
 
             JsonWebKeyPair recoveredJsonWebKeyPair = JsonWebKey.fromJson(jsonWebKeyPair.toJson(), JsonWebKeyPair.class);
 
@@ -95,15 +99,19 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
             JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
                     .withKid(kid)
                     .build();
+            JsonWebPublicKey jsonWebPublicKey = jsonWebKeyPair.jsonWebPublicKey();
 
             tracer.out().printfIndentln("jsonWebKeyPair = %s", jsonWebKeyPair);
             this.jsonTracer.trace(jsonWebKeyPair.toJson());
+            this.jsonTracer.trace(jsonWebPublicKey.toJson());
 
             assertThat(jsonWebKeyPair.algorithmParameterSpec instanceof ECParameterSpec).isTrue();
             assertThat(jsonWebKeyPair.keyType).isEqualTo("EC");
             assertThat(jsonWebKeyPair.kid).isEqualTo(kid);
             assertThat(jsonWebKeyPair.keyPair.getPrivate()).isInstanceOf(ECPrivateKey.class);
             assertThat(jsonWebKeyPair.keyPair.getPublic()).isInstanceOf(ECPublicKey.class);
+            assertThat(jsonWebKeyPair.getKeyPair().getPublic()).isEqualTo(jsonWebPublicKey.getPublicKey());
+            assertThat(jsonWebKeyPair.getKid()).isEqualTo(jsonWebPublicKey.getKid());
 
             JsonWebKeyPair recoveredJsonWebKeyPair = JsonWebKey.fromJson(jsonWebKeyPair.toJson(), JsonWebKeyPair.class);
 
@@ -136,15 +144,19 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
             JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
                     .withAlgorithmParameterSpec(ecGenParameterSpec)
                     .build();
+            JsonWebPublicKey jsonWebPublicKey = jsonWebKeyPair.jsonWebPublicKey();
 
             tracer.out().printfIndentln("jsonWebKeyPair = %s", jsonWebKeyPair);
             this.jsonTracer.trace(jsonWebKeyPair.toJson());
+            this.jsonTracer.trace(jsonWebPublicKey.toJson());
 
             assertThat(jsonWebKeyPair.algorithmParameterSpec instanceof ECParameterSpec).isTrue();
             assertThat(jsonWebKeyPair.keyType).isEqualTo("EC");
             assertThat(jsonWebKeyPair.keyPair.getPrivate()).isInstanceOf(ECPrivateKey.class);
             assertThat(jsonWebKeyPair.keyPair.getPublic()).isInstanceOf(ECPublicKey.class);
             assertThat(jsonWebKeyPair.kid).isNull();
+            assertThat(jsonWebKeyPair.getKeyPair().getPublic()).isEqualTo(jsonWebPublicKey.getPublicKey());
+            assertThat(jsonWebKeyPair.getKid()).isEqualTo(jsonWebPublicKey.getKid());
 
             JsonWebKeyPair recoveredJsonWebKeyPair = JsonWebKey.fromJson(jsonWebKeyPair.toJson(), JsonWebKeyPair.class);
 
@@ -182,15 +194,19 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
                     .withKeyPair(keyPair)
                     .withKid(kid)
                     .build();
+            JsonWebPublicKey jsonWebPublicKey = jsonWebKeyPair.jsonWebPublicKey();
 
             tracer.out().printfIndentln("jsonWebKeyPair = %s", jsonWebKeyPair);
             this.jsonTracer.trace(jsonWebKeyPair.toJson());
+            this.jsonTracer.trace(jsonWebPublicKey.toJson());
 
             assertThat(jsonWebKeyPair.algorithmParameterSpec instanceof ECParameterSpec).isTrue();
             assertThat(jsonWebKeyPair.keyType).isEqualTo("EC");
             assertThat(jsonWebKeyPair.keyPair.getPrivate()).isInstanceOf(ECPrivateKey.class);
             assertThat(jsonWebKeyPair.keyPair.getPublic()).isInstanceOf(ECPublicKey.class);
             assertThat(jsonWebKeyPair.kid).isEqualTo(kid);
+            assertThat(jsonWebKeyPair.getKeyPair().getPublic()).isEqualTo(jsonWebPublicKey.getPublicKey());
+            assertThat(jsonWebKeyPair.getKid()).isEqualTo(jsonWebPublicKey.getKid());
 
             JsonWebKeyPair recoveredJsonWebKeyPair = JsonWebKey.fromJson(jsonWebKeyPair.toJson(), JsonWebKeyPair.class);
 
@@ -223,14 +239,18 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
             JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
                     .withAlgorithmParameterSpec(algorithmParameterSpec)
                     .build();
+            JsonWebPublicKey jsonWebPublicKey = jsonWebKeyPair.jsonWebPublicKey();
 
             tracer.out().printfIndentln("jsonWebKeyPair = %s", jsonWebKeyPair);
             this.jsonTracer.trace(jsonWebKeyPair.toJson());
+            this.jsonTracer.trace(jsonWebPublicKey.toJson());
 
             assertThat(jsonWebKeyPair.keyType).isEqualTo("RSA");
             assertThat(jsonWebKeyPair.keyPair.getPrivate()).isInstanceOf(RSAPrivateKey.class);
             assertThat(jsonWebKeyPair.keyPair.getPublic()).isInstanceOf(RSAPublicKey.class);
             assertThat(jsonWebKeyPair.kid).isNull();
+            assertThat(jsonWebKeyPair.getKeyPair().getPublic()).isEqualTo(jsonWebPublicKey.getPublicKey());
+            assertThat(jsonWebKeyPair.getKid()).isEqualTo(jsonWebPublicKey.getKid());
 
             JsonWebKeyPair recoveredJsonWebKeyPair = JsonWebKey.fromJson(jsonWebKeyPair.toJson(), JsonWebKeyPair.class);
 

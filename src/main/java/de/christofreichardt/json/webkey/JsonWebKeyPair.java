@@ -40,6 +40,14 @@ final public class JsonWebKeyPair extends JsonWebKey {
     final KeyPair keyPair;
     final AlgorithmParameterSpec algorithmParameterSpec;
 
+    public KeyPair getKeyPair() {
+        return keyPair;
+    }
+
+    public AlgorithmParameterSpec getAlgorithmParameterSpec() {
+        return algorithmParameterSpec;
+    }
+
     public JsonWebKeyPair(Builder builder) {
         super(builder.kid, builder.keyPair.getPublic().getAlgorithm());
         this.keyPair = builder.keyPair;
@@ -48,6 +56,10 @@ final public class JsonWebKeyPair extends JsonWebKey {
         } else {
             this.algorithmParameterSpec = null;
         }
+    }
+
+    public JsonWebPublicKey jsonWebPublicKey() throws GeneralSecurityException {
+        return JsonWebPublicKey.fromJson(this.toJson());
     }
 
     @Override
