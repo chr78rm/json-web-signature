@@ -37,6 +37,14 @@ final public class JsonWebKeyPair extends JsonWebKey {
         return new Builder();
     }
 
+    public static KeyPairBuilder of(KeyPair keyPair) {
+        return new KeyPairBuilder(keyPair);
+    }
+
+    public static ParameterSpecBuilder of(AlgorithmParameterSpec algorithmParameterSpec) {
+        return new ParameterSpecBuilder(algorithmParameterSpec);
+    }
+
     final KeyPair keyPair;
     final AlgorithmParameterSpec algorithmParameterSpec;
 
@@ -51,6 +59,26 @@ final public class JsonWebKeyPair extends JsonWebKey {
     public JsonWebKeyPair(Builder builder) {
         super(builder.kid, builder.keyPair.getPublic().getAlgorithm());
         this.keyPair = builder.keyPair;
+        if (this.keyPair.getPublic() instanceof ECPublicKey ecPublicKey) {
+            this.algorithmParameterSpec = ecPublicKey.getParams();
+        } else {
+            this.algorithmParameterSpec = null;
+        }
+    }
+
+    public JsonWebKeyPair(KeyPairBuilder keyPairBuilder) {
+        super(keyPairBuilder.kid, keyPairBuilder.keyPair.getPublic().getAlgorithm());
+        this.keyPair = keyPairBuilder.keyPair;
+        if (this.keyPair.getPublic() instanceof ECPublicKey ecPublicKey) {
+            this.algorithmParameterSpec = ecPublicKey.getParams();
+        } else {
+            this.algorithmParameterSpec = null;
+        }
+    }
+
+    public JsonWebKeyPair(ParameterSpecBuilder parameterSpecBuilder) {
+        super(parameterSpecBuilder.kid, parameterSpecBuilder.keyPair.getPublic().getAlgorithm());
+        this.keyPair = parameterSpecBuilder.keyPair;
         if (this.keyPair.getPublic() instanceof ECPublicKey ecPublicKey) {
             this.algorithmParameterSpec = ecPublicKey.getParams();
         } else {
@@ -207,43 +235,51 @@ final public class JsonWebKeyPair extends JsonWebKey {
     public static class Builder extends JsonWebKey.Builder<Builder> {
 
         KeyPair keyPair;
-        AlgorithmParameterSpec algorithmGenParameterSpec = new ECGenParameterSpec("secp256r1");
-
-        public Builder withKeyPair(KeyPair keyPair) {
-            this.keyPair = keyPair;
-            if (this.keyPair.getPrivate() instanceof ECPrivateKey ecPrivateKey) {
-                this.algorithmGenParameterSpec = ecPrivateKey.getParams();
-            } else if (this.keyPair.getPrivate() instanceof RSAPrivateKey rsaPrivateKey) {
-                this.algorithmGenParameterSpec = rsaPrivateKey.getParams();
-            }
-            return this;
-        }
-
-        public Builder withAlgorithmParameterSpec(AlgorithmParameterSpec algorithmParameterSpec) {
-            if (Objects.nonNull(this.keyPair)) {
-                throw new IllegalStateException();
-            }
-            if (!(algorithmParameterSpec instanceof ECGenParameterSpec) && !(algorithmParameterSpec instanceof RSAKeyGenParameterSpec)) {
-                throw new IllegalArgumentException();
-            }
-            this.algorithmGenParameterSpec = algorithmParameterSpec;
-            return this;
-        }
+        final AlgorithmParameterSpec algorithmGenParameterSpec = new ECGenParameterSpec("secp256r1");
 
         @Override
         public JsonWebKeyPair build() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
-            if (Objects.isNull(this.keyPair)) {
-                KeyPairGenerator keyPairGenerator;
-                if (this.algorithmGenParameterSpec instanceof ECGenParameterSpec) {
-                    keyPairGenerator = KeyPairGenerator.getInstance("EC");
-                } else if (algorithmGenParameterSpec instanceof RSAKeyGenParameterSpec) {
-                    keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-                } else {
-                    throw new InvalidAlgorithmParameterException();
-                }
-                keyPairGenerator.initialize(algorithmGenParameterSpec);
-                this.keyPair = keyPairGenerator.generateKeyPair();
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
+            keyPairGenerator.initialize(algorithmGenParameterSpec);
+            this.keyPair = keyPairGenerator.generateKeyPair();
+
+            return new JsonWebKeyPair(this);
+        }
+    }
+
+    public static class KeyPairBuilder extends JsonWebKey.Builder<KeyPairBuilder> {
+        final KeyPair keyPair;
+
+        public KeyPairBuilder(KeyPair keyPair) {
+            this.keyPair = keyPair;
+        }
+
+        @Override
+        JsonWebKeyPair build() {
+            return new JsonWebKeyPair(this);
+        }
+    }
+
+    public static class ParameterSpecBuilder extends JsonWebKey.Builder<ParameterSpecBuilder> {
+        final AlgorithmParameterSpec algorithmParameterSpec;
+        KeyPair keyPair;
+
+        public ParameterSpecBuilder(AlgorithmParameterSpec algorithmParameterSpec) {
+            this.algorithmParameterSpec = algorithmParameterSpec;
+        }
+
+        @Override
+        JsonWebKeyPair build() throws GeneralSecurityException {
+            KeyPairGenerator keyPairGenerator;
+            if (this.algorithmParameterSpec instanceof ECGenParameterSpec) {
+                keyPairGenerator = KeyPairGenerator.getInstance("EC");
+            } else if (algorithmParameterSpec instanceof RSAKeyGenParameterSpec) {
+                keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            } else {
+                throw new InvalidAlgorithmParameterException();
             }
+            keyPairGenerator.initialize(algorithmParameterSpec);
+            this.keyPair = keyPairGenerator.generateKeyPair();
 
             return new JsonWebKeyPair(this);
         }
@@ -270,8 +306,7 @@ final public class JsonWebKeyPair extends JsonWebKey {
                 PrivateKey privateKey = keyFactory.generatePrivate(ecPrivateKeySpec);
                 KeyPair keyPair = new KeyPair(publicKey, privateKey);
                 String kid = jwkView.getString("kid", null);
-                yield JsonWebKeyPair.of()
-                        .withKeyPair(keyPair)
+                yield JsonWebKeyPair.of(keyPair)
                         .withKid(kid)
                         .build();
             }
@@ -284,10 +319,9 @@ final public class JsonWebKeyPair extends JsonWebKey {
                 PublicKey publicKey = keyFactory.generatePublic(rsaPublicKeySpec);
                 RSAPrivateKeySpec rsaPrivateKeySpec = new RSAPrivateKeySpec(n, d);
                 PrivateKey privateKey = keyFactory.generatePrivate(rsaPrivateKeySpec);
-                KeyPair keyPair = new KeyPair(publicKey,privateKey);
+                KeyPair keyPair = new KeyPair(publicKey, privateKey);
                 String kid = jwkView.getString("kid", null);
-                yield JsonWebKeyPair.of()
-                        .withKeyPair(keyPair)
+                yield JsonWebKeyPair.of(keyPair)
                         .withKid(kid)
                         .build();
             }

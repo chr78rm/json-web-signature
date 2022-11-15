@@ -141,8 +141,7 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
 
         try {
             ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256r1");
-            JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
-                    .withAlgorithmParameterSpec(ecGenParameterSpec)
+            JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of(ecGenParameterSpec)
                     .build();
             JsonWebPublicKey jsonWebPublicKey = jsonWebKeyPair.jsonWebPublicKey();
 
@@ -190,8 +189,7 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
             ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256r1");
             keyPairGenerator.initialize(ecGenParameterSpec);
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
-            JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
-                    .withKeyPair(keyPair)
+            JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of(keyPair)
                     .withKid(kid)
                     .build();
             JsonWebPublicKey jsonWebPublicKey = jsonWebKeyPair.jsonWebPublicKey();
@@ -236,8 +234,7 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
 
         try {
             AlgorithmParameterSpec algorithmParameterSpec = new RSAKeyGenParameterSpec(2048, RSAKeyGenParameterSpec.F4);
-            JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
-                    .withAlgorithmParameterSpec(algorithmParameterSpec)
+            JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of(algorithmParameterSpec)
                     .build();
             JsonWebPublicKey jsonWebPublicKey = jsonWebKeyPair.jsonWebPublicKey();
 
@@ -268,29 +265,6 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
             keys.add(jsonWebKeyPair);
 
             assertThat(keys.contains(recoveredJsonWebKeyPair)).isTrue();
-        } finally {
-            tracer.wayout();
-        }
-    }
-
-    @Test
-    void withParameterSpecAfterKeyPair() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
-        AbstractTracer tracer = getCurrentTracer();
-        tracer.entry("void", this, "withParameterSpecAfterKeyPair()");
-
-        try {
-            String kid = UUID.randomUUID().toString();
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
-            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256r1");
-            keyPairGenerator.initialize(ecGenParameterSpec);
-            KeyPair keyPair = keyPairGenerator.generateKeyPair();
-            assertThatExceptionOfType(IllegalStateException.class)
-                    .isThrownBy(() -> JsonWebKeyPair.of()
-                            .withKeyPair(keyPair)
-                            .withKid(kid)
-                            .withAlgorithmParameterSpec(ecGenParameterSpec)
-                            .build()
-                    );
         } finally {
             tracer.wayout();
         }
