@@ -183,9 +183,8 @@ public class JsonWebSecretKeyUnit implements Traceable, WithAssertions {
             KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM);
             keyGenerator.init(KEY_SIZE);
             SecretKey secretKey = keyGenerator.generateKey();
-            JsonWebSecretKey jsonWebSecretKey = JsonWebSecretKey.of()
+            JsonWebSecretKey jsonWebSecretKey = JsonWebSecretKey.of(secretKey)
                     .withKid(kid)
-                    .withSecretKey(secretKey)
                     .build();
 
             tracer.out().printfIndentln("jsonWebSecretKey = %s", jsonWebSecretKey);
@@ -212,9 +211,8 @@ public class JsonWebSecretKeyUnit implements Traceable, WithAssertions {
 
             Set<JsonWebKey> keys = new HashSet<>();
             keys.add(jsonWebSecretKey);
-            JsonWebSecretKey anotherJsonWebSecretKey = JsonWebSecretKey.of()
+            JsonWebSecretKey anotherJsonWebSecretKey = JsonWebSecretKey.of(secretKey)
                     .withKid(UUID.randomUUID().toString())
-                    .withSecretKey(secretKey)
                     .build();
             keys.add(anotherJsonWebSecretKey);
 
@@ -222,50 +220,6 @@ public class JsonWebSecretKeyUnit implements Traceable, WithAssertions {
             assertThat(keys.contains(anotherJsonWebSecretKey)).isTrue();
             assertThat(jsonWebSecretKey).isNotEqualTo(anotherJsonWebSecretKey);
             assertThat(keys.size()).isEqualTo(2);
-        } finally {
-            tracer.wayout();
-        }
-    }
-
-    @Test
-    void withKeysizeAfterSecretKey() throws NoSuchAlgorithmException {
-        AbstractTracer tracer = getCurrentTracer();
-        tracer.entry("void", this, "withKeysizeAfterSecretKey()");
-
-        try {
-            final int KEY_SIZE = 1024;
-            final String ALGORITHM = "HmacSHA256";
-            KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM);
-            keyGenerator.init(KEY_SIZE);
-            SecretKey secretKey = keyGenerator.generateKey();
-            assertThatExceptionOfType(IllegalStateException.class)
-                    .isThrownBy(() -> JsonWebSecretKey.of()
-                            .withSecretKey(secretKey)
-                            .withKeysize(KEY_SIZE * 2)
-                            .build()
-                    );
-        } finally {
-            tracer.wayout();
-        }
-    }
-
-    @Test
-    void withAlgorithmAfterSecretKey() throws NoSuchAlgorithmException {
-        AbstractTracer tracer = getCurrentTracer();
-        tracer.entry("void", this, "withAlgorithmAfterSecretKey()");
-
-        try {
-            final int KEY_SIZE = 1024;
-            final String ALGORITHM = "HmacSHA256";
-            KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM);
-            keyGenerator.init(KEY_SIZE);
-            SecretKey secretKey = keyGenerator.generateKey();
-            assertThatExceptionOfType(IllegalStateException.class)
-                    .isThrownBy(() -> JsonWebSecretKey.of()
-                            .withSecretKey(secretKey)
-                            .withAlgorithm("HmacSHA512")
-                            .build()
-                    );
         } finally {
             tracer.wayout();
         }

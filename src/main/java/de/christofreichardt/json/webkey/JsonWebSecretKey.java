@@ -30,12 +30,22 @@ final public class JsonWebSecretKey extends JsonWebKey {
         return new Builder();
     }
 
+    public static SecretKeyBuilder of(SecretKey secretKey) throws InvalidKeyException {
+        return new SecretKeyBuilder(secretKey);
+    }
+
     final SecretKey secretKey;
     final String algorithm;
 
     public JsonWebSecretKey(Builder builder) {
         super(builder.kid, "oct");
         this.secretKey = builder.secretKey;
+        this.algorithm = JDK2JSON_ALGO_MAP.get(this.secretKey.getAlgorithm());
+    }
+
+    public JsonWebSecretKey(SecretKeyBuilder secretKeyBuilder) {
+        super(secretKeyBuilder.kid, "oct");
+        this.secretKey = secretKeyBuilder.secretKey;
         this.algorithm = JDK2JSON_ALGO_MAP.get(this.secretKey.getAlgorithm());
     }
 
@@ -90,26 +100,12 @@ final public class JsonWebSecretKey extends JsonWebKey {
         String algorithm = "HmacSHA256";
         int keysize = 256;
 
-        public Builder withSecretKey(SecretKey secretKey) throws InvalidKeyException {
-            if (!JDK2JSON_ALGO_MAP.containsKey(secretKey.getAlgorithm())) {
-                throw new InvalidKeyException();
-            }
-            this.secretKey = secretKey;
-            return this;
-        }
-
         public Builder withKeysize(int keysize) {
-            if (Objects.nonNull(this.secretKey)) {
-                throw new IllegalStateException();
-            }
             this.keysize = keysize;
             return this;
         }
 
         public Builder withAlgorithm(String algorithm) throws NoSuchAlgorithmException {
-            if (Objects.nonNull(this.secretKey)) {
-                throw new IllegalStateException();
-            }
             if (!JDK2JSON_ALGO_MAP.containsKey(algorithm)) {
                 throw new NoSuchAlgorithmException();
             }
@@ -119,11 +115,25 @@ final public class JsonWebSecretKey extends JsonWebKey {
 
         @Override
         public JsonWebSecretKey build() throws NoSuchAlgorithmException {
-            if (Objects.isNull(this.secretKey)) {
-                KeyGenerator keyGenerator = KeyGenerator.getInstance(this.algorithm);
-                keyGenerator.init(this.keysize);
-                this.secretKey = keyGenerator.generateKey();
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(this.algorithm);
+            keyGenerator.init(this.keysize);
+            this.secretKey = keyGenerator.generateKey();
+            return new JsonWebSecretKey(this);
+        }
+    }
+
+    public static class SecretKeyBuilder extends JsonWebKey.Builder<SecretKeyBuilder> {
+        final SecretKey secretKey;
+
+        public SecretKeyBuilder(SecretKey secretKey) throws InvalidKeyException {
+            if (!JDK2JSON_ALGO_MAP.containsKey(secretKey.getAlgorithm())) {
+                throw new InvalidKeyException();
             }
+            this.secretKey = secretKey;
+        }
+
+        @Override
+        JsonWebSecretKey build() throws GeneralSecurityException {
             return new JsonWebSecretKey(this);
         }
     }
@@ -142,9 +152,8 @@ final public class JsonWebSecretKey extends JsonWebKey {
         SecretKeySpec secretKeySpec = new SecretKeySpec(bytes, algorithm);
         String kid = jwkView.getString("kid", null);
 
-        return JsonWebSecretKey.of()
+        return JsonWebSecretKey.of(secretKeySpec)
                 .withKid(kid)
-                .withSecretKey(secretKeySpec)
                 .build();
     }
 }
