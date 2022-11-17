@@ -255,7 +255,7 @@ final public class JsonWebKeyPair extends JsonWebKey {
         }
 
         @Override
-        JsonWebKeyPair build() {
+        public JsonWebKeyPair build() {
             return new JsonWebKeyPair(this);
         }
     }

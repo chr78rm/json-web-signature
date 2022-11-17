@@ -41,6 +41,7 @@
                         <include>de/christofreichardt/json/webkey/JsonWebPublicKeyUnit.java</include>
                         <include>de/christofreichardt/json/webkey/JsonWebSecretKeyUnit.java</include>
                         <include>de/christofreichardt/json/webkey/JsonWebKeySetUnit.java</include>
+                        <include>de/christofreichardt/json/websignature/JWSUnit.java</include>
                     </includes>
                     <argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
                     <systemPropertyVariables>

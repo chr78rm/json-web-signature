@@ -37,6 +37,14 @@ final public class JsonWebSecretKey extends JsonWebKey {
     final SecretKey secretKey;
     final String algorithm;
 
+    public SecretKey getSecretKey() {
+        return secretKey;
+    }
+
+    public String getAlgorithm() {
+        return algorithm;
+    }
+
     public JsonWebSecretKey(Builder builder) {
         super(builder.kid, "oct");
         this.secretKey = builder.secretKey;
@@ -133,7 +141,7 @@ final public class JsonWebSecretKey extends JsonWebKey {
         }
 
         @Override
-        JsonWebSecretKey build() throws GeneralSecurityException {
+        public JsonWebSecretKey build() throws GeneralSecurityException {
             return new JsonWebSecretKey(this);
         }
     }
