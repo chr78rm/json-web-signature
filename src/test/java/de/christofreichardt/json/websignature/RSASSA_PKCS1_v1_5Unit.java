@@ -251,7 +251,7 @@ public class RSASSA_PKCS1_v1_5Unit implements Traceable, WithAssertions {
         tracer.entry("void", this, "oidcToken()");
 
         try {
-            File tokenFile = Path.of(".", "tokens", "test-token.json").toFile();
+            File tokenFile = Path.of(".", "json", "tokens", "test-token.json").toFile();
             JsonObject token;
             try ( JsonReader jsonReader = Json.createReader(new FileReader(tokenFile))) {
                 token = jsonReader.readObject();
