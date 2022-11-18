@@ -5,6 +5,7 @@ import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.json.JsonTracer;
 import de.christofreichardt.json.webkey.JsonWebKeyPair;
+import de.christofreichardt.json.webkey.JsonWebPublicKey;
 import de.christofreichardt.json.webkey.JsonWebSecretKey;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
@@ -74,16 +75,22 @@ public class JWSUnit implements Traceable, WithAssertions {
 
             tracer.out().printfIndentln("compactSerialization = %s", compactSerialization);
             JWSBase.JWSStruct jwsStruct = compactSerialization.makeJWSStruct();
+            JWSValidator jwsValidator = new JWSValidator(compactSerialization);
+
             this.jsonTracer.trace(jsonWebSecretKey.toJson());
             this.jsonTracer.trace(jwsStruct.joseHeader());
             this.jsonTracer.trace(jwsStruct.payload());
             assertThat(jwsStruct.joseHeader().getString("kid")).isEqualTo(kid);
             assertThat(jwsStruct.joseHeader().getString("alg")).isEqualTo("HS256");
             assertThat(jwsStruct.joseHeader().getString("typ")).isEqualTo("JWT");
-
-            JWSValidator jwsValidator = new JWSValidator(compactSerialization);
-
             assertThat(jwsValidator.validate(secretKey)).isTrue();
+
+            boolean validated = JWS.createValidator()
+                    .compactSerialization(compactSerialization)
+                    .key(secretKey)
+                    .validate();
+
+            assertThat(validated).isTrue();
         } finally {
             tracer.wayout();
         }
@@ -115,17 +122,26 @@ public class JWSUnit implements Traceable, WithAssertions {
                     .sign();
 
             tracer.out().printfIndentln("compactSerialization = %s", compactSerialization);
+
             JWSBase.JWSStruct jwsStruct = compactSerialization.makeJWSStruct();
+            JWSValidator jwsValidator = new JWSValidator(compactSerialization);
+            JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.fromJson(jwsStruct.joseHeader().getJsonObject("jwk"));
+
             this.jsonTracer.trace(jsonWebKeyPair.toJson());
             this.jsonTracer.trace(jwsStruct.joseHeader());
             this.jsonTracer.trace(jwsStruct.payload());
             assertThat(jwsStruct.joseHeader().getString("kid")).isEqualTo(kid);
             assertThat(jwsStruct.joseHeader().getString("alg")).isEqualTo("ES256");
             assertThat(jwsStruct.joseHeader().getString("typ")).isEqualTo("JWT");
-
-            JWSValidator jwsValidator = new JWSValidator(compactSerialization);
-
             assertThat(jwsValidator.validate(keyPair.getPublic())).isTrue();
+            assertThat(jwsValidator.validate(jsonWebPublicKey.getPublicKey())).isTrue();
+
+            boolean validated = JWS.createValidator()
+                    .compactSerialization(compactSerialization)
+                    .key(keyPair.getPublic())
+                    .validate();
+
+            assertThat(validated).isTrue();
         } finally {
             tracer.wayout();
         }
