@@ -3,7 +3,6 @@ package de.christofreichardt.json.webkey;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.json.JsonUtils;
 import java.security.GeneralSecurityException;
-import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -30,7 +29,7 @@ final public class JsonWebSecretKey extends JsonWebKey {
         return new Builder();
     }
 
-    public static SecretKeyBuilder of(SecretKey secretKey) throws InvalidKeyException {
+    public static SecretKeyBuilder of(SecretKey secretKey) {
         return new SecretKeyBuilder(secretKey);
     }
 
@@ -133,15 +132,15 @@ final public class JsonWebSecretKey extends JsonWebKey {
     public static class SecretKeyBuilder extends JsonWebKey.Builder<SecretKeyBuilder> {
         final SecretKey secretKey;
 
-        public SecretKeyBuilder(SecretKey secretKey) throws InvalidKeyException {
+        public SecretKeyBuilder(SecretKey secretKey) throws IllegalArgumentException {
             if (!JDK2JSON_ALGO_MAP.containsKey(secretKey.getAlgorithm())) {
-                throw new InvalidKeyException();
+                throw new IllegalArgumentException();
             }
             this.secretKey = secretKey;
         }
 
         @Override
-        public JsonWebSecretKey build() throws GeneralSecurityException {
+        public JsonWebSecretKey build() {
             return new JsonWebSecretKey(this);
         }
     }

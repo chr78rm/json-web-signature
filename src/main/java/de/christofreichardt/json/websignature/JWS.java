@@ -13,6 +13,7 @@ import de.christofreichardt.json.websignature.interfaces.ValidationBegin;
 import de.christofreichardt.json.websignature.interfaces.ValidationEnd;
 import java.security.GeneralSecurityException;
 import java.security.Key;
+import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.Objects;
 import javax.crypto.SecretKey;
@@ -44,14 +45,28 @@ public class JWS {
         }
 
         @Override
-        public BeforeTyp keyPair(JsonWebKeyPair jsonWebKeyPair) {
+        public BeforeTyp webkey(JsonWebKeyPair jsonWebKeyPair) {
             this.jsonWebKey = jsonWebKeyPair;
             return this;
         }
 
         @Override
-        public BeforeTyp secretKey(JsonWebSecretKey jsonWebSecretKey) {
+        public BeforeTyp webkey(JsonWebSecretKey jsonWebSecretKey) {
             this.jsonWebKey = jsonWebSecretKey;
+            return this;
+        }
+
+        @Override
+        public BeforeTyp key(KeyPair keyPair) {
+            this.jsonWebKey = JsonWebKeyPair.of(keyPair)
+                    .build();
+            return this;
+        }
+
+        @Override
+        public BeforeTyp key(SecretKey secretKey) {
+            this.jsonWebKey = JsonWebSecretKey.of(secretKey)
+                    .build();
             return this;
         }
 
