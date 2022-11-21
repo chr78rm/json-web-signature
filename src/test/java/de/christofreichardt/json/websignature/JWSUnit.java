@@ -7,8 +7,11 @@ import de.christofreichardt.json.JsonTracer;
 import de.christofreichardt.json.webkey.JsonWebKeyPair;
 import de.christofreichardt.json.webkey.JsonWebPublicKey;
 import de.christofreichardt.json.webkey.JsonWebSecretKey;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.math.BigInteger;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
@@ -52,9 +55,9 @@ public class JWSUnit implements Traceable, WithAssertions {
     }
 
     @Test
-    void hmac() throws GeneralSecurityException {
+    void hmacWithWebKeyAndAllOptions() throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
-        tracer.entry("void", this, "hmac()");
+        tracer.entry("void", this, "hmacWithWebKeyAndAllOptions()");
 
         try {
             String kid = UUID.randomUUID().toString();
@@ -92,6 +95,13 @@ public class JWSUnit implements Traceable, WithAssertions {
             boolean validated = JWS.createValidator()
                     .compactSerialization(compactSerialization)
                     .key(secretKey)
+                    .validate();
+
+            assertThat(validated).isTrue();
+
+            validated = JWS.createValidator()
+                    .compactSerialization(compactSerialization)
+                    .key(jsonWebSecretKey)
                     .validate();
 
             assertThat(validated).isTrue();
@@ -144,6 +154,13 @@ public class JWSUnit implements Traceable, WithAssertions {
             boolean validated = JWS.createValidator()
                     .compactSerialization(compactSerialization)
                     .key(keyPair.getPublic())
+                    .validate();
+
+            assertThat(validated).isTrue();
+
+            validated = JWS.createValidator()
+                    .compactSerialization(compactSerialization)
+                    .key(jsonWebKeyPair.jsonWebPublicKey())
                     .validate();
 
             assertThat(validated).isTrue();
@@ -209,6 +226,141 @@ public class JWSUnit implements Traceable, WithAssertions {
 
             boolean falsified = JWS.createValidator()
                     .compactSerialization(fakedCompactSerialization)
+                    .key(keyPair.getPublic())
+                    .validate();
+
+            assertThat(falsified).isFalse();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void hmacWithSecretKey() throws GeneralSecurityException, FileNotFoundException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "hmacWithSecretKey()");
+
+        try {
+            final int KEY_SIZE = 1024;
+            final String ALGORITHM = "HmacSHA256";
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM);
+            keyGenerator.init(KEY_SIZE);
+            SecretKey secretKey = keyGenerator.generateKey();
+
+            Path path = Path.of("json", "shares", "share-1.json");
+            JsonObject share;
+            try (JsonReader jsonReader = Json.createReader(new FileInputStream(path.toFile()))) {
+                share = jsonReader.readObject();
+            }
+
+            JWSCompactSerialization compactSerialization = JWS.createSignature()
+                    .key(secretKey)
+                    .typ("JOSE")
+                    .payload(share)
+                    .sign();
+
+            tracer.out().printfIndentln("compactSerialization = %s", compactSerialization);
+
+            JWSBase.JWSStruct jwsStruct = compactSerialization.makeJWSStruct();
+            JWSValidator jwsValidator = new JWSValidator(compactSerialization);
+
+            this.jsonTracer.trace(jwsStruct.joseHeader());
+            this.jsonTracer.trace(jwsStruct.payload());
+
+            assertThat(jwsStruct.joseHeader().getString("alg")).isEqualTo("HS256");
+            assertThat(jwsStruct.joseHeader().getString("typ")).isEqualTo("JOSE");
+            assertThat(jwsValidator.validate(secretKey)).isTrue();
+
+            boolean validated = JWS.createValidator()
+                    .compactSerialization(compactSerialization)
+                    .key(secretKey)
+                    .validate();
+
+            assertThat(validated).isTrue();
+
+            SecretKey falseKey = keyGenerator.generateKey();
+            boolean falsified = JWS.createValidator()
+                    .compactSerialization(compactSerialization)
+                    .key(falseKey)
+                    .validate();
+
+            assertThat(falsified).isFalse();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    static class RSAPublicKey implements java.security.interfaces.RSAPublicKey {
+
+        final BigInteger modulus;
+        final BigInteger exponent;
+
+        public RSAPublicKey(BigInteger modulus, BigInteger exponent) {
+            this.modulus = modulus;
+            this.exponent = exponent;
+        }
+
+        @Override
+        public BigInteger getPublicExponent() {
+            return this.exponent;
+        }
+
+        @Override
+        public String getAlgorithm() {
+            return "RSA";
+        }
+
+        @Override
+        public String getFormat() {
+            return null;
+        }
+
+        @Override
+        public byte[] getEncoded() {
+            return null;
+        }
+
+        @Override
+        public BigInteger getModulus() {
+            return this.modulus;
+        }
+
+    }
+
+    @Test
+    void oidcToken() throws FileNotFoundException, GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "oidcToken()");
+
+        try {
+            File tokenFile = Path.of(".", "json", "tokens", "test-token.json").toFile();
+            JsonObject token;
+            try ( JsonReader jsonReader = Json.createReader(new FileReader(tokenFile))) {
+                token = jsonReader.readObject();
+            }
+            this.jsonTracer.trace(token);
+            String accessToken = token.getString("access_token");
+            JWSCompactSerialization compactSerialization = JWSCompactSerialization.of(accessToken);
+
+            String encodedModulus = "oyfV3I-K1z6O5FRQWJY6tWet2eZpOSs0rdJwv3YiGKrT3BfFfiJqoYAeNDbVXW6vLx-5jhl_RIFsQjGB4R0HiHaMEPvXAneO2brU6yGqwUMA5IAMYU6Km3kfmXgqLyx5mIvwdCHZw-6oHpUnwzIz9wSgiY-qIany-4jKXlJlZ7smo8He1xoRbT74lbmd6LdFCPHcFx3c9PrYJPhdhDK4dqEK02t5OLiaZuOGhKqCHU5RKTaPJzG_ypTlpUywEule7NdL9UDJRFz-IyXOBNTL0Jl2c7HaReHDJrFa13Kk5MlVtrv2mRkMzoJiKdS-stoAzyxcNFj-MSyOo_3mqm299Q";
+            String encodedExponent = "AQAB";
+            BigInteger modulus, e;
+            modulus = new BigInteger(1, JWSBase.decodeToBytes(encodedModulus));
+            e = new BigInteger(1, JWSBase.decodeToBytes(encodedExponent));
+            RSAPublicKey publicKey = new RSAPublicKey(modulus, e);
+
+            boolean validated = JWS.createValidator()
+                    .compactSerialization(compactSerialization)
+                    .key(publicKey)
+                    .validate();
+
+            assertThat(validated).isTrue();
+
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+            keyPairGenerator.initialize(2048);
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+            boolean falsified = JWS.createValidator()
+                    .compactSerialization(compactSerialization)
                     .key(keyPair.getPublic())
                     .validate();
 

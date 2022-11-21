@@ -2,6 +2,7 @@ package de.christofreichardt.json.websignature;
 
 import de.christofreichardt.json.webkey.JsonWebKey;
 import de.christofreichardt.json.webkey.JsonWebKeyPair;
+import de.christofreichardt.json.webkey.JsonWebPublicKey;
 import de.christofreichardt.json.webkey.JsonWebSecretKey;
 import de.christofreichardt.json.websignature.interfaces.BeforeKey;
 import de.christofreichardt.json.websignature.interfaces.BeforeKid;
@@ -124,6 +125,18 @@ public class JWS {
         @Override
         public ValidationEnd key(SecretKey secretKey) {
             this.key = secretKey;
+            return this;
+        }
+
+        @Override
+        public ValidationEnd key(JsonWebPublicKey jsonWebPublicKey) {
+            this.key = jsonWebPublicKey.getPublicKey();
+            return this;
+        }
+
+        @Override
+        public ValidationEnd key(JsonWebSecretKey jsonWebSecretKey) {
+            this.key = jsonWebSecretKey.getSecretKey();
             return this;
         }
 

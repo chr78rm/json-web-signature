@@ -90,6 +90,7 @@ public class RSASSA_PKCS1_v1_5Unit implements Traceable, WithAssertions {
         }
 
     }
+
     static class RSAPublicKey implements java.security.interfaces.RSAPublicKey {
 
         final BigInteger modulus;
