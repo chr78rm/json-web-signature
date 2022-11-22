@@ -16,7 +16,10 @@ import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.SecureRandom;
+import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.ECGenParameterSpec;
+import java.security.spec.RSAKeyGenParameterSpec;
 import java.util.UUID;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -117,6 +120,7 @@ public class JWSUnit implements Traceable, WithAssertions {
 
         try {
             String kid = UUID.randomUUID().toString();
+
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
             ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256r1");
             keyPairGenerator.initialize(ecGenParameterSpec);
@@ -124,23 +128,25 @@ public class JWSUnit implements Traceable, WithAssertions {
             JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of(keyPair)
                     .withKid(kid)
                     .build();
+
             JsonObject payload = Json.createObjectBuilder()
                     .add("iss", "joe")
                     .add("exp", 1300819380)
                     .add("http://example.com/is_root", "true")
                     .build();
+
             JWSCompactSerialization compactSerialization = JWS.createSignature()
                     .webkey(jsonWebKeyPair)
                     .typ("JWT")
                     .payload(payload)
                     .sign();
-
-            tracer.out().printfIndentln("compactSerialization = %s", compactSerialization);
-
             JWSBase.JWSStruct jwsStruct = compactSerialization.makeJWSStruct();
             JWSValidator jwsValidator = new JWSValidator(compactSerialization);
             JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.fromJson(jwsStruct.joseHeader().getJsonObject("jwk"));
 
+            tracer.out().printfIndentln("compactSerialization = %s", compactSerialization);
+            tracer.out().printfIndentln("jwsStruct.strJoseHeader() = %s", jwsStruct.strJoseHeader());
+            tracer.out().printfIndentln("jwsStruct.strPayload() = %s", jwsStruct.strPayload());
             this.jsonTracer.trace(jsonWebKeyPair.toJson());
             this.jsonTracer.trace(jwsStruct.joseHeader());
             this.jsonTracer.trace(jwsStruct.payload());
@@ -191,13 +197,13 @@ public class JWSUnit implements Traceable, WithAssertions {
                     .typ("JOSE")
                     .payload(share)
                     .sign();
-
-            tracer.out().printfIndentln("compactSerialization = %s", compactSerialization);
-
             JWSBase.JWSStruct jwsStruct = compactSerialization.makeJWSStruct();
             JWSValidator jwsValidator = new JWSValidator(compactSerialization);
             JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.fromJson(jwsStruct.joseHeader().getJsonObject("jwk"));
 
+            tracer.out().printfIndentln("compactSerialization = %s", compactSerialization);
+            tracer.out().printfIndentln("jwsStruct.strJoseHeader() = %s", jwsStruct.strJoseHeader());
+            tracer.out().printfIndentln("jwsStruct.strPayload() = %s", jwsStruct.strPayload());
             this.jsonTracer.trace(jwsStruct.joseHeader());
             this.jsonTracer.trace(jwsStruct.payload());
 
@@ -365,6 +371,125 @@ public class JWSUnit implements Traceable, WithAssertions {
                     .validate();
 
             assertThat(falsified).isFalse();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void hmacWithLiteralStringPayload() throws GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "exit()");
+
+        try {
+            String kid = UUID.randomUUID().toString();
+
+            final int KEY_SIZE = 1024;
+            final String ALGORITHM = "HmacSHA256";
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM);
+            keyGenerator.init(KEY_SIZE);
+            SecretKey secretKey = keyGenerator.generateKey();
+            JsonWebSecretKey jsonWebSecretKey = JsonWebSecretKey.of(secretKey)
+                    .withKid(kid)
+                    .build();
+
+            String share =
+                    """
+                    {
+                        "PartitionId": "f14434bc-c852-47d8-8001-8f349f0b9408",
+                        "Prime": 77036549738719732710990429556180762025039,
+                        "Threshold": 4,
+                        "SharePoints": [
+                            {
+                                "SharePoint": {
+                                    "x": 22766610275390711977223194921953354317543,
+                                    "y": 54083401924870413023277357643502454671674
+                                }
+                            }
+                        ]
+                    }                    
+                    """;
+
+            JWSCompactSerialization compactSerialization = JWS.createSignature()
+                    .webkey(jsonWebSecretKey)
+                    .typ("JWT")
+                    .kid(kid)
+                    .payload(share)
+                    .sign();
+            JWSBase.JWSStruct jwsStruct = compactSerialization.makeJWSStruct();
+            JWSValidator jwsValidator = new JWSValidator(compactSerialization);
+
+            tracer.out().printfIndentln("compactSerialization = %s", compactSerialization);
+            tracer.out().printfIndentln("jwsStruct.strJoseHeader() = %s", jwsStruct.strJoseHeader());
+            this.jsonTracer.trace(jsonWebSecretKey.toJson());
+            this.jsonTracer.trace(jwsStruct.joseHeader());
+            this.jsonTracer.trace(jwsStruct.payload());
+
+            assertThat(jwsStruct.joseHeader().getString("kid")).isEqualTo(kid);
+            assertThat(jwsStruct.joseHeader().getString("alg")).isEqualTo("HS256");
+            assertThat(jwsStruct.joseHeader().getString("typ")).isEqualTo("JWT");
+            assertThat(jwsValidator.validate(secretKey)).isTrue();
+
+            boolean validated = JWS.createValidator()
+                    .compactSerialization(compactSerialization)
+                    .key(secretKey)
+                    .validate();
+
+            assertThat(validated).isTrue();
+
+            validated = JWS.createValidator()
+                    .compactSerialization(compactSerialization)
+                    .key(jsonWebSecretKey)
+                    .validate();
+
+            assertThat(validated).isTrue();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void rsaWithPrettyPrintConverter() throws GeneralSecurityException, FileNotFoundException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "rsaWithPrettyPrintConverter()");
+
+        try {
+            final int BIT_LENGTH = 32, CERTAINTY = 64, KEY_SIZE = 3072;
+            BigInteger e = new BigInteger(BIT_LENGTH, CERTAINTY, SecureRandom.getInstance("SHA1PRNG"));
+            AlgorithmParameterSpec algorithmParameterSpec = new RSAKeyGenParameterSpec(KEY_SIZE, e);
+            JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of(algorithmParameterSpec)
+                    .build();
+
+            Path path = Path.of("json", "shares", "share-1.json");
+            JsonObject share;
+            try (JsonReader jsonReader = Json.createReader(new FileInputStream(path.toFile()))) {
+                share = jsonReader.readObject();
+            }
+
+            final String TYP = "JOSE";
+            JWSCompactSerialization compactSerialization = JWS.createSignature()
+                    .webkey(jsonWebKeyPair)
+                    .typ(TYP)
+                    .payload(share, new PrettyStringConverter())
+                    .sign();
+            JWSBase.JWSStruct jwsStruct = compactSerialization.makeJWSStruct();
+            JWSValidator jwsValidator = new JWSValidator(compactSerialization);
+            JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.fromJson(jwsStruct.joseHeader().getJsonObject("jwk"));
+
+            tracer.out().printfIndentln("compactSerialization = %s", compactSerialization);
+            tracer.out().printfIndentln("jwsStruct.strJoseHeader() = %s", jwsStruct.strJoseHeader());
+            tracer.out().printfIndentln("jwsStruct.strPayload() = %s", jwsStruct.strPayload());
+
+            assertThat(jwsStruct.joseHeader().getString("alg")).isEqualTo("RS256");
+            assertThat(jwsStruct.joseHeader().getString("typ")).isEqualTo(TYP);
+            assertThat(jwsValidator.validate(jsonWebPublicKey.getPublicKey())).isTrue();
+
+            boolean validated = JWS.createValidator()
+                    .compactSerialization(compactSerialization)
+                    .key(jsonWebKeyPair.jsonWebPublicKey())
+                    .validate();
+
+            assertThat(validated).isTrue();
         } finally {
             tracer.wayout();
         }

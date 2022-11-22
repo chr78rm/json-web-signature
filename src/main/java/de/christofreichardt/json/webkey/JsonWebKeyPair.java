@@ -269,7 +269,7 @@ final public class JsonWebKeyPair extends JsonWebKey {
         }
 
         @Override
-        JsonWebKeyPair build() throws GeneralSecurityException {
+        public JsonWebKeyPair build() throws GeneralSecurityException {
             KeyPairGenerator keyPairGenerator;
             if (this.algorithmParameterSpec instanceof ECGenParameterSpec) {
                 keyPairGenerator = KeyPairGenerator.getInstance("EC");

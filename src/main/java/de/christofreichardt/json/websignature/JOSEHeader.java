@@ -104,7 +104,6 @@ public class JOSEHeader implements Traceable {
 
     public static class PublicKeyBuilder implements Traceable {
         static Map<String, String> ecAlgoMap = Map.of("secp256r1 [NIST P-256,X9.62 prime256v1] (1.2.840.10045.3.1.7)", "ES256");
-        static Set<String> rsaAlgos = Set.of("RS256");
 
         final String alg;
         final JsonWebPublicKey jsonWebPublicKey;
@@ -138,11 +137,8 @@ public class JOSEHeader implements Traceable {
                     }
                     int keysize = rsaPublicKey.getModulus().bitLength() / 8;
                     tracer.out().printfIndentln("keysize = %d bytes", keysize);
-                    String rsaAlgo = "RS" + keysize;
-                    if (!rsaAlgos.contains(rsaAlgo)) {
-                        throw new IllegalArgumentException(String.format("Invalid keysize %d.", keysize));
-                    }
-                    return rsaAlgo;
+
+                    return "RS256"; // TODO: think about different algorithms that is RSA with a different hash algorithm than SHA-256
                 } else {
                     throw new IllegalArgumentException(String.format("Unsupported key type '%s'.", keyType));
                 }

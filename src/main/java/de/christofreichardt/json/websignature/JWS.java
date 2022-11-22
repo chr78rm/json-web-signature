@@ -38,10 +38,25 @@ public class JWS {
         JsonObject payload;
         String kid;
         String typ;
+        Json2StringConverter converter;
+        String strPayload;
 
         @Override
         public SignatureEnd payload(JsonObject payload) {
             this.payload = payload;
+            return this;
+        }
+
+        @Override
+        public SignatureEnd payload(JsonObject payload, Json2StringConverter converter) {
+            this.payload = payload;
+            this.converter = converter;
+            return this;
+        }
+
+        @Override
+        public SignatureEnd payload(String strPayload) {
+            this.strPayload = strPayload;
             return this;
         }
 
@@ -75,22 +90,37 @@ public class JWS {
         public JWSCompactSerialization sign() throws GeneralSecurityException {
             JWSCompactSerialization compactSerialization;
             JOSEHeader joseHeader;
+            JWSSigner jwsSigner;
+            Key key;
+
             if (this.jsonWebKey instanceof JsonWebSecretKey jsonWebSecretKey) {
                 joseHeader = JOSEHeader.of(jsonWebSecretKey.getAlgorithm())
                         .withKid(this.kid)
                         .withTyp(this.typ)
                         .build();
-                JWSSigner jwsSigner = new JWSSigner(joseHeader.toJson(), this.payload);
-                compactSerialization = jwsSigner.sign(jsonWebSecretKey.getSecretKey());
+                key = jsonWebSecretKey.getSecretKey();
             } else if (this.jsonWebKey instanceof JsonWebKeyPair jsonWebKeyPair) {
                 joseHeader = JOSEHeader.of(jsonWebKeyPair.jsonWebPublicKey())
                         .withTyp(this.typ)
                         .build();
-                JWSSigner jwsSigner = new JWSSigner(joseHeader.toJson(), this.payload);
-                compactSerialization = jwsSigner.sign(jsonWebKeyPair.getKeyPair().getPrivate());
+                key = jsonWebKeyPair.getKeyPair().getPrivate();
             } else {
                 throw new UnsupportedOperationException();
             }
+
+            if (Objects.nonNull(this.payload)) {
+                if (Objects.nonNull(this.converter)) {
+                    jwsSigner = new JWSSigner(joseHeader.toJson(), this.payload, this.converter);
+                } else {
+                    jwsSigner = new JWSSigner(joseHeader.toJson(), this.payload);
+                }
+            } else if (Objects.nonNull(this.strPayload)) {
+                jwsSigner = new JWSSigner(joseHeader.toJson().toString(), this.strPayload);
+            } else {
+                throw new IllegalStateException();
+            }
+
+            compactSerialization = jwsSigner.sign(key);
 
             return compactSerialization;
         }
