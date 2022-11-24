@@ -40,6 +40,7 @@ public class JWS {
         String typ;
         Json2StringConverter converter;
         String strPayload;
+        String strHeader;
 
         @Override
         public SignatureEnd payload(JsonObject payload) {
@@ -109,13 +110,35 @@ public class JWS {
             }
 
             if (Objects.nonNull(this.payload)) {
-                if (Objects.nonNull(this.converter)) {
-                    jwsSigner = new JWSSigner(joseHeader.toJson(), this.payload, this.converter);
+                if (Objects.isNull(this.strHeader)) {
+                    if (Objects.nonNull(this.converter)) {
+                        jwsSigner = new JWSSigner(joseHeader.toJson(), this.payload, this.converter);
+                    } else {
+                        jwsSigner = new JWSSigner(joseHeader.toJson(), this.payload);
+                    }
+                } else if (Objects.nonNull(this.strHeader)) {
+                    if (Objects.nonNull(this.converter)) {
+                        jwsSigner = new JWSSigner(this.strHeader, this.converter.convert(this.payload));
+                    } else {
+                        jwsSigner = new JWSSigner(this.strHeader, this.payload.toString());
+                    }
                 } else {
-                    jwsSigner = new JWSSigner(joseHeader.toJson(), this.payload);
+                    throw new IllegalStateException();
                 }
-            } else if (Objects.nonNull(this.strPayload)) {
-                jwsSigner = new JWSSigner(joseHeader.toJson().toString(), this.strPayload);
+            } else if (Objects.nonNull(this.strPayload)) { // TODO: make some sanity checks within this branch
+                if (Objects.isNull(this.strHeader)) {
+                    if (Objects.nonNull(this.converter)) {
+                        jwsSigner = new JWSSigner(this.converter.convert(joseHeader.toJson()), this.strPayload);
+                    } else {
+                        jwsSigner = new JWSSigner(joseHeader.toJson().toString(), this.strPayload);
+                    }
+                } else {
+                    if (Objects.nonNull(this.converter)) {
+                        jwsSigner = new JWSSigner(this.strHeader, this.strPayload); // TODO: converter is superfluous, think about it.
+                    } else {
+                        jwsSigner = new JWSSigner(this.strHeader, this.strPayload);
+                    }
+                }
             } else {
                 throw new IllegalStateException();
             }
@@ -137,6 +160,12 @@ public class JWS {
         @Override
         public BeforeKid typ(String typ) {
             this.typ = typ;
+            return this;
+        }
+
+        @Override
+        public BeforePayload header(String strHeader) {
+            this.strHeader = strHeader;
             return this;
         }
     }

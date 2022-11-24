@@ -495,6 +495,88 @@ public class JWSUnit implements Traceable, WithAssertions {
         }
     }
 
+    static class RSAPrivateKey implements java.security.interfaces.RSAPrivateKey {
+
+        final BigInteger modulus;
+        final BigInteger privateExponent;
+
+        public RSAPrivateKey(BigInteger modulus, BigInteger privateExponent) {
+            this.modulus = modulus;
+            this.privateExponent = privateExponent;
+        }
+
+        @Override
+        public BigInteger getPrivateExponent() {
+            return this.privateExponent;
+        }
+
+        @Override
+        public String getAlgorithm() {
+            return "RSA";
+        }
+
+        @Override
+        public String getFormat() {
+            return null;
+        }
+
+        @Override
+        public byte[] getEncoded() {
+            return null;
+        }
+
+        @Override
+        public BigInteger getModulus() {
+            return this.modulus;
+        }
+    }
+
+    /**
+     * Example taken from RFC 7515: JSON Web Signature (JWS).
+     * @see <a href="https://www.rfc-editor.org/rfc/rfc7515.html#appendix-A.2">A.2 Example JWS Using RSASSA-PKCS1-v1_5 SHA-256</a>
+     */
+    @Test
+    void rsaWithLiteralHeaderAndPayload() throws GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "rsaWithLiteralHeaderAndPayload()");
+
+        try {
+            BigInteger modulus = new BigInteger("20446702916744654562596343388758805860065209639960173505037453331270270518732245089773723012043203236097095623402044690115755377345254696448759605707788965848889501746836211206270643833663949992536246985362693736387185145424787922241585721992924045675229348655595626434390043002821512765630397723028023792577935108185822753692574221566930937805031155820097146819964920270008811327036286786392793593121762425048860211859763441770446703722015857250621107855398693133264081150697423188751482418465308470313958250757758547155699749157985955379381294962058862159085915015369381046959790476428631998204940879604226680285601");
+            BigInteger d = new BigInteger("2358310989939619510179986262349936882924652023566213765118606431955566700506538911356936879137503597382515919515633242482643314423192704128296593672966061810149316320617894021822784026407461403384065351821972350784300967610143459484324068427674639688405917977442472804943075439192026107319532117557545079086537982987982522396626690057355718157403493216553255260857777965627529169195827622139772389760130571754834678679842181142252489617665030109445573978012707793010592737640499220015083392425914877847840457278246402760955883376999951199827706285383471150643561410605789710883438795588594095047409018233862167884701");
+            RSAPrivateKey privateKey = new RSAPrivateKey(modulus, d);
+            BigInteger e = new BigInteger("65537");
+            RSAPublicKey publicKey = new RSAPublicKey(modulus, e);
+            KeyPair keyPair = new KeyPair(publicKey, privateKey);
+
+            String strJoseHeader = """
+                                   {"alg":"RS256"}""";
+
+            String strPayload = """
+                                {"iss":"joe",\r
+                                 "exp":1300819380,\r
+                                 "http://example.com/is_root":true}""";
+
+            JWSCompactSerialization compactSerialization = JWS.createSignature()
+                    .key(keyPair)
+                    .header(strJoseHeader)
+                    .payload(strPayload)
+                    .sign();
+
+            String expectedSerialization = "eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.cC4hiUPoj9Eetdgtv3hF80EGrhuB__dzERat0XF9g2VtQgr9PJbu3XOiZj5RZmh7AAuHIm4Bh-0Qc_lF5YKt_O8W2Fp5jujGbds9uJdbF9CUAr7t1dnZcAcQjbKBYNX4BAynRFdiuB--f_nZLgrnbyTyWzO75vRK5h6xBArLIARNPvkSjtQBMHlb1L07Qe7K0GarZRmB_eSN9383LcOLn6_dO--xi12jzDwusC-eOkHWEsqtFZESc6BfI7noOPqvhJ1phCnvWh6IeYI2w9QOYEUipUTI8np6LbgGY9Fs98rqVt5AXLIhWkWywlVmtVrBp0igcN_IoypGlUPQGe77Rw";
+            tracer.out().printfIndentln("signature = %s", compactSerialization);
+            assertThat(compactSerialization.toString()).isEqualTo(expectedSerialization);
+
+            boolean validated = JWS.createValidator()
+                    .compactSerialization(compactSerialization)
+                    .key(publicKey)
+                    .validate();
+
+            assertThat(validated).isTrue();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
     @AfterAll
     void exit() {
         AbstractTracer tracer = getCurrentTracer();
