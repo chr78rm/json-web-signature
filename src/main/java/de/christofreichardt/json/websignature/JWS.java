@@ -7,7 +7,7 @@ import de.christofreichardt.json.webkey.JsonWebSecretKey;
 import de.christofreichardt.json.websignature.interfaces.BeforeKey;
 import de.christofreichardt.json.websignature.interfaces.BeforeKid;
 import de.christofreichardt.json.websignature.interfaces.BeforePayload;
-import de.christofreichardt.json.websignature.interfaces.BeforeTyp;
+import de.christofreichardt.json.websignature.interfaces.BeforeHeader;
 import de.christofreichardt.json.websignature.interfaces.SignatureBegin;
 import de.christofreichardt.json.websignature.interfaces.SignatureEnd;
 import de.christofreichardt.json.websignature.interfaces.ValidationBegin;
@@ -32,7 +32,7 @@ public class JWS {
         return new Validator();
     }
 
-    private static class Signature implements SignatureBegin, BeforePayload, BeforeTyp, BeforeKid, SignatureEnd {
+    private static class Signature implements SignatureBegin, BeforePayload, BeforeHeader, BeforeKid, SignatureEnd {
 
         JsonWebKey jsonWebKey;
         JsonObject payload;
@@ -61,26 +61,26 @@ public class JWS {
         }
 
         @Override
-        public BeforeTyp webkey(JsonWebKeyPair jsonWebKeyPair) {
+        public BeforeHeader webkey(JsonWebKeyPair jsonWebKeyPair) {
             this.jsonWebKey = jsonWebKeyPair;
             return this;
         }
 
         @Override
-        public BeforeTyp webkey(JsonWebSecretKey jsonWebSecretKey) {
+        public BeforeHeader webkey(JsonWebSecretKey jsonWebSecretKey) {
             this.jsonWebKey = jsonWebSecretKey;
             return this;
         }
 
         @Override
-        public BeforeTyp key(KeyPair keyPair) {
+        public BeforeHeader key(KeyPair keyPair) {
             this.jsonWebKey = JsonWebKeyPair.of(keyPair)
                     .build();
             return this;
         }
 
         @Override
-        public BeforeTyp key(SecretKey secretKey) {
+        public BeforeHeader key(SecretKey secretKey) {
             this.jsonWebKey = JsonWebSecretKey.of(secretKey)
                     .build();
             return this;

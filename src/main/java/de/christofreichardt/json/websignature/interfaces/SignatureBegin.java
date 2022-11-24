@@ -6,8 +6,8 @@ import java.security.KeyPair;
 import javax.crypto.SecretKey;
 
 public interface SignatureBegin {
-    BeforeTyp webkey(JsonWebKeyPair jsonWebKeyPair);
-    BeforeTyp webkey(JsonWebSecretKey jsonWebSecretKey);
-    BeforeTyp key(KeyPair keyPair);
-    BeforeTyp key(SecretKey secretKey);
+    BeforeHeader webkey(JsonWebKeyPair jsonWebKeyPair);
+    BeforeHeader webkey(JsonWebSecretKey jsonWebSecretKey);
+    BeforeHeader key(KeyPair keyPair);
+    BeforeHeader key(SecretKey secretKey);
 }
