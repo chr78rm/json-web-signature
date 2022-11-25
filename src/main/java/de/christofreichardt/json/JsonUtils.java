@@ -2,9 +2,9 @@ package de.christofreichardt.json;
 
 import java.util.Map;
 import java.util.function.Supplier;
-import javax.json.JsonObject;
-import javax.json.JsonString;
-import javax.json.JsonValue;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonString;
+import jakarta.json.JsonValue;
 
 public class JsonUtils {
 

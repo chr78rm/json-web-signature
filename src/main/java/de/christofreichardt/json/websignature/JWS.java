@@ -18,7 +18,7 @@ import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.Objects;
 import javax.crypto.SecretKey;
-import javax.json.JsonObject;
+import jakarta.json.JsonObject;
 
 public class JWS {
     private JWS() {

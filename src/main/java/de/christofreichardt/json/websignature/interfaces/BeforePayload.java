@@ -1,7 +1,7 @@
 package de.christofreichardt.json.websignature.interfaces;
 
 import de.christofreichardt.json.websignature.Json2StringConverter;
-import javax.json.JsonObject;
+import jakarta.json.JsonObject;
 
 public interface BeforePayload {
     SignatureEnd payload(JsonObject payload);

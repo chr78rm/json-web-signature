@@ -6,8 +6,8 @@ import de.christofreichardt.diagnosis.TracerFactory;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.Key;
-import javax.json.JsonObject;
-import javax.json.JsonStructure;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonStructure;
 
 /**
  *

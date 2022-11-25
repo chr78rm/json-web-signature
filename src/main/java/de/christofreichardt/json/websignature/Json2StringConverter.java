@@ -1,6 +1,6 @@
 package de.christofreichardt.json.websignature;
 
-import javax.json.JsonStructure;
+import jakarta.json.JsonStructure;
 
 /**
  *

@@ -16,11 +16,11 @@ import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
-import javax.json.Json;
-import javax.json.JsonStructure;
-import javax.json.JsonWriter;
-import javax.json.JsonWriterFactory;
-import javax.json.stream.JsonGenerator;
+import jakarta.json.Json;
+import jakarta.json.JsonStructure;
+import jakarta.json.JsonWriter;
+import jakarta.json.JsonWriterFactory;
+import jakarta.json.stream.JsonGenerator;
 
 /**
  *
