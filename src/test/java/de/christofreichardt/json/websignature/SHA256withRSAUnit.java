@@ -30,13 +30,13 @@ import org.junit.jupiter.api.TestInstance;
  * @author Christof Reichardt
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class RSASSA_PKCS1_v1_5Unit implements Traceable, WithAssertions {
+public class SHA256withRSAUnit implements Traceable, WithAssertions {
     
     class MyJsonTracer extends JsonTracer {
 
         @Override
         public AbstractTracer getCurrentTracer() {
-            return RSASSA_PKCS1_v1_5Unit.this.getCurrentTracer();
+            return SHA256withRSAUnit.this.getCurrentTracer();
         }
         
     }

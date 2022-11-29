@@ -15,11 +15,11 @@ import java.security.interfaces.RSAPublicKey;
  *
  * @author Christof Reichardt
  */
-public class RSASSA_PKCS1_v1_5 implements JWSAlgorithm {
+public class SHA256withRSA implements JWSAlgorithm {
     
     final Signature signature;
 
-    public RSASSA_PKCS1_v1_5() throws NoSuchAlgorithmException {
+    public SHA256withRSA() throws NoSuchAlgorithmException {
         this.signature = Signature.getInstance("SHA256withRSA");
     }
 
