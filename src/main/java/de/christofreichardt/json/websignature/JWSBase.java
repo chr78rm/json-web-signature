@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2022, Christof Reichardt
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package de.christofreichardt.json.websignature;
 
 import de.christofreichardt.json.JsonUtils;
@@ -12,6 +29,7 @@ import jakarta.json.JsonString;
 import jakarta.json.JsonStructure;
 
 /**
+ * This class provides some core functionality related to creating and validating signatures.
  *
  * @author Christof Reichardt
  */
@@ -73,18 +91,40 @@ public class JWSBase {
         this.jwa = this.jwsStruct.algorithm();
     }
 
+    /**
+     * Returns the string representation of the JOSE header. The raw bytes used for creating the signature
+     * will be derived from this string.
+     *
+     * @return the string representation of the JOSE header.
+     */
     public String getStrJoseHeader() {
         return this.jwsStruct.strJoseHeader();
     }
 
+    /**
+     * Returns the JOSE Header as {@code JsonObject}.
+     *
+     * @return the JOSE Header as {@code JsonObject}.
+     */
     public JsonObject getJoseHeader() {
         return this.jwsStruct.joseHeader();
     }
 
+    /**
+     * Returns the string representation of the actual payload. The raw bytes used for creating the signature
+     * will be derived from this string.
+     *
+     * @return the string representation of the actual payload.
+     */
     public String getStrPayload() {
         return this.jwsStruct.strPayload();
     }
 
+    /**
+     * Returns the payload as {@code JsonObject}.
+     *
+     * @return the payload as {@code JsonObject}.
+     */
     public JsonStructure getPayload() {
         return this.jwsStruct.payload();
     }

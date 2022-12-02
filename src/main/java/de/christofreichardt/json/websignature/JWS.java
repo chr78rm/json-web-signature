@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2022, Christof Reichardt
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package de.christofreichardt.json.websignature;
 
 import de.christofreichardt.json.webkey.JsonWebKey;
@@ -20,19 +37,37 @@ import java.util.Objects;
 import javax.crypto.SecretKey;
 import jakarta.json.JsonObject;
 
+/**
+ * This class provides a Fluent API for generating and validating JSON Web Signatures.
+ *
+ * @author Christof Reichardt
+ */
 public class JWS {
     private JWS() {
     }
 
+    /**
+     * Entry point for creating signatures.
+     *
+     * @return a SignatureBegin instance, an interface of the Fluent API.
+     */
     public static SignatureBegin createSignature() {
         return new Signature();
     }
 
+    /**
+     * Entry point for validating signatures.
+     *
+     * @return  a ValidationBegin instance, an interface of the Fluent API.
+     */
     public static ValidationBegin createValidator() {
         return new Validator();
     }
 
-    private static class Signature implements SignatureBegin, BeforePayload, BeforeHeader, BeforeKid, SignatureEnd {
+    /**
+     * Implements all interfaces of the Fluent API related to creating signatures.
+     */
+    protected static class Signature implements SignatureBegin, BeforePayload, BeforeHeader, BeforeKid, SignatureEnd {
 
         JsonWebKey jsonWebKey;
         JsonObject payload;
@@ -170,7 +205,10 @@ public class JWS {
         }
     }
 
-    private static class Validator implements ValidationBegin, BeforeKey, ValidationEnd {
+    /**
+     * Implements all interfaces of the Fluent API related to validating signatures.
+     */
+    protected static class Validator implements ValidationBegin, BeforeKey, ValidationEnd {
 
         JWSCompactSerialization compactSerialization;
         Key key;
