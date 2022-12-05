@@ -93,7 +93,7 @@ public class HmacSHA256JWSUnit implements Traceable, WithAssertions {
                     .build();
 
             jwsSigner = new JWSSigner(joseHeader, fakePayload);
-            JWSCompactSerialization fakeSerialization = new JWSCompactSerialization(compactSerialization.header(), jwsSigner.sign(secretKey).payload(), compactSerialization.signature());
+            JWSCompactSerialization fakeSerialization = new JWSCompactSerialization(compactSerialization.encodedHeader(), jwsSigner.sign(secretKey).encodedPayload(), compactSerialization.encodedSignature());
             jwsValidator = new JWSValidator(fakeSerialization);
             assertThat(jwsValidator.validate(secretKey)).isFalse();
         } finally {

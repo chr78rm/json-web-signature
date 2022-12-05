@@ -238,7 +238,7 @@ public class SHA256withRSAUnit implements Traceable, WithAssertions {
                     .build();
 
             jwsSigner = new JWSSigner(joseHeader, fakePayload);
-            JWSCompactSerialization fakeSerialization = new JWSCompactSerialization(compactSerialization.header(), jwsSigner.sign(keyPair.getPrivate()).payload(), compactSerialization.signature());
+            JWSCompactSerialization fakeSerialization = new JWSCompactSerialization(compactSerialization.encodedHeader(), jwsSigner.sign(keyPair.getPrivate()).encodedPayload(), compactSerialization.encodedSignature());
             jwsValidator = new JWSValidator(fakeSerialization);
             assertThat(jwsValidator.validate(keyPair.getPublic())).isFalse();
         } finally {

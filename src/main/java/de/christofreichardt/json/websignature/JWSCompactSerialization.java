@@ -18,6 +18,7 @@
 package de.christofreichardt.json.websignature;
 
 import de.christofreichardt.json.websignature.JWSBase.JWSStruct;
+import jakarta.json.JsonObject;
 
 /**
  * A holder for the strings representing the compact serialization format as specified by RFC 7515 (JSON Web Signature).
@@ -25,7 +26,7 @@ import de.christofreichardt.json.websignature.JWSBase.JWSStruct;
  * @author Christof Reichardt
  * @see <a href="https://www.rfc-editor.org/rfc/rfc7515.html#section-3.1">Section 3.1 of RFC 7515</a>
  */
-public record JWSCompactSerialization(String header, String payload, String signature) {
+public record JWSCompactSerialization(String encodedHeader, String encodedPayload, String encodedSignature) {
 
     /**
      * Factory method which expects an actual compact serialization format.
@@ -42,10 +43,18 @@ public record JWSCompactSerialization(String header, String payload, String sign
     }
     
     JWSStruct makeJWSStruct() {
-        String strJoseHeader = JWSBase.decode(this.header);
-        String strJWSPayload = JWSBase.decode(this.payload);
+        String strJoseHeader = JWSBase.decode(this.encodedHeader);
+        String strJWSPayload = JWSBase.decode(this.encodedPayload);
         
         return new JWSStruct(JWSBase.read(strJoseHeader).asJsonObject(), strJoseHeader, JWSBase.read(strJWSPayload), strJWSPayload);
+    }
+
+    public JsonObject joseHeader() {
+        return JWSBase.read(JWSBase.decode(this.encodedHeader)).asJsonObject();
+    }
+
+    public JsonObject payload() {
+        return JWSBase.read(JWSBase.decode(this.encodedPayload)).asJsonObject();
     }
 
     /**
@@ -55,6 +64,6 @@ public record JWSCompactSerialization(String header, String payload, String sign
      */
     @Override
     public String toString() {
-        return String.format("%s.%s.%s", this.header, this.payload, this.signature);
+        return String.format("%s.%s.%s", this.encodedHeader, this.encodedPayload, this.encodedSignature);
     }
 }

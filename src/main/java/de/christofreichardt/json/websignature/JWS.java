@@ -40,7 +40,49 @@ import jakarta.json.JsonObject;
 /**
  * This class provides a Fluent API for generating and validating JSON Web Signatures.
  *
+ * <p style="font-weight: bold">Example 1: Signing</p>
+ * Firstly, we create a keypair:
+ * <pre>KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
+ *ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256r1");
+ *keyPairGenerator.initialize(ecGenParameterSpec);
+ *KeyPair keyPair = keyPairGenerator.generateKeyPair();</pre>
+ *  Secondly, we read a JsonObject from a file:
+ *  <pre>Path path = Path.of("json", "my-json-object.json");
+ *JsonObject jsonObject;
+ *try (JsonReader jsonReader = Json.createReader(new FileInputStream(path.toFile()))) {
+ *    jsonObject = jsonReader.readObject();
+ *}</pre>
+ * Now we can sign the {@code jsonObject} using the Fluent API:
+ * <pre>JWSCompactSerialization compactSerialization = JWS.createSignature()
+ *     .key(keyPair)
+ *     .typ("JOSE")
+ *     .payload(jsonObject)
+ *     .sign();</pre>
+ * This will create the following JOSE header within the first part of the JWS Compact Serialization:
+ * <pre>{
+ *   "alg": "ES256",
+ *   "typ": "JOSE",
+ *   "jwk": {
+ *       "kty": "EC",
+ *       "crv": "secp256r1 [NIST P-256,X9.62 prime256v1] (1.2.840.10045.3.1.7)",
+ *       "x": "_ickpOtyfliWJQv3QUmYR4PboGupj-VuoVYAa1ACvDk",
+ *       "y": "VSoYSDk3E-E857UolPZmC2htBPUJ69HIaZY3hR7G_PA"
+ *   }
+ *}</pre>
+ * (You will get other x,y coordinates with virtual certainty).
+ * <p style="font-weight: bold">Example 2: Validating</p>
+ * Firstly, we create a {@code JsonWebPublicKey} from the given {@code jwk} header parameter:
+ * <pre>JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.fromJson(compactSerialization.joseHeader().getJsonObject("jwk"));</pre>
+ * Now we can validate the signature:
+ * <pre>boolean validated = JWS.createValidator()
+ *    .compactSerialization(compactSerialization)
+ *    .key(jsonWebPublicKey)
+ *    .validate();
+ *assertThat(validated).isTrue();</pre>
  * @author Christof Reichardt
+ * @see de.christofreichardt.json.webkey.JsonWebPublicKey
+ * @see de.christofreichardt.json.websignature.JWSCompactSerialization
+ * @see <a href="https://www.rfc-editor.org/rfc/rfc7515.html#section-3.1">Section 3.1 of RFC 7515</a>
  */
 public class JWS {
     private JWS() {

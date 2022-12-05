@@ -199,22 +199,22 @@ public class JWSUnit implements Traceable, WithAssertions {
                     .sign();
             JWSBase.JWSStruct jwsStruct = compactSerialization.makeJWSStruct();
             JWSValidator jwsValidator = new JWSValidator(compactSerialization);
-            JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.fromJson(jwsStruct.joseHeader().getJsonObject("jwk"));
+            JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.fromJson(compactSerialization.joseHeader().getJsonObject("jwk"));
 
             tracer.out().printfIndentln("compactSerialization = %s", compactSerialization);
             tracer.out().printfIndentln("jwsStruct.strJoseHeader() = %s", jwsStruct.strJoseHeader());
             tracer.out().printfIndentln("jwsStruct.strPayload() = %s", jwsStruct.strPayload());
-            this.jsonTracer.trace(jwsStruct.joseHeader());
-            this.jsonTracer.trace(jwsStruct.payload());
+            this.jsonTracer.trace(compactSerialization.joseHeader());
+            this.jsonTracer.trace(compactSerialization.payload());
 
-            assertThat(jwsStruct.joseHeader().getString("alg")).isEqualTo("ES256");
-            assertThat(jwsStruct.joseHeader().getString("typ")).isEqualTo("JOSE");
+            assertThat(compactSerialization.joseHeader().getString("alg")).isEqualTo("ES256");
+            assertThat(compactSerialization.joseHeader().getString("typ")).isEqualTo("JOSE");
             assertThat(jwsValidator.validate(keyPair.getPublic())).isTrue();
             assertThat(jwsValidator.validate(jsonWebPublicKey.getPublicKey())).isTrue();
 
             boolean validated = JWS.createValidator()
                     .compactSerialization(compactSerialization)
-                    .key(keyPair.getPublic())
+                    .key(jsonWebPublicKey)
                     .validate();
 
             assertThat(validated).isTrue();
@@ -223,7 +223,7 @@ public class JWSUnit implements Traceable, WithAssertions {
                     .add("PartitionId", UUID.randomUUID().toString())
                     .build();
             String strFalsifiedShare = JWSBase.encode(falsifiedShare.toString());
-            JWSCompactSerialization fakedCompactSerialization = new JWSCompactSerialization(compactSerialization.header(), strFalsifiedShare, compactSerialization.signature());
+            JWSCompactSerialization fakedCompactSerialization = new JWSCompactSerialization(compactSerialization.encodedHeader(), strFalsifiedShare, compactSerialization.encodedSignature());
             JWSBase.JWSStruct fakedJwsStruct = fakedCompactSerialization.makeJWSStruct();
 
             tracer.out().printfIndentln("fakedCompactSerialization = %s", fakedCompactSerialization);

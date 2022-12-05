@@ -35,7 +35,7 @@ public class JWSValidator extends JWSBase implements Traceable {
     
     public JWSValidator(JWSCompactSerialization compactSerialization) {
         super(compactSerialization.makeJWSStruct());
-        this.signatureOctets = decode(compactSerialization.signature().getBytes(StandardCharsets.ISO_8859_1));
+        this.signatureOctets = decode(compactSerialization.encodedSignature().getBytes(StandardCharsets.ISO_8859_1));
     }
     
     public boolean validate(Key key) throws GeneralSecurityException {
