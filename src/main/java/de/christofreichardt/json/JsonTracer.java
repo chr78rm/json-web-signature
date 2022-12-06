@@ -47,6 +47,7 @@ abstract public class JsonTracer implements Traceable {
                 try (JsonWriter jsonWriter = this.jsonWriterFactory.createWriter(byteArrayOutputStream, Charset.forName("UTF-8"));) {
                     jsonWriter.write(jsonStructure);
                 }
+                tracer.out().println();
                 bytes = byteArrayOutputStream.toByteArray();
                 try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
                         InputStreamReader inputStreamReader = new InputStreamReader(byteArrayInputStream, Charset.forName("UTF-8"));
