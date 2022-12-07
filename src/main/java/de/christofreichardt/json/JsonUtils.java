@@ -8,6 +8,9 @@ import jakarta.json.JsonValue;
 
 public class JsonUtils {
 
+    private JsonUtils() {
+    }
+
     public static <T extends JsonValue> T orElseThrow(JsonObject jsonObject, String key, Class<T> jsonType) {
         return orElseThrow(jsonObject, key, jsonType, () -> new IllegalArgumentException());
     }

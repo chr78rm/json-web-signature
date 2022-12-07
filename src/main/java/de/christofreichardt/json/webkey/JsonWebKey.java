@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2022, Christof Reichardt
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package de.christofreichardt.json.webkey;
 
 import de.christofreichardt.diagnosis.AbstractTracer;
@@ -17,6 +34,12 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 
+/**
+ * Base class for JSON web keys.
+ *
+ * @author Christof Reichardt
+ * @see <a href="https://www.rfc-editor.org/rfc/rfc7517">RFC 7517 (JSON Web Key)</a>
+ */
 abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyPair, JsonWebPublicKey, JsonWebSecretKey {
 
     static final Map<String, String> JDK2JSON_ALGO_MAP = Map.of("HmacSHA256", "HS256");
@@ -39,6 +62,10 @@ abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyP
         EC_PARAMETER_SPEC_MAP.put("secp256r1", ecParameterSpec);
     }
 
+    /**
+     * Base class for all {@code JsonWebKey.Builder}s.
+     * @param <T> the type of the {@code Builder} subclass.
+     */
     abstract public static class Builder<T extends Builder<T>> {
         String kid = null;
 
@@ -53,6 +80,15 @@ abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyP
         abstract JsonWebKey build() throws GeneralSecurityException;
     }
 
+    /**
+     * Generic method to create a {@code JsonWebKey} from a JSON representation.
+     *
+     * @param webKeyView the JSON representation.
+     * @param clazz the actual {@code JsonWebKey} class, could be a {@code JsonWebKeyPair}, {@code JsonWebPublicKey} or {@code JsonWebSecretKey}.
+     * @return a {@code JsonWebKey} object.
+     * @param <T> the type of the {@code JsonWebKey} class, modeled by the given {@code Class} object.
+     * @throws GeneralSecurityException passed through from the underlying implementations of the algorithms by the JDK.
+     */
     public static <T extends JsonWebKey> T fromJson(JsonObject webKeyView, Class<T> clazz) throws GeneralSecurityException {
         if (JsonWebPublicKey.class.isAssignableFrom(clazz)) {
             @SuppressWarnings("unchecked")
@@ -74,15 +110,33 @@ abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyP
     final String kid;
     final String keyType;
 
+    /**
+     * Returns the "kid" (Key ID) parameter.
+     *
+     * @return the key id, may be null.
+     * @see <a href="https://www.rfc-editor.org/rfc/rfc7517#section-4.5">Section 4.5 of RFC 7517</a>
+     */
     public String getKid() {
         return kid;
     }
 
+    /**
+     * Returns the required "kty" (Key Type) parameter.
+     *
+     * @return the key type.
+     * @see <a href="https://www.rfc-editor.org/rfc/rfc7517#section-4.1">Section 4.1 of RFC 7517</a>
+     */
     public String getKeyType() {
         return keyType;
     }
 
-    public JsonWebKey(String kid, String keyType) {
+    /**
+     * Base class constructor used by the constructors of the sub classes.
+     *
+     * @param kid the key id.
+     * @param keyType the key type.
+     */
+    JsonWebKey(String kid, String keyType) {
         this.kid = kid;
         this.keyType = keyType;
     }
@@ -92,6 +146,11 @@ abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyP
         return String.format("JsonWebKey[class=%s, kid=%s]", this.getClass().getSimpleName(), this.kid);
     }
 
+    /**
+     * Serializes the common JWK parameters.
+     *
+     * @return a JsonObject containing the shared JWK parameters.
+     */
     public JsonObject toJson() {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("JsonObject", this, "toJson()");

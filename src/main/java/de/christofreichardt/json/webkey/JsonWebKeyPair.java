@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2022, Christof Reichardt
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package de.christofreichardt.json.webkey;
 
 import de.christofreichardt.diagnosis.AbstractTracer;
@@ -31,16 +48,40 @@ import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonString;
 
+/**
+ * Convenient for the handling of key pairs in the spirit of RFC 7517 (JSON Web Key) and RFC 7518 (JSON Web Algorithms).
+ *
+ * @author Christof Reichardt
+ * @see <a href="https://www.rfc-editor.org/rfc/rfc7517.html">RFC 7517 (JSON Web Key)</a>
+ * @see <a href="https://www.rfc-editor.org/rfc/rfc7518.html">RFC 7518 (JSON Web Algorithms)</a>
+ */
 final public class JsonWebKeyPair extends JsonWebKey {
 
+    /**
+     * Creates the default builder for a {@code JsonWebKeyPair}. Use this variant if you want to automatically create an EC key pair for curve "secp256r1".
+     *
+     * @return a {@link de.christofreichardt.json.webkey.JsonWebKeyPair.Builder}.
+     */
     public static Builder of() {
         return new Builder();
     }
 
+    /**
+     * Creates a special builder for a {@code JsonWebKeyPair}. Use this variant if you already have a {@code KeyPair}.
+     *
+     * @param keyPair the provided {@code KeyPair}.
+     * @return a {@link de.christofreichardt.json.webkey.JsonWebKeyPair.KeyPairBuilder}.
+     */
     public static KeyPairBuilder of(KeyPair keyPair) {
         return new KeyPairBuilder(keyPair);
     }
 
+    /**
+     * Creates a special builder for a {@code JsonWebKeyPair}. Use this variant if you want to create a {@code KeyPair} from a provided {@code AlgorithmParameterSpec}.
+     *
+     * @param algorithmParameterSpec the provided {@code AlgorithmParameterSpec}.
+     * @return a {@link de.christofreichardt.json.webkey.JsonWebKeyPair.ParameterSpecBuilder}.
+     */
     public static ParameterSpecBuilder of(AlgorithmParameterSpec algorithmParameterSpec) {
         return new ParameterSpecBuilder(algorithmParameterSpec);
     }
@@ -48,15 +89,25 @@ final public class JsonWebKeyPair extends JsonWebKey {
     final KeyPair keyPair;
     final AlgorithmParameterSpec algorithmParameterSpec;
 
+    /**
+     * Returns the actual {@code KeyPair}.
+     *
+     * @return the actual {@code KeyPair}.
+     */
     public KeyPair getKeyPair() {
         return keyPair;
     }
 
+    /**
+     * Returns the applied {@code AlgorithmParameterSpec}, may be null.
+     *
+     * @return the applied {@code AlgorithmParameterSpec}
+     */
     public AlgorithmParameterSpec getAlgorithmParameterSpec() {
         return algorithmParameterSpec;
     }
 
-    public JsonWebKeyPair(Builder builder) {
+    JsonWebKeyPair(Builder builder) {
         super(builder.kid, builder.keyPair.getPublic().getAlgorithm());
         this.keyPair = builder.keyPair;
         if (this.keyPair.getPublic() instanceof ECPublicKey ecPublicKey) {
@@ -66,7 +117,7 @@ final public class JsonWebKeyPair extends JsonWebKey {
         }
     }
 
-    public JsonWebKeyPair(KeyPairBuilder keyPairBuilder) {
+    JsonWebKeyPair(KeyPairBuilder keyPairBuilder) {
         super(keyPairBuilder.kid, keyPairBuilder.keyPair.getPublic().getAlgorithm());
         this.keyPair = keyPairBuilder.keyPair;
         if (this.keyPair.getPublic() instanceof ECPublicKey ecPublicKey) {
@@ -76,7 +127,7 @@ final public class JsonWebKeyPair extends JsonWebKey {
         }
     }
 
-    public JsonWebKeyPair(ParameterSpecBuilder parameterSpecBuilder) {
+    JsonWebKeyPair(ParameterSpecBuilder parameterSpecBuilder) {
         super(parameterSpecBuilder.kid, parameterSpecBuilder.keyPair.getPublic().getAlgorithm());
         this.keyPair = parameterSpecBuilder.keyPair;
         if (this.keyPair.getPublic() instanceof ECPublicKey ecPublicKey) {
@@ -86,19 +137,39 @@ final public class JsonWebKeyPair extends JsonWebKey {
         }
     }
 
+    /**
+     * Creates a {@link de.christofreichardt.json.webkey.JsonWebPublicKey} from this {@code JsonWebKeyPair}. Firstly this {@code JsonWebKeyPair} instance will be serialized
+     * into a {@code JsonObject} and then {@link de.christofreichardt.json.webkey.JsonWebPublicKey#fromJson(jakarta.json.JsonObject)} will be invoked.
+     *
+     * @return a {@link de.christofreichardt.json.webkey.JsonWebPublicKey}
+     * @throws GeneralSecurityException
+     */
     public JsonWebPublicKey jsonWebPublicKey() throws GeneralSecurityException {
         return JsonWebPublicKey.fromJson(this.toJson());
     }
 
+    /**
+     * Returns a textual representation of this {@code JsonWebKeyPair}.
+     *
+     * @return a textual representation of this {@code JsonWebKeyPair}.
+     */
     @Override
     public String toString() {
         String params = null;
         if (this.algorithmParameterSpec instanceof ECParameterSpec ecParameterSpec) {
             params = ecParameterSpec.toString();
         }
-        return String.format("%s[kid=%s, keyType=%s, params=%s]", this.getClass().getSimpleName(), this.kid, this.keyType, params);
+        return String.format("%s[kid=%s, keyType=%s, params=%s]", this.getClass().getSimpleName(), this.kid, this.keyType, params); // TODO: keyPair data element is missing.
     }
 
+    /**
+     * Compares this {@code JsonWebKeyPair} with another {@code JsonWebKeyPair}.
+     * Compares this {@code JsonWebKeyPair} with another ensuring that it contains the same configuration. Only objects of type {@code JsonWebKeyPair} are considered, other
+     * types return false.
+     *
+     * @param object the object to check, null returns false
+     * @return true if this is equal to the other {@code JsonWebKeyPair}
+     */
     @Override
     public boolean equals(Object object) {
         AbstractTracer tracer = getCurrentTracer();
@@ -160,6 +231,11 @@ final public class JsonWebKeyPair extends JsonWebKey {
         }
     }
 
+    /**
+     * A hash code for this {@code JsonWebKeyPair}.
+     *
+     * @return a suitable hash code.
+     */
     @Override
     public int hashCode() {
         if (this.algorithmParameterSpec instanceof ECParameterSpec ecParameterSpec) {
@@ -177,6 +253,12 @@ final public class JsonWebKeyPair extends JsonWebKey {
         }
     }
 
+    /**
+     * Converts this {@code JsonWebKeyPair} into a plain {@code JsonObject}.
+     *
+     * @return a {@code JsonObject} corresponding to this {@code JsonWebKeyPair}.
+     * @see <a href="https://jakarta.ee/specifications/platform/10/apidocs/jakarta/json/jsonobject">JsonObject (Jakarta EE Platform API)</a>
+     */
     @Override
     public JsonObject toJson() {
         AbstractTracer tracer = getCurrentTracer();
@@ -204,7 +286,7 @@ final public class JsonWebKeyPair extends JsonWebKey {
                 int keySize = rsaPublicKey.getModulus().bitLength();
                 tracer.out().printfIndentln("keySize = %d", keySize);
                 byte[] modulusBytes = JsonWebKeyUtils.skipSurplusZeroes(rsaPublicKey.getModulus().toByteArray(), keySize / 8);
-                tracer.out().printfIndentln("octets(rsaPublicKey) = %s", JsonWebKeyUtils.formatBytes(modulusBytes));
+                tracer.out().printfIndentln("#(modulusBytes) = %d, octets(modulusBytes) = %s", modulusBytes.length, JsonWebKeyUtils.formatBytes(modulusBytes));
                 byte[] publicExponentBytes = JsonWebKeyUtils.skipLeadingZeroes(rsaPublicKey.getPublicExponent().toByteArray());
                 tracer.out().printfIndentln("octets(publicExponentBytes) = %s", JsonWebKeyUtils.formatBytes(publicExponentBytes));
                 jsonObjectBuilder
@@ -232,6 +314,10 @@ final public class JsonWebKeyPair extends JsonWebKey {
         }
     }
 
+    /**
+     * A {@link de.christofreichardt.json.webkey.JsonWebKey.Builder} for building {@code JsonWebKeyPair}s by internally generating
+     * an EC key pair for the curve "secp256r1".
+     */
     public static class Builder extends JsonWebKey.Builder<Builder> {
 
         KeyPair keyPair;
@@ -247,6 +333,9 @@ final public class JsonWebKeyPair extends JsonWebKey {
         }
     }
 
+    /**
+     * A {@link de.christofreichardt.json.webkey.JsonWebKey.Builder} for building {@code JsonWebKeyPair}s by provided {@code KeyPair}s.
+     */
     public static class KeyPairBuilder extends JsonWebKey.Builder<KeyPairBuilder> {
         final KeyPair keyPair;
 
@@ -260,6 +349,10 @@ final public class JsonWebKeyPair extends JsonWebKey {
         }
     }
 
+    /**
+     * A {@link de.christofreichardt.json.webkey.JsonWebKey.Builder} for building {@code JsonWebKeyPair}s by a provided {@code AlgorithmParameterSpec}.
+     * The {@code AlgorithmParameterSpec} object will internally be used to create an appropriate {@code  KeyPair}.
+     */
     public static class ParameterSpecBuilder extends JsonWebKey.Builder<ParameterSpecBuilder> {
         final AlgorithmParameterSpec algorithmParameterSpec;
         KeyPair keyPair;
@@ -285,6 +378,13 @@ final public class JsonWebKeyPair extends JsonWebKey {
         }
     }
 
+    /**
+     * Factory method to create a {@code JsonWebKeyPair} instance from a plain {@code JsonObject}.
+     *
+     * @param jwkView the given {@code JsonObject}.
+     * @return a {@code JsonWebKeyPair}
+     * @throws GeneralSecurityException passed through from the underlying implementations of the algorithms by the JDK.
+     */
     public static JsonWebKeyPair fromJson(JsonObject jwkView) throws GeneralSecurityException {
         String keyType = JsonUtils.orElseThrow(jwkView, "kty", JsonString.class).getString();
 
