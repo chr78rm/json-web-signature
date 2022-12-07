@@ -23,6 +23,10 @@ import jakarta.json.JsonObject;
 /**
  * A holder for the strings representing the compact serialization format as specified by RFC 7515 (JSON Web Signature).
  *
+ * @param encodedHeader the BASE64 URL encoded JOSE header.
+ * @param encodedPayload the BASE64 URL encoded payload.
+ * @param encodedSignature the BASE64 URL encoded signature.
+ *
  * @author Christof Reichardt
  * @see <a href="https://www.rfc-editor.org/rfc/rfc7515.html#section-3.1">Section 3.1 of RFC 7515</a>
  */
@@ -49,10 +53,19 @@ public record JWSCompactSerialization(String encodedHeader, String encodedPayloa
         return new JWSStruct(JWSBase.read(strJoseHeader).asJsonObject(), strJoseHeader, JWSBase.read(strJWSPayload), strJWSPayload);
     }
 
+    /**
+     * Decodes the BASE64 URL encoded JOSE header and constructs an appropriate {@code JsonObject}.
+     *
+     * @return the JOSE header as {@code JsonObject}.
+     */
     public JsonObject joseHeader() {
         return JWSBase.read(JWSBase.decode(this.encodedHeader)).asJsonObject();
     }
 
+    /**
+     * Decodes the BASE64 URL encoded payload and constructs an appropriate {@code JsonObject}.
+     * @return
+     */
     public JsonObject payload() {
         return JWSBase.read(JWSBase.decode(this.encodedPayload)).asJsonObject();
     }

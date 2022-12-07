@@ -16,7 +16,7 @@
  */
 
 /**
- * Provides the classes and interfaces for the JSON Web Signature (JWS) framework. Apart from the core functionality regarding the signature
+ * Provides the classes and interfaces for the JSON Web Signature (JWS) part of the framework. Apart from the core functionality regarding the signature
  * of JSON data structures the framework provides interoperability with Jakarta JSON Processing. The preferred entry point is the Fluent API
  * supplied by the class {@link JWS}.
  */

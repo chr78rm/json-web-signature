@@ -122,7 +122,7 @@ public class JOSEHeader implements Traceable {
     }
 
     /**
-     * Checks if this header is equal to another header.
+     * Checks if this JOSE header is equal to another header.
      * Compares this {@code JOSEHeader} with another ensuring that it contains the same configuration. Only objects of type {@code JOSEHeader} are considered, other
      * types return false.
      *
