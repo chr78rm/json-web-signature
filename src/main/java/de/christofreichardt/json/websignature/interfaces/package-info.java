@@ -15,18 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.christofreichardt.json.websignature.interfaces;
-
 /**
- * A stopover within the the workflow of the Fluent API regarding the generation of signatures.
+ * Provides interfaces concerning the Fluent API.
  */
-public interface BeforeKid extends BeforePayload {
-    /**
-     * Notes the given {@code kid}.
-     *
-     * @param kid the given {@code kid}.
-     * @return the next stop within the workflow of the Fluent API regarding the generation of signatures.
-     * @see <a href="https://www.rfc-editor.org/rfc/rfc7515.html#section-4.1.4">Section 4.1.4 of RFC 7515</a>
-     */
-    BeforePayload kid(String kid);
-}
+package de.christofreichardt.json.websignature.interfaces;
