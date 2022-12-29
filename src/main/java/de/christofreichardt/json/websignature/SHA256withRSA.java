@@ -38,7 +38,7 @@ public class SHA256withRSA implements JWSAlgorithm {
     
     final Signature signature;
 
-    public SHA256withRSA() throws NoSuchAlgorithmException {
+    SHA256withRSA() throws NoSuchAlgorithmException {
         this.signature = Signature.getInstance("SHA256withRSA");
     }
 

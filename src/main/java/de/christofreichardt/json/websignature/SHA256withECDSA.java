@@ -38,7 +38,7 @@ public class SHA256withECDSA implements JWSAlgorithm {
 
     final Signature signature;
 
-    public SHA256withECDSA() throws NoSuchAlgorithmException {
+    SHA256withECDSA() throws NoSuchAlgorithmException {
         this.signature = Signature.getInstance("SHA256withECDSA");
     }
 

@@ -35,7 +35,7 @@ public class HmacSHA256 implements JWSAlgorithm {
 
     final Mac mac;
 
-    public HmacSHA256() throws NoSuchAlgorithmException {
+    HmacSHA256() throws NoSuchAlgorithmException {
         this.mac = Mac.getInstance("HmacSHA256");
     }
 
