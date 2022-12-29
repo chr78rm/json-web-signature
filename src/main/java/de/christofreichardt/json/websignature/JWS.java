@@ -21,25 +21,24 @@ import de.christofreichardt.json.webkey.JsonWebKey;
 import de.christofreichardt.json.webkey.JsonWebKeyPair;
 import de.christofreichardt.json.webkey.JsonWebPublicKey;
 import de.christofreichardt.json.webkey.JsonWebSecretKey;
+import de.christofreichardt.json.websignature.interfaces.BeforeHeader;
 import de.christofreichardt.json.websignature.interfaces.BeforeKey;
 import de.christofreichardt.json.websignature.interfaces.BeforeKid;
 import de.christofreichardt.json.websignature.interfaces.BeforePayload;
-import de.christofreichardt.json.websignature.interfaces.BeforeHeader;
 import de.christofreichardt.json.websignature.interfaces.SignatureBegin;
 import de.christofreichardt.json.websignature.interfaces.SignatureEnd;
 import de.christofreichardt.json.websignature.interfaces.ValidationBegin;
 import de.christofreichardt.json.websignature.interfaces.ValidationEnd;
+import jakarta.json.JsonStructure;
 import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.Objects;
 import javax.crypto.SecretKey;
-import jakarta.json.JsonObject;
 
 /**
  * This class provides a Fluent API for generating and validating JSON Web Signatures.
- *
  * <p style="font-weight: bold">Example 1: Signing</p>
  * Firstly, we create a keypair:
  * <pre>KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
@@ -112,7 +111,7 @@ public class JWS {
     protected static class Signature implements SignatureBegin, BeforePayload, BeforeHeader, BeforeKid, SignatureEnd {
 
         JsonWebKey jsonWebKey;
-        JsonObject payload;
+        JsonStructure payload;
         String kid;
         String typ;
         Json2StringConverter converter;
@@ -120,13 +119,13 @@ public class JWS {
         String strHeader;
 
         @Override
-        public SignatureEnd payload(JsonObject payload) {
+        public SignatureEnd payload(JsonStructure payload) {
             this.payload = payload;
             return this;
         }
 
         @Override
-        public SignatureEnd payload(JsonObject payload, Json2StringConverter converter) {
+        public SignatureEnd payload(JsonStructure payload, Json2StringConverter converter) {
             this.payload = payload;
             this.converter = converter;
             return this;

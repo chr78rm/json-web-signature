@@ -18,7 +18,7 @@
 package de.christofreichardt.json.websignature.interfaces;
 
 import de.christofreichardt.json.websignature.Json2StringConverter;
-import jakarta.json.JsonObject;
+import jakarta.json.JsonStructure;
 
 /**
  * A stopover within the the workflow of the Fluent API regarding the generation of signatures.
@@ -30,7 +30,7 @@ public interface BeforePayload {
      * @param payload the given payload
      * @return the last step within the workflow of the Fluent API regarding the generation of signatures.
      */
-    SignatureEnd payload(JsonObject payload);
+    SignatureEnd payload(JsonStructure payload);
 
     /**
      * Introduces the actual payload together with a {@link de.christofreichardt.json.websignature.Json2StringConverter}.
@@ -39,7 +39,7 @@ public interface BeforePayload {
      * @param converter the desired converter.
      * @return the last step within the workflow of the Fluent API regarding the generation of signatures.
      */
-    SignatureEnd payload(JsonObject payload, Json2StringConverter converter);
+    SignatureEnd payload(JsonStructure payload, Json2StringConverter converter);
 
     /**
      * Introduces the actual payload as string. The string must be valid JSON at present.
