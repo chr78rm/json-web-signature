@@ -22,6 +22,8 @@ import java.security.GeneralSecurityException;
 
 /**
  * Defines the final step within the workflow of the Fluent API regarding the generation of signatures.
+ *
+ * @author Christof Reichardt
  */
 public interface SignatureEnd {
     /**
