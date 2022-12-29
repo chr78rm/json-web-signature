@@ -142,7 +142,7 @@ final public class JsonWebKeyPair extends JsonWebKey {
      * into a {@code JsonObject} and then {@link de.christofreichardt.json.webkey.JsonWebPublicKey#fromJson(jakarta.json.JsonObject)} will be invoked.
      *
      * @return a {@link de.christofreichardt.json.webkey.JsonWebPublicKey}
-     * @throws GeneralSecurityException
+     * @throws GeneralSecurityException passed through from the underlying implementations of the algorithms by the JDK.
      */
     public JsonWebPublicKey jsonWebPublicKey() throws GeneralSecurityException {
         return JsonWebPublicKey.fromJson(this.toJson());
