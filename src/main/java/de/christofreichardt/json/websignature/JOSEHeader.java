@@ -37,7 +37,6 @@ import java.util.Objects;
  * A convenient class useful to define a JOSE Header containing the parameters describing the cryptographic operations and parameters employed. At present only a subset
  * of the header parameter specified within RFC 7515 is supported. To create an actual {@code JOSEHeader} instance use one of the static factory methods. Two of them provide
  * special builders to programmatically create a {@code JOSEHeader} instance. The third expects a suitable {@code JsonObject}.
- *
  * <p style="font-weight: bold">Example</p>
  * First we generate a key pair and build a JSON Web Key:
  * <pre>KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
@@ -254,7 +253,7 @@ public class JOSEHeader implements Traceable {
 
         @Override
         public AbstractTracer getCurrentTracer() {
-            return TracerFactory.getInstance().getCurrentPoolTracer();
+            return TracerFactory.getInstance().getDefaultTracer();
         }
     }
 

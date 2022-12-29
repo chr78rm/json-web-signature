@@ -170,6 +170,6 @@ abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyP
 
     @Override
     public AbstractTracer getCurrentTracer() {
-        return TracerFactory.getInstance().getCurrentPoolTracer();
+        return TracerFactory.getInstance().getDefaultTracer();
     }
 }

@@ -68,6 +68,6 @@ public class JWSSigner extends JWSBase implements Traceable {
 
     @Override
     public AbstractTracer getCurrentTracer() {
-        return TracerFactory.getInstance().getCurrentPoolTracer();
+        return TracerFactory.getInstance().getDefaultTracer();
     }
 }
