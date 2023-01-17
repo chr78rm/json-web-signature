@@ -5,7 +5,34 @@
     <groupId>de.christofreichardt</groupId>
     <artifactId>json-web-signature</artifactId>
     <version>1.0.0-beta</version>
-    
+    <name>json-web-signature</name>
+    <description>A partial implementation of RFC 7515</description>
+
+    <licenses>
+        <license>
+            <name>GNU General Public License 3</name>
+            <url>http://www.gnu.org/licenses/gpl-3.0.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <name>Christof Reichardt</name>
+            <email>projektstudien@christofreichardt.de</email>
+            <organizationUrl>http://www.christofreichardt.de/index.html</organizationUrl>
+        </developer>
+    </developers>
+    <scm>
+        <url>https://github.com/chr78rm/json-web-signature</url>
+    </scm>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+    <url>https://github.com/chr78rm/json-web-signature</url>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
