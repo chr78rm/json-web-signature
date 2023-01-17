@@ -77,7 +77,7 @@ The JSON representation of the accompanying JOSE header is subsequently shown:
 ```
     {
         "alg": "ES256",
-        "typ": "JWT",
+        "typ": "JOSE",
         "kid": "45dc44ba-531b-4039-8980-c28c0ac6e690",
         "jwk": {
             "kty": "EC",
