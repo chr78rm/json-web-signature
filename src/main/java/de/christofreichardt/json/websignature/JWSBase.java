@@ -57,7 +57,7 @@ public class JWSBase {
         return BASE64_URL_DECODER.decode(input);
     }
     
-    static byte[] decodeToBytes(String input) {
+    public static byte[] decodeToBytes(String input) {
         return BASE64_URL_DECODER.decode(input);
     }
 

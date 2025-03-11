@@ -347,6 +347,7 @@ public class JWSUnit implements Traceable, WithAssertions {
             this.jsonTracer.trace(token);
             String accessToken = token.getString("access_token");
             JWSCompactSerialization compactSerialization = JWSCompactSerialization.of(accessToken);
+            this.jsonTracer.trace(compactSerialization.joseHeader());
 
             String encodedModulus = "oyfV3I-K1z6O5FRQWJY6tWet2eZpOSs0rdJwv3YiGKrT3BfFfiJqoYAeNDbVXW6vLx-5jhl_RIFsQjGB4R0HiHaMEPvXAneO2brU6yGqwUMA5IAMYU6Km3kfmXgqLyx5mIvwdCHZw-6oHpUnwzIz9wSgiY-qIany-4jKXlJlZ7smo8He1xoRbT74lbmd6LdFCPHcFx3c9PrYJPhdhDK4dqEK02t5OLiaZuOGhKqCHU5RKTaPJzG_ypTlpUywEule7NdL9UDJRFz-IyXOBNTL0Jl2c7HaReHDJrFa13Kk5MlVtrv2mRkMzoJiKdS-stoAzyxcNFj-MSyOo_3mqm299Q";
             String encodedExponent = "AQAB";
@@ -407,7 +408,7 @@ public class JWSUnit implements Traceable, WithAssertions {
                                 }
                             }
                         ]
-                    }                    
+                    }
                     """;
 
             JWSCompactSerialization compactSerialization = JWS.createSignature()
