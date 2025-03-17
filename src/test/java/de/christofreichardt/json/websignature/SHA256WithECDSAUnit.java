@@ -3,19 +3,18 @@ package de.christofreichardt.json.websignature;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
-import org.assertj.core.api.WithAssertions;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
-import java.security.*;
+import java.security.GeneralSecurityException;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.ECFieldFp;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.ECParameterSpec;
+import org.assertj.core.api.WithAssertions;
+import org.junit.jupiter.api.*;
 
 /**
  *
@@ -43,7 +42,7 @@ public class SHA256WithECDSAUnit implements Traceable, WithAssertions {
      * 
      * @throws GeneralSecurityException indicates problems when generating the key pair
      */
-    @Test
+    @RepeatedTest(25)
     void withJsonObjects() throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "withJsonObjects()");

@@ -20,11 +20,11 @@ package de.christofreichardt.json.websignature;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonStructure;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.Key;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonStructure;
 
 /**
  * Low level class for the creating JSON web signatures. Subject to change. Do not use. The preferred entry point is the Fluent API.
@@ -58,7 +58,7 @@ public class JWSSigner extends JWSBase implements Traceable {
             byte[] signingInputOctets = signingInput.getBytes(StandardCharsets.US_ASCII);
             this.jwa.update(signingInputOctets);
             byte[] signatureOctets = this.jwa.signature();
-            String encodedSignature = encode(signatureOctets);
+            String encodedSignature = this.jwa.postSigning(signatureOctets);
 
             return new JWSCompactSerialization(encodedHeader, encodedPayload, encodedSignature);
         } finally {

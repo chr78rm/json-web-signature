@@ -67,4 +67,22 @@ public interface JWSAlgorithm extends Traceable {
      * @return the name of the underlying algorithm object.
      */
     String algorithm();
+
+    /**
+     * Optional post-processing of the signature bytes, for example the signature bytes might be DER encoded and RFC 7515 or rather RFC 7518
+     * require a different format.
+     *
+     * @param signature the signature bytes.
+     * @return the optionally processed signature bytes
+     */
+    String postSigning(byte[] signature);
+
+    /**
+     * Optional pre-processing of the to be validated signature bytes, for example the verifying algorithm instance given by the Java runtime might
+     * require DER encoded signature bytes.
+     *
+     * @param signature the signature bytes.
+     * @return the optionally processed signature bytes
+     */
+    byte[] preValidating(byte[] signature);
 }

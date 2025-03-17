@@ -5,6 +5,7 @@ import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.json.JsonTracer;
 import java.io.FileInputStream;
+import java.io.StringReader;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
@@ -142,6 +143,36 @@ public class JsonWebPublicKeyUnit implements Traceable, WithAssertions {
             keys.add(jsonWebPublicKey);
 
             assertThat(keys.contains(recoveredJsonWebPublicKey)).isTrue();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void keycloakECCerts() throws GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "keycloakECCerts()");
+
+        try {
+            String key = """
+                  {
+                      "kid": "Rf1c0xrE03Ud68kawPN_ZGcZ9GUNm1Au1gI0ieqxC44",
+                      "kty": "EC",
+                      "alg": "ES256",
+                      "use": "sig",
+                      "crv": "P-256",
+                      "x": "RVIMLIqI9KwvB1vxAlCdqGlot3IZJqR8F3f83zSWZag",
+                      "y": "UADjV5Nuvctq0DilRw_TyeoByNL1h6LKTR0Bi3y3Vbk"
+                  }
+                  """;
+            JsonObject keyView;
+            try (StringReader stringReader = new StringReader(key);
+                 JsonReader jsonReader = Json.createReader(stringReader)) {
+                keyView = jsonReader.readObject();
+            }
+            this.jsonTracer.trace(keyView);
+            JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.fromJson(keyView);
+            this.jsonTracer.trace(jsonWebPublicKey.toJson());
         } finally {
             tracer.wayout();
         }

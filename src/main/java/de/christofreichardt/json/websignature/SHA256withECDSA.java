@@ -19,13 +19,14 @@ package de.christofreichardt.json.websignature;
 
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.TracerFactory;
+import de.christofreichardt.json.webkey.JsonWebKeyUtils;
 import java.math.BigInteger;
-
 import java.security.*;
 import java.security.interfaces.ECKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECFieldFp;
+import java.util.HexFormat;
 import java.util.Objects;
 
 /**
@@ -100,6 +101,110 @@ public class SHA256withECDSA implements JWSAlgorithm {
     @Override
     public String algorithm() {
         return this.signature.getAlgorithm();
+    }
+
+    @Override
+    public String postSigning(byte[] signature) {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("String", this, "postSigning(byte[] signature)");
+
+        try {
+            int mask = 0x80;
+            HexFormat hexFormat = HexFormat.ofDelimiter(" ");
+            tracer.out().printfIndentln("signature.length = %d, signature = %s", signature.length, hexFormat.formatHex(signature));
+            tracer.out().printfIndentln("mask = %s, signature[1] = %s, mask AND signature[1] = %s",
+                    hexFormat.toHexDigits(mask), hexFormat.toHexDigits((int) signature[1]), hexFormat.toHexDigits(mask & signature[1]));
+
+            byte type = signature[0]; // should be 0x30 meaning SEQUENCE
+            byte lengthOfSequence = signature[1];
+            byte dataType1 = signature[2]; // should be 0x02 meaning INTEGER
+            byte lengthOfInteger1 = signature[3];
+            byte dataType2 = signature[3 + lengthOfInteger1 + 1]; // should be 0x02 meaning INTEGER
+            byte lengthOfInteger2 = signature[3 + lengthOfInteger1 + 2];
+            tracer.out().printfIndentln("type = 0x%02x, lengthOfSequence = %d, dataType1 = 0x%02x, lengthOfInteger1 = %d, dataType2 = 0x%02x, lengthOfInteger2 = %d",
+                    type, lengthOfSequence, dataType1, lengthOfInteger1, dataType2, lengthOfInteger2);
+
+            if (type != 0x30) {
+                throw new IllegalArgumentException("ASN.1 SEQUENCE expected.");
+            }
+            if ((mask & (int) lengthOfSequence) != 0) {
+                throw new IllegalArgumentException("Short form of length octets required.");
+            }
+            if (lengthOfSequence != signature.length - 2) {
+                throw new IllegalArgumentException("Denoted length of the ASN.1 SEQUENCE doesn't match.");
+            }
+            if (dataType1 != 0x02) {
+                throw new IllegalArgumentException("ASN.1 INTEGER expected.");
+            }
+            if ((mask & (int) lengthOfInteger1) != 0) {
+                throw new IllegalArgumentException("Short form of length octets required.");
+            }
+            if (dataType2 != 0x02) {
+                throw new IllegalArgumentException("ASN.1 INTEGER expected.");
+            }
+            if ((mask & (int) lengthOfInteger2) != 0) {
+                throw new IllegalArgumentException("Short form of length octets required.");
+            }
+
+            byte[] r = new byte[lengthOfInteger1];
+            System.arraycopy(signature, 4, r, 0, lengthOfInteger1);
+            tracer.out().printfIndentln("r = %s", hexFormat.formatHex(r));
+            r = JsonWebKeyUtils.alignBytes(r, 32);
+            tracer.out().printfIndentln("aligned(r) = %s", hexFormat.formatHex(r));
+
+            byte[] s = new byte[lengthOfInteger2];
+            System.arraycopy(signature, 3 + lengthOfInteger1 + 3, s, 0, lengthOfInteger2);
+            tracer.out().printfIndentln("s = %s", hexFormat.formatHex(s));
+            s = JsonWebKeyUtils.alignBytes(s, 32);
+            tracer.out().printfIndentln("aligned(s) = %s", hexFormat.formatHex(s));
+
+            signature = new byte[64];
+            System.arraycopy(r, 0, signature, 0, 32);
+            System.arraycopy(s, 0, signature, 32, 32);
+
+            return JWSBase.encode(signature);
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Override
+    public byte[] preValidating(byte[] signature) {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("byte[]", this, "preValidating(byte[] signature)");
+
+        try {
+            HexFormat hexFormat = HexFormat.ofDelimiter(" ");
+            tracer.out().printfIndentln("signature.length = %d, signature = %s", signature.length, hexFormat.formatHex(signature));
+
+            if (signature.length != 64) {
+                throw new IllegalArgumentException("Expected exactly 64 octets.");
+            }
+
+            byte[] r = new byte[32];
+            System.arraycopy(signature, 0, r, 0, 32);
+            r = JsonWebKeyUtils.skipLeadingZeroes(r);
+
+            byte[] s = new byte[32];
+            System.arraycopy(signature, 32, s, 0, 32);
+            s = JsonWebKeyUtils.skipLeadingZeroes(s);
+
+            byte[] asn1Encoding = new byte[r.length + s.length + 6]; // 6 ASN.1 tags
+            asn1Encoding[0] = 0x30; // tag for SEQUENCE
+            asn1Encoding[1] = (byte) (r.length + s.length + 4); // denotes length of SEQUENCE
+            asn1Encoding[2] = 0x02; // tag for INTEGER
+            asn1Encoding[3] = (byte) r.length; // denotes length of INTEGER
+            asn1Encoding[3 + r.length + 1] = 0x02; // tag for INTEGER
+            asn1Encoding[3 + r.length + 2] = (byte) s.length; // denotes length of INTEGER
+            System.arraycopy(r, 0, asn1Encoding, 4, r.length);
+            System.arraycopy(s, 0, asn1Encoding, 3 + r.length + 3, s.length);
+
+            tracer.out().printfIndentln("asn1Encoding = %s", hexFormat.formatHex(asn1Encoding));
+
+            return asn1Encoding;
+        } finally {
+            tracer.wayout();
+        }
     }
 
     @Override

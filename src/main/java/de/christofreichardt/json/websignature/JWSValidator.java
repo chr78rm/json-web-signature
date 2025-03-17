@@ -49,8 +49,8 @@ public class JWSValidator extends JWSBase implements Traceable {
             String signingInput = String.format("%s.%s", encodedHeader, encodedPayload);
             byte[] signingInputOctets = signingInput.getBytes(StandardCharsets.US_ASCII);
             this.jwa.update(signingInputOctets);
-            
-            return this.jwa.verify(this.signatureOctets);
+
+            return this.jwa.verify(this.jwa.preValidating(this.signatureOctets));
         } finally {
             tracer.wayout();
         }

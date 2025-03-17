@@ -65,6 +65,16 @@ public class HmacSHA256 implements JWSAlgorithm {
     }
 
     @Override
+    public String postSigning(byte[] signature) {
+        return JWSBase.encode(signature);
+    }
+
+    @Override
+    public byte[] preValidating(byte[] signature) {
+        return signature;
+    }
+
+    @Override
     public AbstractTracer getCurrentTracer() {
         return TracerFactory.getInstance().getDefaultTracer();
     }
