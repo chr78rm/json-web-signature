@@ -4,6 +4,8 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.json.JsonTracer;
+import de.christofreichardt.json.JsonUtils;
+import jakarta.json.JsonString;
 import java.io.FileInputStream;
 import java.io.StringReader;
 import java.math.BigInteger;
@@ -173,6 +175,13 @@ public class JsonWebPublicKeyUnit implements Traceable, WithAssertions {
             this.jsonTracer.trace(keyView);
             JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.fromJson(keyView);
             this.jsonTracer.trace(jsonWebPublicKey.toJson());
+            assertThat(jsonWebPublicKey.getKeyType()).isEqualTo("EC");
+            assertThat(jsonWebPublicKey.getKid()).isEqualTo("Rf1c0xrE03Ud68kawPN_ZGcZ9GUNm1Au1gI0ieqxC44");
+            assertThat(JsonUtils.orElseThrow(jsonWebPublicKey.toJson(), "crv", JsonString.class).getString()).isIn("P-256", "secp256r1 [NIST P-256,X9.62 prime256v1] (1.2.840.10045.3.1.7)");
+            assertThat(JsonUtils.orElseThrow(jsonWebPublicKey.toJson(), "x", JsonString.class).getString()).isEqualTo("RVIMLIqI9KwvB1vxAlCdqGlot3IZJqR8F3f83zSWZag");
+            assertThat(JsonUtils.orElseThrow(jsonWebPublicKey.toJson(), "y", JsonString.class).getString()).isEqualTo("UADjV5Nuvctq0DilRw_TyeoByNL1h6LKTR0Bi3y3Vbk");
+            assertThat(JsonUtils.orElseThrow(jsonWebPublicKey.toJson(), "kid", JsonString.class).getString()).isEqualTo("Rf1c0xrE03Ud68kawPN_ZGcZ9GUNm1Au1gI0ieqxC44");
+            assertThat(JsonUtils.orElseThrow(jsonWebPublicKey.toJson(), "kty", JsonString.class).getString()).isEqualTo("EC");
         } finally {
             tracer.wayout();
         }
