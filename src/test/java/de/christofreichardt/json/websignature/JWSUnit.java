@@ -7,10 +7,7 @@ import de.christofreichardt.json.JsonTracer;
 import de.christofreichardt.json.webkey.JsonWebKeyPair;
 import de.christofreichardt.json.webkey.JsonWebPublicKey;
 import de.christofreichardt.json.webkey.JsonWebSecretKey;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.*;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.security.GeneralSecurityException;
@@ -334,9 +331,9 @@ public class JWSUnit implements Traceable, WithAssertions {
     }
 
     @Test
-    void oidcToken() throws FileNotFoundException, GeneralSecurityException {
+    void rs256_oidcToken() throws FileNotFoundException, GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
-        tracer.entry("void", this, "oidcToken()");
+        tracer.entry("void", this, "rs256_OidcToken()");
 
         try {
             File tokenFile = Path.of(".", "json", "tokens", "test-token.json").toFile();
@@ -372,6 +369,86 @@ public class JWSUnit implements Traceable, WithAssertions {
                     .validate();
 
             assertThat(falsified).isFalse();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void es256_oidcToken() throws FileNotFoundException, GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "es256_oidcToken()");
+
+        try {
+            File tokenFile = Path.of(".", "json", "tokens", "es256-test-token.json").toFile();
+            JsonObject token;
+            try ( JsonReader jsonReader = Json.createReader(new FileReader(tokenFile))) {
+                token = jsonReader.readObject();
+            }
+            this.jsonTracer.trace(token);
+            String accessToken = token.getString("access_token");
+            JWSCompactSerialization compactSerialization = JWSCompactSerialization.of(accessToken);
+            this.jsonTracer.trace(compactSerialization.joseHeader());
+
+            String jwk = """
+                  {
+                      "kid": "Rf1c0xrE03Ud68kawPN_ZGcZ9GUNm1Au1gI0ieqxC44",
+                      "kty": "EC",
+                      "alg": "ES256",
+                      "use": "sig",
+                      "x5c": [
+                          "MIIBCjCBsQIGAZWqftezMAoGCCqGSM49BAMCMA8xDTALBgNVBAMMBHRlc3QwHhcNMjUwMzE4MTgyMTM0WhcNMzUwMzE4MTgyMzE0WjAPMQ0wCwYDVQQDDAR0ZXN0MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAERVIMLIqI9KwvB1vxAlCdqGlot3IZJqR8F3f83zSWZahQAONXk269y2rQOKVHD9PJ6gHI0vWHospNHQGLfLdVuTAKBggqhkjOPQQDAgNIADBFAiABwwAEqnaNutBRr2MZ51/RGpzrm9JZ+KAJn7B+iUGZfgIhAO5zOVGWj0scaaHjsQ0S62Z0OUApFc86ZupYhpzx4Hln"
+                      ],
+                      "x5t": "rMTfRooBj4adjoTL_1C1mwBvS9E",
+                      "x5t#S256": "MCQIkq2VQ4OKBmJ3brJjvIc2sNGnfLwO8g-yf3SHcJ8",
+                      "crv": "P-256",
+                      "x": "RVIMLIqI9KwvB1vxAlCdqGlot3IZJqR8F3f83zSWZag",
+                      "y": "UADjV5Nuvctq0DilRw_TyeoByNL1h6LKTR0Bi3y3Vbk"
+                  }
+                  """;
+            JsonObject webKey;
+            try (StringReader stringReader = new StringReader(jwk);
+                 JsonReader jsonReader = Json.createReader(stringReader)) {
+                webKey = jsonReader.readObject();
+            }
+            JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.fromJson(webKey);
+            this.jsonTracer.trace(jsonWebPublicKey.toJson());
+
+            boolean validated = JWS.createValidator()
+                    .compactSerialization(compactSerialization)
+                    .key(jsonWebPublicKey)
+                    .validate();
+            assertThat(validated).isTrue();
+
+            String wrongJwk = """
+                    {
+                        "kid": "EQYh6_gqSDRYeFIpg2nZYBETLU_1vCoWTPJ-3vFekeo",
+                        "kty": "EC",
+                        "alg": "ES256",
+                        "use": "sig",
+                        "x5c": [
+                            "MIIBCjCBsQIGAZWqftfyMAoGCCqGSM49BAMCMA8xDTALBgNVBAMMBHRlc3QwHhcNMjUwMzE4MTgyMTM0WhcNMzUwMzE4MTgyMzE0WjAPMQ0wCwYDVQQDDAR0ZXN0MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEPXYJcjFUWd5POqbaCNmvQoh8SNWxEMQMsc2Ow/CjVh5WZpAXfavI8Ir3QptjCmhDeRL22EjHz32MBpViM+Lz8zAKBggqhkjOPQQDAgNIADBFAiEAnivDFtAnB3osLdP04mIMaZL3ECnmL59b/g+RLDvVB4ACIHpcMA0ywQ3xK5awkFNsbpJTSqbKOPHqSaqtvF0wx8uy"
+                        ],
+                        "x5t": "dp88XIPNKcH4gqnhkZefD5Ftrx0",
+                        "x5t#S256": "jhM4n_IzuJrBN5QrWnwAF1i8WPqBIMJq2Q5avZJWmRc",
+                        "crv": "P-256",
+                        "x": "PXYJcjFUWd5POqbaCNmvQoh8SNWxEMQMsc2Ow_CjVh4",
+                        "y": "VmaQF32ryPCK90KbYwpoQ3kS9thIx899jAaVYjPi8_M"
+                    }
+                    """;
+            JsonObject wrongWebKey;
+            try (StringReader stringReader = new StringReader(wrongJwk);
+                 JsonReader jsonReader = Json.createReader(stringReader)) {
+                wrongWebKey = jsonReader.readObject();
+            }
+            JsonWebPublicKey wrongJsonWebPublicKey = JsonWebPublicKey.fromJson(wrongWebKey);
+            this.jsonTracer.trace(wrongJsonWebPublicKey.toJson());
+
+            boolean falsified = JWS.createValidator()
+                    .compactSerialization(compactSerialization)
+                    .key(wrongJsonWebPublicKey)
+                    .validate();
+            assertThat(!falsified).isTrue();
         } finally {
             tracer.wayout();
         }
