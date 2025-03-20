@@ -71,6 +71,7 @@ public class SHA256WithECDSAUnit implements Traceable, WithAssertions {
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
             ECPrivateKey ecPrivateKey = (ECPrivateKey) keyPair.getPrivate();
             ECParameterSpec ecParameterSpec = ecPrivateKey.getParams();
+            tracer.out().printfIndentln("s = %s", ecPrivateKey.getS());
             tracer.out().printfIndentln("ecParameterSpec = %s", ecParameterSpec);
             tracer.out().printfIndentln("n = %s", ecParameterSpec.getOrder());
             tracer.out().printfIndentln("bitlength(%d) = %d", ecParameterSpec.getOrder(), ecParameterSpec.getOrder().bitLength());
