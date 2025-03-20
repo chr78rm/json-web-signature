@@ -43,7 +43,7 @@ import jakarta.json.JsonObjectBuilder;
 abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyPair, JsonWebPublicKey, JsonWebSecretKey {
 
     static final Map<String, String> JDK2JSON_ALGO_MAP = Map.of("HmacSHA256", "HS256");
-    static final Map<String, ECParameterSpec> EC_PARAMETER_SPEC_MAP = new HashMap<>();
+    public static final Map<String, ECParameterSpec> EC_PARAMETER_SPEC_MAP;
     static final Base64.Encoder BASE64_URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
     static final Base64.Decoder BASE64_URL_DECODER = Base64.getUrlDecoder();
 
@@ -59,7 +59,7 @@ abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyP
         );
         BigInteger order = new BigInteger("115792089210356248762697446949407573529996955224135760342422259061068512044369");
         ECParameterSpec ecParameterSpec = new NamedECParameterSpec("secp256r1 [NIST P-256,X9.62 prime256v1] (1.2.840.10045.3.1.7)", secp256r1, generator, order, 1);
-        EC_PARAMETER_SPEC_MAP.put("secp256r1", ecParameterSpec);
+        EC_PARAMETER_SPEC_MAP = Map.of("secp256r1", ecParameterSpec);
     }
 
     /**
