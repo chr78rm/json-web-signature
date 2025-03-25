@@ -158,9 +158,9 @@ public class JOSEHeaderUnit implements Traceable, WithAssertions {
     }
 
     @Test
-    void ambigousKids() throws FileNotFoundException {
+    void ambigousKids_1() throws FileNotFoundException {
         AbstractTracer tracer = getCurrentTracer();
-        tracer.entry("void", this, "ambigousKids()");
+        tracer.entry("void", this, "ambigousKids_1()");
 
         try {
             JsonObject joseHeader;
@@ -232,6 +232,50 @@ public class JOSEHeaderUnit implements Traceable, WithAssertions {
                             .withKid(kid)
                             .withTyp(typ)
                             .build());
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void ambigousKids_2() throws GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "ambigousKids_2()");
+
+        try {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
+            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256r1");
+            keyPairGenerator.initialize(ecGenParameterSpec);
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+            String kid = UUID.randomUUID().toString(), typ = "JWT";
+            JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.of(keyPair.getPublic())
+                    .withKid(kid)
+                    .build();
+
+            assertThatExceptionOfType(IllegalArgumentException.class)
+                    .isThrownBy(
+                            () -> JOSEHeader.of(jsonWebPublicKey)
+                            .withTyp(typ)
+                            .withKid(UUID.randomUUID().toString())
+                            .build()
+                    )
+                    .withMessage("Ambigous kids.");
+
+            assertThatExceptionOfType(IllegalArgumentException.class)
+                    .isThrownBy(
+                            () -> JOSEHeader.of(jsonWebPublicKey)
+                                    .withTyp(typ)
+                                    .withKid(null)
+                                    .build()
+                    )
+                    .withMessage("Ambigous kids.");
+
+            JOSEHeader joseHeader = JOSEHeader.of(jsonWebPublicKey)
+                    .withTyp(typ)
+                    .withKid(kid)
+                    .build();
+
+            this.jsonTracer.trace(joseHeader.toJson());
         } finally {
             tracer.wayout();
         }

@@ -202,7 +202,7 @@ public class JOSEHeader implements Traceable {
 
         final String alg;
         final JsonWebPublicKey jsonWebPublicKey;
-        final String kid;
+        String kid;
         String typ = null;
 
         public PublicKeyBuilder(JsonWebPublicKey jsonWebPublicKey) {
@@ -240,6 +240,14 @@ public class JOSEHeader implements Traceable {
             } finally {
                 tracer.wayout();
             }
+        }
+
+        public PublicKeyBuilder withKid(String kid) {
+            if (Objects.nonNull(this.kid) && !Objects.equals(this.kid, kid)) {
+                throw new IllegalArgumentException("Ambigous kids.");
+            }
+            this.kid = kid;
+            return this;
         }
 
         public PublicKeyBuilder withTyp(String typ) {

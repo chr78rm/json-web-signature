@@ -126,6 +126,9 @@ public class JWSUnit implements Traceable, WithAssertions {
                     .withKid(kid)
                     .build();
 
+            tracer.out().printfIndentln("kid = %s", kid);
+            this.jsonTracer.trace(jsonWebKeyPair.jsonWebPublicKey().toJson());
+
             JsonObject payload = Json.createObjectBuilder()
                     .add("iss", "joe")
                     .add("exp", 1300819380)
@@ -189,9 +192,11 @@ public class JWSUnit implements Traceable, WithAssertions {
                 share = jsonReader.readObject();
             }
 
+            String kid = UUID.randomUUID().toString();
             JWSCompactSerialization compactSerialization = JWS.createSignature()
                     .key(keyPair)
                     .typ("JOSE")
+                    .kid(kid)
                     .payload(share)
                     .sign();
             JWSBase.JWSStruct jwsStruct = compactSerialization.makeJWSStruct();
@@ -206,6 +211,7 @@ public class JWSUnit implements Traceable, WithAssertions {
 
             assertThat(compactSerialization.joseHeader().getString("alg")).isEqualTo("ES256");
             assertThat(compactSerialization.joseHeader().getString("typ")).isEqualTo("JOSE");
+            assertThat(compactSerialization.joseHeader().getString("kid")).isEqualTo(kid);
             assertThat(jwsValidator.validate(keyPair.getPublic())).isTrue();
             assertThat(jwsValidator.validate(jsonWebPublicKey.getPublicKey())).isTrue();
 
@@ -647,6 +653,257 @@ public class JWSUnit implements Traceable, WithAssertions {
             boolean validated = JWS.createValidator()
                     .compactSerialization(compactSerialization)
                     .key(publicKey)
+                    .validate();
+
+            assertThat(validated).isTrue();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void ambigousKidsWithSecretKey() throws GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "ambigousKidsWithSecretKey()");
+
+        try {
+            String kid = UUID.randomUUID().toString();
+
+            tracer.out().printfIndentln("kid = %s", kid);
+
+            final int KEY_SIZE = 1024;
+            final String ALGORITHM = "HmacSHA256";
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM);
+            keyGenerator.init(KEY_SIZE);
+            SecretKey secretKey = keyGenerator.generateKey();
+            JsonWebSecretKey jsonWebSecretKey = JsonWebSecretKey.of(secretKey)
+                    .withKid(kid)
+                    .build();
+
+            String share =
+                    """
+                    {
+                        "PartitionId": "f14434bc-c852-47d8-8001-8f349f0b9408",
+                        "Prime": 77036549738719732710990429556180762025039,
+                        "Threshold": 4,
+                        "SharePoints": [
+                            {
+                                "SharePoint": {
+                                    "x": 22766610275390711977223194921953354317543,
+                                    "y": 54083401924870413023277357643502454671674
+                                }
+                            }
+                        ]
+                    }
+                    """;
+
+            assertThatExceptionOfType(IllegalArgumentException.class)
+                    .isThrownBy(
+                            () -> JWS.createSignature()
+                                    .webkey(jsonWebSecretKey)
+                                    .typ("JWT")
+                                    .kid(null)
+                                    .payload(share)
+                                    .sign()
+                    )
+                    .withMessage("Ambigous kids.");
+
+            assertThatExceptionOfType(IllegalArgumentException.class)
+                    .isThrownBy(
+                            () -> JWS.createSignature()
+                                    .webkey(jsonWebSecretKey)
+                                    .typ("JWT")
+                                    .kid(UUID.randomUUID().toString())
+                                    .payload(share)
+                                    .sign()
+                    )
+                    .withMessage("Ambigous kids.");
+
+            JWSCompactSerialization compactSerialization = JWS.createSignature()
+                    .webkey(jsonWebSecretKey)
+                    .typ("JWT")
+                    .kid(kid)
+                    .payload(share)
+                    .sign();
+
+            tracer.out().printfIndentln("signature = %s", compactSerialization);
+            this.jsonTracer.trace(compactSerialization.joseHeader());
+
+            assertThat(compactSerialization.joseHeader().getString("kid")).isEqualTo(kid);
+
+            boolean validated = JWS.createValidator()
+                    .compactSerialization(compactSerialization)
+                    .key(jsonWebSecretKey)
+                    .validate();
+
+            assertThat(validated).isTrue();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void ambigousKidsWithKeyPair() throws GeneralSecurityException, FileNotFoundException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "ambigousKidsWithKeyPair()");
+
+        try {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
+            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256r1");
+            keyPairGenerator.initialize(ecGenParameterSpec);
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+            String kid = UUID.randomUUID().toString();
+            JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of(keyPair)
+                    .withKid(kid)
+                    .build();
+
+            this.jsonTracer.trace(jsonWebKeyPair.toJson());
+
+            Path path = Path.of("json", "shares", "share-1.json");
+            JsonObject share;
+            try (JsonReader jsonReader = Json.createReader(new FileInputStream(path.toFile()))) {
+                share = jsonReader.readObject();
+            }
+
+            assertThatExceptionOfType(IllegalArgumentException.class)
+                    .isThrownBy(() ->
+                            JWS.createSignature()
+                                    .webkey(jsonWebKeyPair)
+                                    .typ("JOSE")
+                                    .kid(UUID.randomUUID().toString())
+                                    .payload(share)
+                                    .sign()
+                    )
+                    .withMessage("Ambigous kids.");
+
+            assertThatExceptionOfType(IllegalArgumentException.class)
+                    .isThrownBy(() ->
+                            JWS.createSignature()
+                                    .webkey(jsonWebKeyPair)
+                                    .typ("JOSE")
+                                    .kid(null)
+                                    .payload(share)
+                                    .sign()
+                    )
+                    .withMessage("Ambigous kids.");
+
+            JWSCompactSerialization compactSerialization = JWS.createSignature()
+                    .webkey(jsonWebKeyPair)
+                    .typ("JOSE")
+                    .kid(kid)
+                    .payload(share)
+                    .sign();
+
+            tracer.out().printfIndentln("signature = %s", compactSerialization);
+            this.jsonTracer.trace(compactSerialization.joseHeader());
+
+            assertThat(compactSerialization.joseHeader().getString("kid")).isEqualTo(kid);
+
+            boolean validated = JWS.createValidator()
+                    .compactSerialization(compactSerialization)
+                    .key(jsonWebKeyPair.jsonWebPublicKey())
+                    .validate();
+
+            assertThat(validated).isTrue();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void delayedKidWithSecretKey() throws GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "delayedKidWithSecretKey()");
+
+        try {
+            String kid = UUID.randomUUID().toString();
+
+            tracer.out().printfIndentln("kid = %s", kid);
+
+            final int KEY_SIZE = 1024;
+            final String ALGORITHM = "HmacSHA256";
+            KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM);
+            keyGenerator.init(KEY_SIZE);
+            SecretKey secretKey = keyGenerator.generateKey();
+            JsonWebSecretKey jsonWebSecretKey = JsonWebSecretKey.of(secretKey)
+                    .build();
+
+            String share =
+                    """
+                    {
+                        "PartitionId": "f14434bc-c852-47d8-8001-8f349f0b9408",
+                        "Prime": 77036549738719732710990429556180762025039,
+                        "Threshold": 4,
+                        "SharePoints": [
+                            {
+                                "SharePoint": {
+                                    "x": 22766610275390711977223194921953354317543,
+                                    "y": 54083401924870413023277357643502454671674
+                                }
+                            }
+                        ]
+                    }
+                    """;
+
+            JWSCompactSerialization compactSerialization = JWS.createSignature()
+                    .webkey(jsonWebSecretKey)
+                    .typ("JWT")
+                    .kid(kid)
+                    .payload(share)
+                    .sign();
+
+            tracer.out().printfIndentln("signature = %s", compactSerialization);
+            this.jsonTracer.trace(compactSerialization.joseHeader());
+
+            assertThat(compactSerialization.joseHeader().getString("kid")).isEqualTo(kid);
+
+            boolean validated = JWS.createValidator()
+                    .compactSerialization(compactSerialization)
+                    .key(jsonWebSecretKey)
+                    .validate();
+
+            assertThat(validated).isTrue();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void delayedKidWithKeyPair() throws GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "delayedKidWithKeyPair()");
+
+        try {
+            String kid = UUID.randomUUID().toString();
+
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
+            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256r1");
+            keyPairGenerator.initialize(ecGenParameterSpec);
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+            JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of(keyPair)
+                    .build();
+
+            JsonObject payload = Json.createObjectBuilder()
+                    .add("iss", "joe")
+                    .add("exp", 1300819380)
+                    .add("http://example.com/is_root", "true")
+                    .build();
+
+            JWSCompactSerialization compactSerialization = JWS.createSignature()
+                    .webkey(jsonWebKeyPair)
+                    .typ("JWT")
+                    .kid(kid)
+                    .payload(payload)
+                    .sign();
+
+            tracer.out().printfIndentln("signature = %s", compactSerialization);
+            this.jsonTracer.trace(compactSerialization.joseHeader());
+
+            assertThat(compactSerialization.joseHeader().getString("kid")).isEqualTo(kid);
+
+            boolean validated = JWS.createValidator()
+                    .compactSerialization(compactSerialization)
+                    .key(jsonWebKeyPair.jsonWebPublicKey())
                     .validate();
 
             assertThat(validated).isTrue();

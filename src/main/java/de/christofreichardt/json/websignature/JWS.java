@@ -17,6 +17,9 @@
 
 package de.christofreichardt.json.websignature;
 
+import de.christofreichardt.diagnosis.AbstractTracer;
+import de.christofreichardt.diagnosis.Traceable;
+import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.json.webkey.JsonWebKey;
 import de.christofreichardt.json.webkey.JsonWebKeyPair;
 import de.christofreichardt.json.webkey.JsonWebPublicKey;
@@ -108,7 +111,7 @@ public class JWS {
     /**
      * Implements all interfaces of the Fluent API related to creating signatures.
      */
-    protected static class Signature implements SignatureBegin, BeforePayload, BeforeHeader, BeforeKid, SignatureEnd {
+    protected static class Signature implements SignatureBegin, BeforePayload, BeforeHeader, BeforeKid, SignatureEnd, Traceable {
 
         JsonWebKey jsonWebKey;
         JsonStructure payload;
@@ -171,15 +174,20 @@ public class JWS {
             Key key;
 
             if (this.jsonWebKey instanceof JsonWebSecretKey jsonWebSecretKey) {
-                joseHeader = JOSEHeader.of(jsonWebSecretKey.getAlgorithm())
-                        .withKid(this.kid)
-                        .withTyp(this.typ)
-                        .build();
+                JOSEHeader.AlgorithmBuilder algorithmBuilder = JOSEHeader.of(jsonWebSecretKey.getAlgorithm())
+                        .withTyp(this.typ);
+                if (Objects.nonNull(this.kid)) {
+                    algorithmBuilder.withKid(this.kid);
+                }
+                joseHeader = algorithmBuilder.build();
                 key = jsonWebSecretKey.getSecretKey();
             } else if (this.jsonWebKey instanceof JsonWebKeyPair jsonWebKeyPair) {
-                joseHeader = JOSEHeader.of(jsonWebKeyPair.jsonWebPublicKey())
-                        .withTyp(this.typ)
-                        .build();
+                JOSEHeader.PublicKeyBuilder publicKeyBuilder = JOSEHeader.of(jsonWebKeyPair.jsonWebPublicKey())
+                        .withTyp(this.typ);
+                if (Objects.nonNull(this.kid)) {
+                    publicKeyBuilder.withKid(this.kid);
+                }
+                joseHeader = publicKeyBuilder.build();
                 key = jsonWebKeyPair.getKeyPair().getPrivate();
             } else {
                 throw new UnsupportedOperationException();
@@ -226,7 +234,7 @@ public class JWS {
 
         @Override
         public BeforePayload kid(String kid) {
-            if (!Objects.equals(this.jsonWebKey.getKid(), kid)) {
+            if (Objects.nonNull(this.jsonWebKey.getKid()) && !Objects.equals(this.jsonWebKey.getKid(), kid)) {
                 throw new IllegalArgumentException("Ambigous kids.");
             }
             this.kid = kid;
@@ -243,6 +251,11 @@ public class JWS {
         public BeforePayload header(String strHeader) {
             this.strHeader = strHeader;
             return this;
+        }
+
+        @Override
+        public AbstractTracer getCurrentTracer() {
+            return TracerFactory.getInstance().getDefaultTracer();
         }
     }
 
