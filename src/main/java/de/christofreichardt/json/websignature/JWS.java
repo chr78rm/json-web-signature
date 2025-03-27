@@ -38,6 +38,7 @@ import java.security.Key;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.Objects;
+import java.util.Optional;
 import javax.crypto.SecretKey;
 
 /**
@@ -168,68 +169,26 @@ public class JWS {
 
         @Override
         public JWSCompactSerialization sign() throws GeneralSecurityException {
-            JWSCompactSerialization compactSerialization;
-            JOSEHeader joseHeader;
+            assert Objects.nonNull(this.payload) || Objects.nonNull(this.strPayload) : "No payload is given.";
+
+            Key key = signingKey();
+            Optional<JOSEHeader> optionalJOSEHeader = buildJoseHeader();
+            this.converter = Objects.nonNull(this.converter) ? this.converter : JsonStructure::toString;
+
             JWSSigner jwsSigner;
-            Key key;
-
-            if (this.jsonWebKey instanceof JsonWebSecretKey jsonWebSecretKey) {
-                JOSEHeader.AlgorithmBuilder algorithmBuilder = JOSEHeader.of(jsonWebSecretKey.getAlgorithm())
-                        .withTyp(this.typ);
-                if (Objects.nonNull(this.kid)) {
-                    algorithmBuilder.withKid(this.kid);
-                }
-                joseHeader = algorithmBuilder.build();
-                key = jsonWebSecretKey.getSecretKey();
-            } else if (this.jsonWebKey instanceof JsonWebKeyPair jsonWebKeyPair) {
-                JOSEHeader.PublicKeyBuilder publicKeyBuilder = JOSEHeader.of(jsonWebKeyPair.jsonWebPublicKey())
-                        .withTyp(this.typ);
-                if (Objects.nonNull(this.kid)) {
-                    publicKeyBuilder.withKid(this.kid);
-                }
-                joseHeader = publicKeyBuilder.build();
-                key = jsonWebKeyPair.getKeyPair().getPrivate();
-            } else {
-                throw new UnsupportedOperationException();
-            }
-
             if (Objects.nonNull(this.payload)) {
-                if (Objects.isNull(this.strHeader)) {
-                    if (Objects.nonNull(this.converter)) {
-                        jwsSigner = new JWSSigner(joseHeader.toJson(), this.payload, this.converter);
-                    } else {
-                        jwsSigner = new JWSSigner(joseHeader.toJson(), this.payload);
-                    }
-                } else if (Objects.nonNull(this.strHeader)) {
-                    if (Objects.nonNull(this.converter)) {
-                        jwsSigner = new JWSSigner(this.strHeader, this.converter.convert(this.payload));
-                    } else {
-                        jwsSigner = new JWSSigner(this.strHeader, this.payload.toString());
-                    }
-                } else {
-                    throw new IllegalStateException();
-                }
-            } else if (Objects.nonNull(this.strPayload)) { // TODO: make some sanity checks within this branch
-                if (Objects.isNull(this.strHeader)) {
-                    if (Objects.nonNull(this.converter)) {
-                        jwsSigner = new JWSSigner(this.converter.convert(joseHeader.toJson()), this.strPayload);
-                    } else {
-                        jwsSigner = new JWSSigner(joseHeader.toJson().toString(), this.strPayload);
-                    }
-                } else {
-                    if (Objects.nonNull(this.converter)) {
-                        jwsSigner = new JWSSigner(this.strHeader, this.strPayload); // TODO: converter is superfluous, think about it.
-                    } else {
-                        jwsSigner = new JWSSigner(this.strHeader, this.strPayload);
-                    }
-                }
+                jwsSigner = optionalJOSEHeader
+                        .map(joseHeader -> new JWSSigner(joseHeader.toJson(), this.payload, this.converter))
+                        .orElseGet(() -> new JWSSigner(this.strHeader, this.converter.convert(this.payload)));
+            } else if (Objects.nonNull(this.strPayload)) {
+                jwsSigner = optionalJOSEHeader
+                        .map(joseHeader -> new JWSSigner(this.converter.convert(joseHeader.toJson()), this.strPayload))
+                        .orElseGet(() -> new JWSSigner(this.strHeader, this.strPayload));
             } else {
                 throw new IllegalStateException();
             }
 
-            compactSerialization = jwsSigner.sign(key);
-
-            return compactSerialization;
+            return jwsSigner.sign(key);
         }
 
         @Override
@@ -251,6 +210,44 @@ public class JWS {
         public BeforePayload header(String strHeader) {
             this.strHeader = strHeader;
             return this;
+        }
+
+        private Optional<JOSEHeader> buildJoseHeader() throws GeneralSecurityException {
+            JOSEHeader joseHeader = null;
+            if (Objects.isNull(this.strHeader)) {
+                if (this.jsonWebKey instanceof JsonWebSecretKey jsonWebSecretKey) {
+                    JOSEHeader.AlgorithmBuilder algorithmBuilder = JOSEHeader.of(jsonWebSecretKey.getAlgorithm())
+                            .withTyp(this.typ);
+                    if (Objects.nonNull(this.kid)) {
+                        algorithmBuilder.withKid(this.kid);
+                    }
+                    joseHeader = algorithmBuilder.build();
+                } else if (this.jsonWebKey instanceof JsonWebKeyPair jsonWebKeyPair) {
+                    JOSEHeader.PublicKeyBuilder publicKeyBuilder = JOSEHeader.of(jsonWebKeyPair.jsonWebPublicKey())
+                            .withTyp(this.typ);
+                    if (Objects.nonNull(this.kid)) {
+                        publicKeyBuilder.withKid(this.kid);
+                    }
+                    joseHeader = publicKeyBuilder.build();
+                } else {
+                    throw new UnsupportedOperationException();
+                }
+            }
+
+            return Optional.ofNullable(joseHeader);
+        }
+
+        private Key signingKey() {
+            Key key;
+            if (this.jsonWebKey instanceof JsonWebSecretKey jsonWebSecretKey) {
+                key = jsonWebSecretKey.getSecretKey();
+            } else if (this.jsonWebKey instanceof JsonWebKeyPair jsonWebKeyPair) {
+                key = jsonWebKeyPair.getKeyPair().getPrivate();
+            } else {
+                throw new UnsupportedOperationException();
+            }
+
+            return key;
         }
 
         @Override
