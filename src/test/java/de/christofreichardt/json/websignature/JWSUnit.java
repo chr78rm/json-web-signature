@@ -646,6 +646,11 @@ public class JWSUnit implements Traceable, WithAssertions {
                     .payload(strPayload)
                     .sign();
 
+            tracer.out().printfIndentln("compactSerialization.encodedHeader() = %s", compactSerialization.encodedHeader());
+            tracer.out().printfIndentln("Decoded (original) header = %s", JWSBase.decode(compactSerialization.encodedHeader()));
+            tracer.out().printfIndentln("compactSerialization.encodedPayload() = %s", compactSerialization.encodedPayload());
+            tracer.out().printfIndentln("Decoded (original) payload = %n%s", JWSBase.decode(compactSerialization.encodedPayload()));
+
             String expectedSerialization = "eyJhbGciOiJSUzI1NiJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.cC4hiUPoj9Eetdgtv3hF80EGrhuB__dzERat0XF9g2VtQgr9PJbu3XOiZj5RZmh7AAuHIm4Bh-0Qc_lF5YKt_O8W2Fp5jujGbds9uJdbF9CUAr7t1dnZcAcQjbKBYNX4BAynRFdiuB--f_nZLgrnbyTyWzO75vRK5h6xBArLIARNPvkSjtQBMHlb1L07Qe7K0GarZRmB_eSN9383LcOLn6_dO--xi12jzDwusC-eOkHWEsqtFZESc6BfI7noOPqvhJ1phCnvWh6IeYI2w9QOYEUipUTI8np6LbgGY9Fs98rqVt5AXLIhWkWywlVmtVrBp0igcN_IoypGlUPQGe77Rw";
             tracer.out().printfIndentln("signature = %s", compactSerialization);
             assertThat(compactSerialization.toString()).isEqualTo(expectedSerialization);
