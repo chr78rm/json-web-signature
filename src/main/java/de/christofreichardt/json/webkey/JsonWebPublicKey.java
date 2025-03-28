@@ -175,7 +175,8 @@ final public class JsonWebPublicKey extends JsonWebKey {
                 if (ecPublicKey.getW().getAffineX().signum() == -1 || ecPublicKey.getW().getAffineY().signum() == -1) {
                     throw new ArithmeticException();
                 }
-                int fieldSize = ecPublicKey.getParams().getCurve().getField().getFieldSize() / 8;
+                int fieldSize = (int) Math.ceil((double) ecPublicKey.getParams().getCurve().getField().getFieldSize() / 8);
+                tracer.out().printfIndentln("fieldSize(Bytes) = %d", fieldSize);
                 byte[] xBytes = JsonWebKeyUtils.alignBytes(ecPublicKey.getW().getAffineX().toByteArray(), fieldSize);
                 byte[] yBytes = JsonWebKeyUtils.alignBytes(ecPublicKey.getW().getAffineY().toByteArray(), fieldSize);
                 jsonObjectBuilder
@@ -231,10 +232,13 @@ final public class JsonWebPublicKey extends JsonWebKey {
         return switch (keyType) {
             case "EC" -> {
                 String curve = JsonUtils.orElseThrow(jwkView, "crv", JsonString.class).getString();
-                if (!curve.startsWith("secp256r1") && !Objects.equals(curve, "P-256")) { // todo: support 'secp384r1' curve
+                if (curve.startsWith("secp256r1") || Objects.equals("P-256", curve)) {
+                    curve = "secp256r1";
+                } else if (curve.startsWith("secp521r1") || Objects.equals("P-521", curve)) {
+                    curve = "secp521r1";
+                } else {
                     throw new UnsupportedOperationException();
                 }
-                curve = "secp256r1";
                 ECParameterSpec ecParameterSpec = EC_PARAMETER_SPEC_MAP.get(curve);
                 BigInteger x = new BigInteger(1, BASE64_URL_DECODER.decode(JsonUtils.orElseThrow(jwkView, "x", JsonString.class).getString()));
                 BigInteger y = new BigInteger(1, BASE64_URL_DECODER.decode(JsonUtils.orElseThrow(jwkView, "y", JsonString.class).getString()));

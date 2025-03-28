@@ -34,6 +34,8 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class JsonWebPublicKeyUnit implements Traceable, WithAssertions {
@@ -108,14 +110,17 @@ public class JsonWebPublicKeyUnit implements Traceable, WithAssertions {
         }
     }
 
-    @Test
-    void withECPublicKey() throws GeneralSecurityException {
+    @ParameterizedTest
+    @ValueSource(strings = {"secp256r1", "secp521r1"})
+    void withECPublicKey(String curve) throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
-        tracer.entry("void", this, "withECPublicKey()");
+        tracer.entry("void", this, "withECPublicKey(String curve)");
 
         try {
+            tracer.out().printfIndentln("curve = %s", curve);
+
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
-            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256r1");
+            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec(curve);
             keyPairGenerator.initialize(ecGenParameterSpec);
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
             JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.of(keyPair.getPublic())

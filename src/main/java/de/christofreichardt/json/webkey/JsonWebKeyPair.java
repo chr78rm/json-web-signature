@@ -19,34 +19,15 @@ package de.christofreichardt.json.webkey;
 
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.json.JsonUtils;
-import java.math.BigInteger;
-import java.security.GeneralSecurityException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.KeyFactory;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.interfaces.ECPrivateKey;
-import java.security.interfaces.ECPublicKey;
-import java.security.interfaces.RSAPrivateCrtKey;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
-import java.security.spec.AlgorithmParameterSpec;
-import java.security.spec.ECGenParameterSpec;
-import java.security.spec.ECParameterSpec;
-import java.security.spec.ECPoint;
-import java.security.spec.ECPrivateKeySpec;
-import java.security.spec.ECPublicKeySpec;
-import java.security.spec.RSAKeyGenParameterSpec;
-import java.security.spec.RSAPrivateKeySpec;
-import java.security.spec.RSAPublicKeySpec;
-import java.util.Objects;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonString;
+import java.math.BigInteger;
+import java.security.*;
+import java.security.interfaces.*;
+import java.security.spec.*;
+import java.util.Objects;
 
 /**
  * Convenient for the handling of key pairs in the spirit of RFC 7517 (JSON Web Key) and RFC 7518 (JSON Web Algorithms).
@@ -275,7 +256,8 @@ final public class JsonWebKeyPair extends JsonWebKey {
                 if (ecPublicKey.getW().getAffineX().signum() == -1 || ecPublicKey.getW().getAffineY().signum() == -1) {
                     throw new ArithmeticException();
                 }
-                int fieldSize = ecPublicKey.getParams().getCurve().getField().getFieldSize() / 8;
+                int fieldSize = (int) Math.ceil((double) ecPublicKey.getParams().getCurve().getField().getFieldSize() / 8);
+                tracer.out().printfIndentln("fieldSize(Bytes) = %d", fieldSize);
                 byte[] xBytes = JsonWebKeyUtils.alignBytes(ecPublicKey.getW().getAffineX().toByteArray(), fieldSize);
                 byte[] yBytes = JsonWebKeyUtils.alignBytes(ecPublicKey.getW().getAffineY().toByteArray(), fieldSize);
                 jsonObjectBuilder
@@ -298,7 +280,9 @@ final public class JsonWebKeyPair extends JsonWebKey {
 
             if (this.keyPair.getPrivate() instanceof ECPrivateKey ecPrivateKey) {
                 BigInteger order = ecPrivateKey.getParams().getOrder();
-                byte[] dBytes = JsonWebKeyUtils.alignBytes(ecPrivateKey.getS().toByteArray(), order.bitLength() / 8);
+                int bytesLen = (int) Math.ceil((double) order.bitLength() / 8);
+                tracer.out().printfIndentln("bytesLen = %d", bytesLen);
+                byte[] dBytes = JsonWebKeyUtils.alignBytes(ecPrivateKey.getS().toByteArray(), bytesLen);
                 jsonObjectBuilder.add("d", BASE64_URL_ENCODER.encodeToString(dBytes));
             } else if (this.keyPair.getPrivate() instanceof RSAPrivateKey rsaPrivateKey) {
                 byte[] privateExponentBytes = JsonWebKeyUtils.skipLeadingZeroes(rsaPrivateKey.getPrivateExponent().toByteArray());
@@ -391,10 +375,14 @@ final public class JsonWebKeyPair extends JsonWebKey {
         return switch (keyType) {
             case "EC" -> {
                 String curve = JsonUtils.orElseThrow(jwkView, "crv", JsonString.class).getString();
-                if (!curve.startsWith("secp256r1")) {
+                if (curve.startsWith("secp256r1") || Objects.equals("P-256", curve)) {
+                    curve = "secp256r1";
+                } else if (curve.startsWith("secp521r1") || Objects.equals("P-521", curve)) {
+                    curve = "secp521r1";
+                } else {
                     throw new UnsupportedOperationException();
                 }
-                ECParameterSpec ecParameterSpec = EC_PARAMETER_SPEC_MAP.get("secp256r1");
+                ECParameterSpec ecParameterSpec = EC_PARAMETER_SPEC_MAP.get(curve);
                 BigInteger x = new BigInteger(1, BASE64_URL_DECODER.decode(JsonUtils.orElseThrow(jwkView, "x", JsonString.class).getString()));
                 BigInteger y = new BigInteger(1, BASE64_URL_DECODER.decode(JsonUtils.orElseThrow(jwkView, "y", JsonString.class).getString()));
                 BigInteger d = new BigInteger(1, BASE64_URL_DECODER.decode(JsonUtils.orElseThrow(jwkView, "d", JsonString.class).getString()));

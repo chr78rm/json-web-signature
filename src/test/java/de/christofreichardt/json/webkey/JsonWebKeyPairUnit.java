@@ -4,23 +4,20 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.json.JsonTracer;
+import java.math.BigInteger;
 import java.security.*;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.security.spec.AlgorithmParameterSpec;
-import java.security.spec.ECGenParameterSpec;
-import java.security.spec.ECParameterSpec;
-import java.security.spec.RSAKeyGenParameterSpec;
+import java.security.spec.*;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import org.assertj.core.api.WithAssertions;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
@@ -134,13 +131,16 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
         }
     }
 
-    @Test
-    void withECGenParameterSpec() throws GeneralSecurityException {
+    @ParameterizedTest
+    @ValueSource(strings = {"secp256r1", "secp521r1"})
+    void withECGenParameterSpec(String curve) throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "withECGenParameterSpec()");
 
         try {
-            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256r1");
+            tracer.out().printfIndentln("curve = %s", curve);
+
+            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec(curve);
             JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of(ecGenParameterSpec)
                     .build();
             JsonWebPublicKey jsonWebPublicKey = jsonWebKeyPair.jsonWebPublicKey();
@@ -178,15 +178,18 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
         }
     }
 
-    @Test
-    void withECKeyPairAndKid() throws GeneralSecurityException {
+    @ParameterizedTest
+    @ValueSource(strings = {"secp256r1", "secp521r1"})
+    void withECKeyPairAndKid(String curve) throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "withECKeyPairAndKid()");
 
         try {
+            tracer.out().printfIndentln("curve = %s", curve);
+
             String kid = UUID.randomUUID().toString();
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
-            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256r1");
+            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec(curve);
             keyPairGenerator.initialize(ecGenParameterSpec);
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
             JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of(keyPair)
@@ -265,6 +268,88 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
             keys.add(jsonWebKeyPair);
 
             assertThat(keys.contains(recoveredJsonWebKeyPair)).isTrue();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void secp521r1() throws GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "secp521r1()");
+
+        try {
+            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp521r1");
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
+            keyPairGenerator.initialize(ecGenParameterSpec);
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+            PublicKey publicKey = keyPair.getPublic();
+            if (publicKey instanceof ECPublicKey ecPublicKey) {
+                ECParameterSpec ecParameterSpec = ecPublicKey.getParams();
+                tracer.out().printfIndentln("ecParameterSpec = %s", ecParameterSpec);
+                int fieldSize = ecParameterSpec.getCurve().getField().getFieldSize();
+                tracer.out().printfIndentln("fieldSize = %d", fieldSize);
+                tracer.out().printfIndentln("fieldSize(bits) = %d, fieldSize(bytes) = %d", fieldSize, (int) Math.ceil((double) fieldSize / 8));
+                ECField ecField = ecPublicKey.getParams().getCurve().getField();
+                if (ecField instanceof ECFieldFp ecFieldFp) {
+                    tracer.out().printfIndentln("p = %d", ecFieldFp.getP());
+                }
+                tracer.out().printfIndentln("a = %d", ecPublicKey.getParams().getCurve().getA());
+                tracer.out().printfIndentln("b = %d", ecPublicKey.getParams().getCurve().getB());
+                tracer.out().printfIndentln("x = %d", ecPublicKey.getParams().getGenerator().getAffineX());
+                tracer.out().printfIndentln("y = %d", ecPublicKey.getParams().getGenerator().getAffineY());
+                tracer.out().printfIndentln("order = %d", ecPublicKey.getParams().getOrder());
+            }
+            PrivateKey privateKey = keyPair.getPrivate();
+            if (privateKey instanceof ECPrivateKey ecPrivateKey) {
+                ECParameterSpec ecParameterSpec = ecPrivateKey.getParams();
+                tracer.out().printfIndentln("ecParameterSpec = %s", ecParameterSpec);
+                int fieldSize = ecParameterSpec.getCurve().getField().getFieldSize();
+                tracer.out().printfIndentln("fieldSize = %d", fieldSize);
+                tracer.out().printfIndentln("fieldSize(bits) = %d, fieldSize(bytes) = %d", fieldSize, (int) Math.ceil((double) fieldSize / 8));
+                BigInteger order = ecParameterSpec.getOrder();
+                tracer.out().printfIndentln("order.bitLength() = %d, bytesLen(order) = %d, order = %d", order.bitLength(), (int) Math.ceil((double) order.bitLength() / 8), order);
+            }
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void secp256r1() throws GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "secp256r1()");
+
+        try {
+            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256r1");
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
+            keyPairGenerator.initialize(ecGenParameterSpec);
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+            PublicKey publicKey = keyPair.getPublic();
+            if (publicKey instanceof ECPublicKey ecPublicKey) {
+                ECParameterSpec ecParameterSpec = ecPublicKey.getParams();
+                tracer.out().printfIndentln("ecParameterSpec = %s", ecParameterSpec);
+                int fieldSize = ecParameterSpec.getCurve().getField().getFieldSize();
+                tracer.out().printfIndentln("fieldSize(bits) = %d, fieldSize(bytes) = %d", fieldSize, (int) Math.ceil((double) fieldSize / 8));
+            }
+            PrivateKey privateKey = keyPair.getPrivate();
+            if (privateKey instanceof ECPrivateKey ecPrivateKey) {
+                ECParameterSpec ecParameterSpec = ecPrivateKey.getParams();
+                tracer.out().printfIndentln("ecParameterSpec = %s", ecParameterSpec);
+                int fieldSize = ecParameterSpec.getCurve().getField().getFieldSize();
+                tracer.out().printfIndentln("fieldSize = %d", fieldSize);
+                tracer.out().printfIndentln("fieldSize(bits) = %d, fieldSize(bytes) = %d", fieldSize, (int) Math.ceil((double) fieldSize / 8));
+                BigInteger order = ecParameterSpec.getOrder();
+                tracer.out().printfIndentln("order.bitLength() = %d, bytesLen(order) = %d, order = %d", order.bitLength(), (int) Math.ceil((double) order.bitLength() / 8), order);
+            }
+
+            JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of(ecGenParameterSpec)
+                    .build();
+            JsonWebPublicKey jsonWebPublicKey = jsonWebKeyPair.jsonWebPublicKey();
+
+            tracer.out().printfIndentln("jsonWebKeyPair = %s", jsonWebKeyPair);
+            this.jsonTracer.trace(jsonWebKeyPair.toJson());
+            this.jsonTracer.trace(jsonWebPublicKey.toJson());
         } finally {
             tracer.wayout();
         }

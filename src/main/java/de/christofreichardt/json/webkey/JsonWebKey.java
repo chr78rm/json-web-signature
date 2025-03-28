@@ -27,7 +27,6 @@ import java.security.spec.ECParameterSpec;
 import java.security.spec.ECPoint;
 import java.security.spec.EllipticCurve;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import jakarta.json.Json;
@@ -42,11 +41,9 @@ import jakarta.json.JsonObjectBuilder;
  */
 abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyPair, JsonWebPublicKey, JsonWebSecretKey {
 
-    static final Map<String, String> JDK2JSON_ALGO_MAP = Map.of("HmacSHA256", "HS256");
     public static final Map<String, ECParameterSpec> EC_PARAMETER_SPEC_MAP;
-    static final Base64.Encoder BASE64_URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
-    static final Base64.Decoder BASE64_URL_DECODER = Base64.getUrlDecoder();
 
+    static final ECParameterSpec SECP256R1;
     static {
         BigInteger p = new BigInteger("115792089210356248762697446949407573530086143415290314195533631308867097853951");
         ECFieldFp ecFieldFp = new ECFieldFp(p);
@@ -58,8 +55,29 @@ abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyP
                 new BigInteger("36134250956749795798585127919587881956611106672985015071877198253568414405109")
         );
         BigInteger order = new BigInteger("115792089210356248762697446949407573529996955224135760342422259061068512044369");
-        ECParameterSpec ecParameterSpec = new NamedECParameterSpec("secp256r1 [NIST P-256,X9.62 prime256v1] (1.2.840.10045.3.1.7)", secp256r1, generator, order, 1);
-        EC_PARAMETER_SPEC_MAP = Map.of("secp256r1", ecParameterSpec);
+        SECP256R1 = new NamedECParameterSpec("secp256r1 [NIST P-256,X9.62 prime256v1] (1.2.840.10045.3.1.7)", secp256r1, generator, order, 1);
+    }
+
+    static final ECParameterSpec SECP521R1;
+    static {
+        BigInteger p = new BigInteger("6864797660130609714981900799081393217269435300143305409394463459185543183397656052122559640661454554977296311391480858037121987999716643812574028291115057151");
+        ECFieldFp ecFieldFp = new ECFieldFp(p);
+        BigInteger a = new BigInteger("6864797660130609714981900799081393217269435300143305409394463459185543183397656052122559640661454554977296311391480858037121987999716643812574028291115057148");
+        BigInteger b = new BigInteger("1093849038073734274511112390766805569936207598951683748994586394495953116150735016013708737573759623248592132296706313309438452531591012912142327488478985984");
+        EllipticCurve secp521r1 = new EllipticCurve(ecFieldFp, a, b);
+        ECPoint generator = new ECPoint(
+                new BigInteger("2661740802050217063228768716723360960729859168756973147706671368418802944996427808491545080627771902352094241225065558662157113545570916814161637315895999846"),
+                new BigInteger("3757180025770020463545507224491183603594455134769762486694567779615544477440556316691234405012945539562144444537289428522585666729196580810124344277578376784")
+        );
+        BigInteger order = new BigInteger("6864797660130609714981900799081393217269435300143305409394463459185543183397655394245057746333217197532963996371363321113864768612440380340372808892707005449");
+        SECP521R1 = new NamedECParameterSpec("secp521r1 [NIST P-521] (1.3.132.0.35)", secp521r1, generator, order, 1);
+    }
+
+    static final Base64.Encoder BASE64_URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
+    static final Base64.Decoder BASE64_URL_DECODER = Base64.getUrlDecoder();
+
+    static {
+        EC_PARAMETER_SPEC_MAP = Map.of("secp256r1", SECP256R1, "secp521r1", SECP521R1);
     }
 
     /**
