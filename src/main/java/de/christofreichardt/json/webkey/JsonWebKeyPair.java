@@ -249,7 +249,17 @@ final public class JsonWebKeyPair extends JsonWebKey {
             JsonObjectBuilder jsonObjectBuilder = Json.createObjectBuilder(super.toJson());
 
             if (this.algorithmParameterSpec instanceof ECParameterSpec ecParameterSpec) {
-                jsonObjectBuilder.add("crv", ecParameterSpec.toString());
+                String curve;
+                if (ecParameterSpec.toString().startsWith("secp256r1")) {
+                    curve = "P-256";
+                } else if (ecParameterSpec.toString().startsWith("secp521r1")) {
+                    curve = "P-521";
+                } else if (ecParameterSpec.toString().startsWith("secp384r1")) {
+                    curve = "P-384";
+                } else {
+                    throw new UnsupportedOperationException("Unknown curve specification: %s".formatted(ecParameterSpec.toString()));
+                }
+                jsonObjectBuilder.add("crv", curve);
             }
 
             if (this.keyPair.getPublic() instanceof ECPublicKey ecPublicKey) {
