@@ -4,7 +4,13 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.json.JsonTracer;
+import jakarta.json.*;
+import jakarta.json.stream.JsonGenerator;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Path;
 import java.security.*;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
@@ -12,6 +18,7 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.*;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.assertj.core.api.WithAssertions;
@@ -352,6 +359,132 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
             this.jsonTracer.trace(jsonWebPublicKey.toJson());
         } finally {
             tracer.wayout();
+        }
+    }
+
+    @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    class Examples {
+
+        @Test
+        void defaults() throws GeneralSecurityException, IOException {
+            AbstractTracer tracer = getCurrentTracer();
+            tracer.entry("void", this, "defaults()");
+
+            try {
+                JsonWebKeyPair jsonWebKeyPair;
+                Path path = Path.of("json", "examples", "my-first-jsonwebkeypair.json");
+                {
+                    jsonWebKeyPair = JsonWebKeyPair.of()
+                            .build();
+                    JsonObject jsonObject = jsonWebKeyPair.toJson();
+                    JsonWebKeyPairUnit.this.jsonTracer.trace(jsonObject);
+                    JsonWriterFactory jsonWriterFactory = Json.createWriterFactory(Map.of(JsonGenerator.PRETTY_PRINTING, Boolean.TRUE));
+                    try (FileOutputStream fileOutputStream = new FileOutputStream(path.toFile());
+                         JsonWriter jsonWriter = jsonWriterFactory.createWriter(fileOutputStream)) {
+                        jsonWriter.write(jsonObject);
+                    }
+                }
+
+                {
+                    JsonWebPublicKey jsonWebPublicKey = jsonWebKeyPair.jsonWebPublicKey();
+                    JsonObject jsonObject = jsonWebPublicKey.toJson();
+                    JsonWebKeyPairUnit.this.jsonTracer.trace(jsonObject);
+                }
+
+                {
+                    JsonObject jsonObject;
+                    try (FileInputStream fileInputStream = new FileInputStream(path.toFile());
+                         JsonReader jsonReader = Json.createReader(fileInputStream)) {
+                        jsonObject = jsonReader.readObject();
+                    }
+                    JsonWebKeyPair recoveredJsonWebKeyPair = JsonWebKeyPair.fromJson(jsonObject);
+                    assert recoveredJsonWebKeyPair.equals(jsonWebKeyPair);
+                }
+
+                {
+                    JsonObject jsonObject;
+                    try (FileInputStream fileInputStream = new FileInputStream(path.toFile());
+                         JsonReader jsonReader = Json.createReader(fileInputStream)) {
+                        jsonObject = jsonReader.readObject();
+                    }
+                    JsonWebPublicKey recoveredJsonWebPublicKey = JsonWebPublicKey.fromJson(jsonObject);
+                    assert recoveredJsonWebPublicKey.equals(jsonWebKeyPair.jsonWebPublicKey());
+                }
+            } finally {
+                tracer.wayout();
+            }
+        }
+
+        @Test
+        void defaultsWithKid() throws GeneralSecurityException {
+            AbstractTracer tracer = getCurrentTracer();
+            tracer.entry("void", this, "defaultsWithKid()");
+
+            try {
+                String kid = UUID.randomUUID().toString();
+                JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
+                        .withKid(kid)
+                        .build();
+
+                JsonWebKeyPairUnit.this.jsonTracer.trace(jsonWebKeyPair.toJson());
+            } finally {
+                tracer.wayout();
+            }
+        }
+
+        @Test
+        void withECGenParameterSpec() throws GeneralSecurityException {
+            AbstractTracer tracer = getCurrentTracer();
+            tracer.entry("void", this, "withECGenParameterSpec()");
+
+            try {
+                AlgorithmParameterSpec algorithmParameterSpec = new ECGenParameterSpec("secp521r1");
+                JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of(algorithmParameterSpec)
+                        .build();
+
+                JsonWebKeyPairUnit.this.jsonTracer.trace(jsonWebKeyPair.toJson());
+            } finally {
+                tracer.wayout();
+            }
+        }
+
+        @Test
+        void withKeyPair() throws GeneralSecurityException {
+            AbstractTracer tracer = getCurrentTracer();
+            tracer.entry("void", this, "withKeyPair()");
+
+            try {
+                KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
+                ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256r1");
+                keyPairGenerator.initialize(ecGenParameterSpec);
+                KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+                String kid = UUID.randomUUID().toString();
+                JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of(keyPair)
+                        .withKid(kid)
+                        .build();
+
+                JsonWebKeyPairUnit.this.jsonTracer.trace(jsonWebKeyPair.toJson());
+            } finally {
+                tracer.wayout();
+            }
+        }
+
+        @Test
+        void withRSAKeyGenParameterSpec() throws GeneralSecurityException {
+            AbstractTracer tracer = getCurrentTracer();
+            tracer.entry("void", this, "withRSAKeyGenParameterSpec()");
+
+            try {
+                AlgorithmParameterSpec algorithmParameterSpec = new RSAKeyGenParameterSpec(2048, RSAKeyGenParameterSpec.F4);
+                JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of(algorithmParameterSpec)
+                        .build();
+
+                JsonWebKeyPairUnit.this.jsonTracer.trace(jsonWebKeyPair.toJson());
+            } finally {
+                tracer.wayout();
+            }
         }
     }
 
