@@ -198,7 +198,10 @@ public class JOSEHeader implements Traceable {
      * A builder for a {@code JOSEHeader} preconfigured with a JSON web (public) key.
      */
     final public static class PublicKeyBuilder implements Traceable {
-        static Map<String, String> ecAlgoMap = Map.of("secp256r1 [NIST P-256,X9.62 prime256v1] (1.2.840.10045.3.1.7)", "ES256");
+        static Map<String, String> ecAlgoMap = Map.of(
+                "secp256r1 [NIST P-256,X9.62 prime256v1] (1.2.840.10045.3.1.7)", "ES256",
+                "secp521r1 [NIST P-521] (1.3.132.0.35)", "ES512"
+        );
 
         final String alg;
         final JsonWebPublicKey jsonWebPublicKey;

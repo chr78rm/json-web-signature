@@ -5,6 +5,9 @@ import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.json.JsonTracer;
 import de.christofreichardt.json.webkey.JsonWebPublicKey;
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -14,14 +17,13 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.spec.ECGenParameterSpec;
 import java.util.UUID;
-import jakarta.json.Json;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
 import org.assertj.core.api.WithAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class JOSEHeaderUnit implements Traceable, WithAssertions {
@@ -47,17 +49,26 @@ public class JOSEHeaderUnit implements Traceable, WithAssertions {
         }
     }
 
-    @Test
-    void withECPublicKey() throws GeneralSecurityException {
+    record Algo (String parameterSpecName, String alg) {}
+
+    static Algo[] algos() {
+        return new Algo[]{new Algo("secp256r1", "ES256"), new Algo("secp521r1", "ES512")};
+    }
+
+    @ParameterizedTest
+    @MethodSource("algos")
+    void withECPublicKey(Algo algo) throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "withECPublicKey()");
 
         try {
+            tracer.out().printfIndentln("algo = %s", algo);
+
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
-            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256r1");
+            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec(algo.parameterSpecName());
             keyPairGenerator.initialize(ecGenParameterSpec);
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
-            String kid = UUID.randomUUID().toString(), typ = "JWT", alg = "ES256";
+            String kid = UUID.randomUUID().toString(), typ = "JWT";
             JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.of(keyPair.getPublic())
                     .withKid(kid)
                     .build();
@@ -69,7 +80,7 @@ public class JOSEHeaderUnit implements Traceable, WithAssertions {
             this.jsonTracer.trace(joseHeaderView);
             assertThat(joseHeaderView.getString("kid")).isEqualTo(kid);
             assertThat(joseHeaderView.getString("typ")).isEqualTo(typ);
-            assertThat(joseHeaderView.getString("alg")).isEqualTo(alg);
+            assertThat(joseHeaderView.getString("alg")).isEqualTo(algo.alg());
 
             JOSEHeader recoveredJoseHeader = JOSEHeader.fromJson(joseHeaderView);
             this.jsonTracer.trace(recoveredJoseHeader.toJson());
@@ -213,7 +224,7 @@ public class JOSEHeaderUnit implements Traceable, WithAssertions {
             try (JsonReader jsonReader = Json.createReader(new FileInputStream(joseHeaderFile))) {
                 joseHeader = jsonReader.readObject();
             }
-            assertThatExceptionOfType(UnsupportedOperationException.class)  // todo: this should really be an IllegalArgumentException
+            assertThatExceptionOfType(UnsupportedOperationException.class)  // todo: this should really be an IllegalArgumentException (?)
                     .isThrownBy(() -> JOSEHeader.fromJson(joseHeader));
         } finally {
             tracer.wayout();
