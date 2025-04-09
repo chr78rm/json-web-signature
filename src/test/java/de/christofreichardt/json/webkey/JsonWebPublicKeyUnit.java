@@ -10,12 +10,7 @@ import java.io.FileInputStream;
 import java.io.StringReader;
 import java.math.BigInteger;
 import java.nio.file.Path;
-import java.security.GeneralSecurityException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPublicKey;
@@ -123,7 +118,8 @@ public class JsonWebPublicKeyUnit implements Traceable, WithAssertions {
             ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec(curve);
             keyPairGenerator.initialize(ecGenParameterSpec);
             KeyPair keyPair = keyPairGenerator.generateKeyPair();
-            JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.of(keyPair.getPublic())
+            PublicKey publicKey = keyPair.getPublic();
+            JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.of(publicKey)
                     .build();
 
             tracer.out().printfIndentln("jsonWebPublicKey = %s", jsonWebPublicKey);

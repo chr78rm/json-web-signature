@@ -382,7 +382,7 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
                     JsonWriterFactory jsonWriterFactory = Json.createWriterFactory(Map.of(JsonGenerator.PRETTY_PRINTING, Boolean.TRUE));
                     try (FileOutputStream fileOutputStream = new FileOutputStream(path.toFile());
                          JsonWriter jsonWriter = jsonWriterFactory.createWriter(fileOutputStream)) {
-                        jsonWriter.write(jsonObject);
+                        jsonWriter.write(jsonWebKeyPair.toJson());
                     }
                 }
 
