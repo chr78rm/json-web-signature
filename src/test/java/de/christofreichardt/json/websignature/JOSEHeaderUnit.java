@@ -4,6 +4,7 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.json.JsonTracer;
+import de.christofreichardt.json.webkey.JsonWebKeyPair;
 import de.christofreichardt.json.webkey.JsonWebPublicKey;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
@@ -18,10 +19,7 @@ import java.security.KeyPairGenerator;
 import java.security.spec.ECGenParameterSpec;
 import java.util.UUID;
 import org.assertj.core.api.WithAssertions;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -289,6 +287,83 @@ public class JOSEHeaderUnit implements Traceable, WithAssertions {
             this.jsonTracer.trace(joseHeader.toJson());
         } finally {
             tracer.wayout();
+        }
+    }
+
+    @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    class Examples {
+
+        @Test
+        void defaults() throws GeneralSecurityException {
+            AbstractTracer tracer = getCurrentTracer();
+            tracer.entry("void", this, "defaults()");
+
+            try {
+                JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
+                        .build();
+                JOSEHeader joseHeader = JOSEHeader.of(jsonWebKeyPair.jsonWebPublicKey())
+                        .build();
+                JOSEHeaderUnit.this.jsonTracer.trace(joseHeader.toJson());
+            } finally {
+                tracer.wayout();
+            }
+        }
+
+        @Test
+        void defaultsWithKid_1() throws GeneralSecurityException {
+            AbstractTracer tracer = getCurrentTracer();
+            tracer.entry("void", this, "defaultsWithKid_1()");
+
+            try {
+                String kid = UUID.randomUUID().toString();
+                JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
+                        .withKid(kid)
+                        .build();
+                JOSEHeader joseHeader = JOSEHeader.of(jsonWebKeyPair.jsonWebPublicKey())
+                        .build();
+                JOSEHeaderUnit.this.jsonTracer.trace(joseHeader.toJson());
+            } finally {
+                tracer.wayout();
+            }
+        }
+
+        @Test
+        void defaultsWithKid_2() throws GeneralSecurityException {
+            AbstractTracer tracer = getCurrentTracer();
+            tracer.entry("void", this, "defaultsWithKid_2()");
+
+            try {
+                String kid = UUID.randomUUID().toString();
+                JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
+                        .build();
+                JOSEHeader joseHeader = JOSEHeader.of(jsonWebKeyPair.jsonWebPublicKey())
+                        .withKid(kid)
+                        .build();
+                JOSEHeaderUnit.this.jsonTracer.trace(joseHeader.toJson());
+            } finally {
+                tracer.wayout();
+            }
+        }
+
+        @Test
+        void ambigousKids() throws GeneralSecurityException {
+            AbstractTracer tracer = getCurrentTracer();
+            tracer.entry("void", this, "ambigousKids()");
+
+            try {
+                JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
+                        .withKid(UUID.randomUUID().toString())
+                        .build();
+                assertThatExceptionOfType(IllegalArgumentException.class)
+                        .isThrownBy(
+                                () -> JOSEHeader.of(jsonWebKeyPair.jsonWebPublicKey())
+                                        .withKid(UUID.randomUUID().toString())
+                                        .build()
+                        );
+            } finally {
+                tracer.wayout();
+            }
         }
     }
 
