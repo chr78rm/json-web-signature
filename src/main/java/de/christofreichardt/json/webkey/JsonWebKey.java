@@ -43,7 +43,7 @@ abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyP
 
     public static final Map<String, ECParameterSpec> EC_PARAMETER_SPEC_MAP;
 
-    static final ECParameterSpec SECP256R1;
+    public static final ECParameterSpec SECP256R1;
     static {
         BigInteger p = new BigInteger("115792089210356248762697446949407573530086143415290314195533631308867097853951");
         ECFieldFp ecFieldFp = new ECFieldFp(p);
@@ -58,7 +58,7 @@ abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyP
         SECP256R1 = new NamedECParameterSpec("secp256r1 [NIST P-256,X9.62 prime256v1] (1.2.840.10045.3.1.7)", secp256r1, generator, order, 1);
     }
 
-    static final ECParameterSpec SECP521R1;
+    public static final ECParameterSpec SECP521R1;
     static {
         BigInteger p = new BigInteger("6864797660130609714981900799081393217269435300143305409394463459185543183397656052122559640661454554977296311391480858037121987999716643812574028291115057151");
         ECFieldFp ecFieldFp = new ECFieldFp(p);
