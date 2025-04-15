@@ -365,6 +365,25 @@ public class JOSEHeaderUnit implements Traceable, WithAssertions {
                 tracer.wayout();
             }
         }
+
+        @Test
+        void withKidAndTyp() throws GeneralSecurityException {
+            AbstractTracer tracer = getCurrentTracer();
+            tracer.entry("void", this, "withKidAndTyp()");
+
+            try {
+                String kid = UUID.randomUUID().toString();
+                JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
+                        .build();
+                JOSEHeader joseHeader = JOSEHeader.of(jsonWebKeyPair.jsonWebPublicKey())
+                        .withKid(kid)
+                        .withTyp("JOSE")
+                        .build();
+                JOSEHeaderUnit.this.jsonTracer.trace(joseHeader.toJson());
+            } finally {
+                tracer.wayout();
+            }
+        }
     }
 
     @AfterAll

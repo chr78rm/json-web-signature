@@ -4,6 +4,8 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.json.JsonTracer;
+import de.christofreichardt.json.webkey.JsonWebKey;
+import de.christofreichardt.json.webkey.JsonWebKeyPair;
 import de.christofreichardt.json.webkey.JsonWebPublicKey;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
@@ -13,10 +15,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.StringReader;
 import java.nio.file.Path;
-import java.security.GeneralSecurityException;
-import java.security.InvalidKeyException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
+import java.security.*;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.ECFieldFp;
 import java.security.spec.ECGenParameterSpec;
@@ -119,6 +118,52 @@ public class SHA256WithECDSAUnit implements Traceable, WithAssertions {
         }
     }
 
+    @RepeatedTest(25)
+    void withJsonWebKey() throws GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "withJsonWebKey()");
+
+        try {
+            JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of(JsonWebKey.SECP256R1)
+                    .withSecureRandom(SecureRandom.getInstanceStrong())
+                    .build();
+
+            JsonObject joseHeader = Json.createObjectBuilder()
+                    .add("alg", "ES256")
+                    .build();
+
+            JsonObject payload = Json.createObjectBuilder()
+                    .add("iss", "joe")
+                    .add("exp", 1300819380)
+                    .add("http://example.com/is_root", "true")
+                    .build();
+
+            JWSSigner jwsSigner = new JWSSigner(joseHeader, payload);
+            assertThat(jwsSigner.jwa.algorithm()).isEqualTo("SHA256withECDSA");
+            JWSCompactSerialization compactSerialization = jwsSigner.sign(jsonWebKeyPair.getKeyPair().getPrivate());
+            tracer.out().printfIndentln("compactSerialization = %s", compactSerialization);
+
+            JWSValidator jwsValidator = new JWSValidator(compactSerialization);
+            assertThat(jwsValidator.jwa.algorithm()).isEqualTo("SHA256withECDSA");
+            assertThat(jwsValidator.getStrJoseHeader()).isEqualTo(joseHeader.toString());
+            assertThat(jwsValidator.getStrPayload()).isEqualTo(payload.toString());
+            assertThat(jwsValidator.validate(jsonWebKeyPair.jsonWebPublicKey().getPublicKey())).isTrue();
+
+            JsonObject fakePayload = Json.createObjectBuilder()
+                    .add("iss", "harry")
+                    .add("exp", 1300819380)
+                    .add("http://example.com/is_root", "true")
+                    .build();
+
+            jwsSigner = new JWSSigner(joseHeader, fakePayload);
+            JWSCompactSerialization fakeSerialization = new JWSCompactSerialization(compactSerialization.encodedHeader(), jwsSigner.sign(jsonWebKeyPair.getKeyPair().getPrivate()).encodedPayload(), compactSerialization.encodedSignature());
+            jwsValidator = new JWSValidator(fakeSerialization);
+            assertThat(jwsValidator.validate(jsonWebKeyPair.jsonWebPublicKey().getPublicKey())).isFalse();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
     @Test
     void invalidKey() throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
@@ -140,6 +185,35 @@ public class SHA256WithECDSAUnit implements Traceable, WithAssertions {
                     .build();
 
             final JWSSigner jwsSigner = new JWSSigner(joseHeader, payload);
+            assertThatExceptionOfType(InvalidKeyException.class).isThrownBy(() -> jwsSigner.sign(keyPair.getPrivate()));
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void invalidECKey() throws GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "invalidECKey()");
+
+        try {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
+            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp521r1");
+            keyPairGenerator.initialize(ecGenParameterSpec);
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+            JsonObject joseHeader = Json.createObjectBuilder()
+                    .add("alg", "ES256")
+                    .build();
+
+            JsonObject payload = Json.createObjectBuilder()
+                    .add("iss", "joe")
+                    .add("exp", 1300819380)
+                    .add("http://example.com/is_root", "true")
+                    .build();
+
+            JWSSigner jwsSigner = new JWSSigner(joseHeader, payload);
+            assertThat(jwsSigner.jwa.algorithm()).isEqualTo("SHA256withECDSA");
             assertThatExceptionOfType(InvalidKeyException.class).isThrownBy(() -> jwsSigner.sign(keyPair.getPrivate()));
         } finally {
             tracer.wayout();

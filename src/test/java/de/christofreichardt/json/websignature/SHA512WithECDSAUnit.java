@@ -6,11 +6,11 @@ import de.christofreichardt.diagnosis.TracerFactory;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import java.security.GeneralSecurityException;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.ECGenParameterSpec;
-import java.security.spec.ECParameterSpec;
 import org.assertj.core.api.WithAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -83,6 +83,35 @@ public class SHA512WithECDSAUnit implements Traceable, WithAssertions {
             assertThat(jwsValidator.validate(keyPair.getPublic())).isTrue();
             jwsValidator = new JWSValidator(fakedCompactSerialization);
             assertThat(jwsValidator.validate(keyPair.getPublic())).isFalse();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void invalidECKey() throws GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "invalidECKey()");
+
+        try {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
+            ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp384r1");
+            keyPairGenerator.initialize(ecGenParameterSpec);
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+            JsonObject joseHeader = Json.createObjectBuilder()
+                    .add("alg", "ES512")
+                    .build();
+
+            JsonObject payload = Json.createObjectBuilder()
+                    .add("iss", "joe")
+                    .add("exp", 1300819380)
+                    .add("http://example.com/is_root", "true")
+                    .build();
+
+            JWSSigner jwsSigner = new JWSSigner(joseHeader, payload);
+            assertThat(jwsSigner.jwa.algorithm()).isEqualTo("SHA512withECDSA");
+            assertThatExceptionOfType(InvalidKeyException.class).isThrownBy(() -> jwsSigner.sign(keyPair.getPrivate()));
         } finally {
             tracer.wayout();
         }
