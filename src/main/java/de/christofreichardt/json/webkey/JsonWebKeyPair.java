@@ -350,9 +350,15 @@ final public class JsonWebKeyPair extends JsonWebKey {
     public static class ParameterSpecBuilder extends JsonWebKey.Builder<ParameterSpecBuilder> {
         final AlgorithmParameterSpec algorithmParameterSpec;
         KeyPair keyPair;
+        SecureRandom secureRandom;
 
         public ParameterSpecBuilder(AlgorithmParameterSpec algorithmParameterSpec) {
             this.algorithmParameterSpec = algorithmParameterSpec;
+        }
+
+        public ParameterSpecBuilder withSecureRandom(SecureRandom secureRandom) {
+            this.secureRandom = secureRandom;
+            return this;
         }
 
         @Override
@@ -360,12 +366,18 @@ final public class JsonWebKeyPair extends JsonWebKey {
             KeyPairGenerator keyPairGenerator;
             if (this.algorithmParameterSpec instanceof ECGenParameterSpec) {
                 keyPairGenerator = KeyPairGenerator.getInstance("EC");
+            } else if (algorithmParameterSpec instanceof ECParameterSpec) {
+                keyPairGenerator = KeyPairGenerator.getInstance("EC");
             } else if (algorithmParameterSpec instanceof RSAKeyGenParameterSpec) {
                 keyPairGenerator = KeyPairGenerator.getInstance("RSA");
             } else {
                 throw new InvalidAlgorithmParameterException();
             }
-            keyPairGenerator.initialize(algorithmParameterSpec);
+            if (Objects.nonNull(this.secureRandom)) {
+                keyPairGenerator.initialize(this.algorithmParameterSpec, this.secureRandom);
+            } else {
+                keyPairGenerator.initialize(algorithmParameterSpec);
+            }
             this.keyPair = keyPairGenerator.generateKeyPair();
 
             return new JsonWebKeyPair(this);

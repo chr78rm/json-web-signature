@@ -24,6 +24,7 @@ import java.util.UUID;
 import org.assertj.core.api.WithAssertions;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -155,6 +156,50 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
             tracer.out().printfIndentln("jsonWebKeyPair = %s", jsonWebKeyPair);
             this.jsonTracer.trace(jsonWebKeyPair.toJson());
             this.jsonTracer.trace(jsonWebPublicKey.toJson());
+
+            assertThat(jsonWebKeyPair.algorithmParameterSpec instanceof ECParameterSpec).isTrue();
+            assertThat(jsonWebKeyPair.keyType).isEqualTo("EC");
+            assertThat(jsonWebKeyPair.keyPair.getPrivate()).isInstanceOf(ECPrivateKey.class);
+            assertThat(jsonWebKeyPair.keyPair.getPublic()).isInstanceOf(ECPublicKey.class);
+            assertThat(jsonWebKeyPair.kid).isNull();
+            assertThat(jsonWebKeyPair.getKeyPair().getPublic()).isEqualTo(jsonWebPublicKey.getPublicKey());
+            assertThat(jsonWebKeyPair.getKid()).isEqualTo(jsonWebPublicKey.getKid());
+
+            JsonWebKeyPair recoveredJsonWebKeyPair = JsonWebKey.fromJson(jsonWebKeyPair.toJson(), JsonWebKeyPair.class);
+
+            tracer.out().printfIndentln("recoveredJsonWebPublicKey = %s", recoveredJsonWebKeyPair);
+            this.jsonTracer.trace(recoveredJsonWebKeyPair.toJson());
+            tracer.out().printfIndentln("jsonWebKeyPair.hashCode() = %d, recoveredJsonWebKeyPair.hashCode() = %d",
+                    jsonWebKeyPair.hashCode(), recoveredJsonWebKeyPair.hashCode());
+
+            assertThat(recoveredJsonWebKeyPair).isEqualTo(jsonWebKeyPair);
+            assertThat(jsonWebKeyPair).isEqualTo(jsonWebKeyPair);
+            assertThat(jsonWebKeyPair).isEqualTo(recoveredJsonWebKeyPair);
+            assertThat(jsonWebKeyPair.hashCode()).isEqualTo(recoveredJsonWebKeyPair.hashCode());
+
+            Set<JsonWebKey> keys = new HashSet<>();
+            keys.add(jsonWebKeyPair);
+
+            assertThat(keys.contains(recoveredJsonWebKeyPair)).isTrue();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    static ECParameterSpec[] ecParameterSpecs() {
+        return new ECParameterSpec[]{JsonWebKey.SECP256R1, JsonWebKey.SECP521R1};
+    }
+
+    @ParameterizedTest
+    @MethodSource("ecParameterSpecs")
+    void withECParameterSpec(ECParameterSpec ecParameterSpec) throws GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "exit()");
+
+        try {
+            JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of(ecParameterSpec)
+                    .build();
+            JsonWebPublicKey jsonWebPublicKey = jsonWebKeyPair.jsonWebPublicKey();
 
             assertThat(jsonWebKeyPair.algorithmParameterSpec instanceof ECParameterSpec).isTrue();
             assertThat(jsonWebKeyPair.keyType).isEqualTo("EC");
@@ -479,6 +524,23 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
             try {
                 AlgorithmParameterSpec algorithmParameterSpec = new RSAKeyGenParameterSpec(2048, RSAKeyGenParameterSpec.F4);
                 JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of(algorithmParameterSpec)
+                        .build();
+
+                JsonWebKeyPairUnit.this.jsonTracer.trace(jsonWebKeyPair.toJson());
+            } finally {
+                tracer.wayout();
+            }
+        }
+
+        @Test
+        void withECParameterSpecAndSecureRandom() throws GeneralSecurityException {
+            AbstractTracer tracer = getCurrentTracer();
+            tracer.entry("void", this, "withECParameterSpecAndSecureRandom()");
+
+            try {
+                ECParameterSpec secp521r1 = JsonWebKey.SECP521R1;
+                JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of(secp521r1)
+                        .withSecureRandom(SecureRandom.getInstanceStrong())
                         .build();
 
                 JsonWebKeyPairUnit.this.jsonTracer.trace(jsonWebKeyPair.toJson());
