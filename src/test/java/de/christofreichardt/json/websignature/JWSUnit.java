@@ -142,8 +142,8 @@ public class JWSUnit implements Traceable, WithAssertions {
             JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.fromJson(jwsStruct.joseHeader().getJsonObject("jwk"));
 
             tracer.out().printfIndentln("compactSerialization = %s", compactSerialization);
-            tracer.out().printfIndentln("jwsStruct.strJoseHeader() = %s", jwsStruct.strJoseHeader());
-            tracer.out().printfIndentln("jwsStruct.strPayload() = %s", jwsStruct.strPayload());
+            tracer.out().printfIndentln("compactSerialization.strJoseHeader() = %s", compactSerialization.strJoseHeader());
+            tracer.out().printfIndentln("compactSerialization.strPayload() = %s", compactSerialization.strPayload());
             this.jsonTracer.trace(jsonWebKeyPair.toJson());
             this.jsonTracer.trace(jwsStruct.joseHeader());
             this.jsonTracer.trace(jwsStruct.payload());
@@ -551,15 +551,15 @@ public class JWSUnit implements Traceable, WithAssertions {
             JWSCompactSerialization compactSerialization = JWS.createSignature()
                     .webkey(jsonWebKeyPair)
                     .typ(TYP)
-                    .payload(share, new PrettyStringConverter())
-                    .sign();
+                    .payload(share)
+                    .sign(new PrettyStringConverter());
             JWSBase.JWSStruct jwsStruct = compactSerialization.makeJWSStruct();
             JWSValidator jwsValidator = new JWSValidator(compactSerialization);
             JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.fromJson(jwsStruct.joseHeader().getJsonObject("jwk"));
 
             tracer.out().printfIndentln("compactSerialization = %s", compactSerialization);
-            tracer.out().printfIndentln("jwsStruct.strJoseHeader() = %s", jwsStruct.strJoseHeader());
-            tracer.out().printfIndentln("jwsStruct.strPayload() = %s", jwsStruct.strPayload());
+            tracer.out().printfIndentln("compactSerialization.strJoseHeader() = %s", compactSerialization.strJoseHeader());
+            tracer.out().printfIndentln("compactSerialization.strPayload() = %s", compactSerialization.strPayload());
 
             assertThat(jwsStruct.joseHeader().getString("alg")).isEqualTo("RS256");
             assertThat(jwsStruct.joseHeader().getString("typ")).isEqualTo(TYP);
@@ -969,8 +969,8 @@ public class JWSUnit implements Traceable, WithAssertions {
                         .webkey(jsonWebKeyPair)
                         .typ("JWT")
                         .kid(kid)
-                        .payload(payload, new PrettyStringConverter())
-                        .sign();
+                        .payload(payload)
+                        .sign(new PrettyStringConverter());
 
                 tracer.out().printfIndentln("compactSerialization = %s", compactSerialization);
                 tracer.out().printfIndentln("strJoseHeader = %s", compactSerialization.strJoseHeader());

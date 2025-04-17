@@ -33,15 +33,6 @@ public interface BeforePayload {
     SignatureEnd payload(JsonStructure payload);
 
     /**
-     * Introduces the actual payload together with a {@link de.christofreichardt.json.websignature.Json2StringConverter}.
-     *
-     * @param payload the given payload.
-     * @param converter the desired converter.
-     * @return the last step within the workflow of the Fluent API regarding the generation of signatures.
-     */
-    SignatureEnd payload(JsonStructure payload, Json2StringConverter converter);
-
-    /**
      * Introduces the actual payload as string. The string must be valid JSON at present.
      *
      * @param payload the given payload.

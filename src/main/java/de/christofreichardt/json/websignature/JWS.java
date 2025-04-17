@@ -118,20 +118,12 @@ public class JWS {
         JsonStructure payload;
         String kid;
         String typ;
-        Json2StringConverter converter;
         String strPayload;
         String strHeader;
 
         @Override
         public SignatureEnd payload(JsonStructure payload) {
             this.payload = payload;
-            return this;
-        }
-
-        @Override
-        public SignatureEnd payload(JsonStructure payload, Json2StringConverter converter) {
-            this.payload = payload;
-            this.converter = converter;
             return this;
         }
 
@@ -169,20 +161,24 @@ public class JWS {
 
         @Override
         public JWSCompactSerialization sign() throws GeneralSecurityException {
+            return sign(JsonStructure::toString);
+        }
+
+        @Override
+        public JWSCompactSerialization sign(final Json2StringConverter converter) throws GeneralSecurityException {
             assert Objects.nonNull(this.payload) || Objects.nonNull(this.strPayload) : "No payload is given.";
 
             Key key = signingKey();
             Optional<JOSEHeader> optionalJOSEHeader = buildJoseHeader();
-            this.converter = Objects.nonNull(this.converter) ? this.converter : JsonStructure::toString;
 
             JWSSigner jwsSigner;
             if (Objects.nonNull(this.payload)) {
                 jwsSigner = optionalJOSEHeader
-                        .map(joseHeader -> new JWSSigner(joseHeader.toJson(), this.payload, this.converter))
-                        .orElseGet(() -> new JWSSigner(this.strHeader, this.converter.convert(this.payload)));
+                        .map(joseHeader -> new JWSSigner(joseHeader.toJson(), this.payload, converter))
+                        .orElseGet(() -> new JWSSigner(this.strHeader, converter.convert(this.payload)));
             } else if (Objects.nonNull(this.strPayload)) {
                 jwsSigner = optionalJOSEHeader
-                        .map(joseHeader -> new JWSSigner(this.converter.convert(joseHeader.toJson()), this.strPayload))
+                        .map(joseHeader -> new JWSSigner(converter.convert(joseHeader.toJson()), this.strPayload))
                         .orElseGet(() -> new JWSSigner(this.strHeader, this.strPayload));
             } else {
                 throw new IllegalStateException();

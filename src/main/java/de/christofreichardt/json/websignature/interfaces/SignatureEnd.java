@@ -18,6 +18,7 @@
 package de.christofreichardt.json.websignature.interfaces;
 
 import de.christofreichardt.json.websignature.JWSCompactSerialization;
+import de.christofreichardt.json.websignature.Json2StringConverter;
 import java.security.GeneralSecurityException;
 
 /**
@@ -33,4 +34,6 @@ public interface SignatureEnd {
      * @throws GeneralSecurityException passed through from the underlying implementations of the algorithms by the JDK.
      */
     JWSCompactSerialization sign() throws GeneralSecurityException;
+
+    JWSCompactSerialization sign(Json2StringConverter converter) throws GeneralSecurityException;
 }
