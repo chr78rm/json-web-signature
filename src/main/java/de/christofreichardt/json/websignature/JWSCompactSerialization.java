@@ -70,6 +70,14 @@ public record JWSCompactSerialization(String encodedHeader, String encodedPayloa
         return JWSBase.read(JWSBase.decode(this.encodedPayload)).asJsonObject();
     }
 
+    public String strJoseHeader() {
+        return JWSBase.decode(this.encodedHeader);
+    }
+
+    public String strPayload() {
+        return JWSBase.decode(this.encodedPayload);
+    }
+
     /**
      * Returns the actual compact serialization format as string object.
      *

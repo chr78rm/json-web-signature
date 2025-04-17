@@ -24,10 +24,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
 import org.assertj.core.api.WithAssertions;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class JWSUnit implements Traceable, WithAssertions {
@@ -914,6 +911,79 @@ public class JWSUnit implements Traceable, WithAssertions {
             assertThat(validated).isTrue();
         } finally {
             tracer.wayout();
+        }
+    }
+
+    @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    class Examples {
+
+        @Test
+        void withDefaultWebKeyAndAllHeaderParams() throws GeneralSecurityException {
+            AbstractTracer tracer = getCurrentTracer();
+            tracer.entry("void", this, "withDefaultWebKeyAndAllHeaderParams()");
+
+            try {
+                JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
+                        .withSecureRandom(SecureRandom.getInstanceStrong())
+                        .build();
+
+                JWSUnit.this.jsonTracer.trace(jsonWebKeyPair.toJson());
+
+                String strPayload = """
+                        {
+                            "iss": "OpenIDConnect-Provider",
+                            "exp": 1744732996,
+                            "aud": "Protected App",
+                            "jti": "e575fa68-4d24-4398-a2c8-87432d8aa57b",
+                            "name": "Tina Tester",
+                            "email": "tina-tester@xyz.abc",
+                            "roles": [
+                                "app-user",
+                                "app-tester"
+                            ]
+                        }
+                        """;
+
+                JsonObject payload;
+                try (StringReader stringReader = new StringReader(strPayload);
+                     JsonReader jsonReader = Json.createReader(stringReader)) {
+                    payload = jsonReader.readObject();
+                }
+
+                JWSUnit.this.jsonTracer.trace(payload);
+
+                String kid = UUID.randomUUID().toString();
+                JWSCompactSerialization compactSerialization = JWS.createSignature()
+                        .webkey(jsonWebKeyPair)
+                        .typ("JWT")
+                        .kid(kid)
+                        .payload(payload)
+                        .sign();
+
+                tracer.out().printfIndentln("compactSerialization = %s", compactSerialization);
+                tracer.out().printfIndentln("strJoseHeader = %s", compactSerialization.strJoseHeader());
+                tracer.out().printfIndentln("strPayload = %s", compactSerialization.strPayload());
+
+                compactSerialization = JWS.createSignature()
+                        .webkey(jsonWebKeyPair)
+                        .typ("JWT")
+                        .kid(kid)
+                        .payload(payload, new PrettyStringConverter())
+                        .sign();
+
+                tracer.out().printfIndentln("compactSerialization = %s", compactSerialization);
+                tracer.out().printfIndentln("strJoseHeader = %s", compactSerialization.strJoseHeader());
+                tracer.out().printfIndentln("strPayload = %s", compactSerialization.strPayload());
+
+                boolean validated = JWS.createValidator()
+                        .compactSerialization(compactSerialization)
+                        .key(jsonWebKeyPair.jsonWebPublicKey())
+                        .validate();
+                assert validated;
+            } finally {
+                tracer.wayout();
+            }
         }
     }
 

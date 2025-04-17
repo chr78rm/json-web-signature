@@ -315,15 +315,25 @@ final public class JsonWebKeyPair extends JsonWebKey {
     public static class Builder extends JsonWebKey.Builder<Builder> {
 
         KeyPair keyPair;
+        SecureRandom secureRandom;
         final AlgorithmParameterSpec algorithmGenParameterSpec = new ECGenParameterSpec("secp256r1");
 
         @Override
         public JsonWebKeyPair build() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
-            keyPairGenerator.initialize(algorithmGenParameterSpec);
+            if (Objects.nonNull(this.secureRandom)) {
+                keyPairGenerator.initialize(this.algorithmGenParameterSpec, this.secureRandom);
+            } else {
+                keyPairGenerator.initialize(this.algorithmGenParameterSpec);
+            }
             this.keyPair = keyPairGenerator.generateKeyPair();
 
             return new JsonWebKeyPair(this);
+        }
+
+        public Builder withSecureRandom(SecureRandom secureRandom) {
+            this.secureRandom = secureRandom;
+            return this;
         }
     }
 

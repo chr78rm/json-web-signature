@@ -532,7 +532,7 @@ public class JsonWebKeyPairUnit implements Traceable, WithAssertions {
             }
         }
 
-        @Test
+        @RepeatedTest(5)
         void withECParameterSpecAndSecureRandom() throws GeneralSecurityException {
             AbstractTracer tracer = getCurrentTracer();
             tracer.entry("void", this, "withECParameterSpecAndSecureRandom()");
