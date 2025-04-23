@@ -965,6 +965,12 @@ public class JWSUnit implements Traceable, WithAssertions {
                 tracer.out().printfIndentln("strJoseHeader = %s", compactSerialization.strJoseHeader());
                 tracer.out().printfIndentln("strPayload = %s", compactSerialization.strPayload());
 
+                boolean validated = JWS.createValidator()
+                        .compactSerialization(compactSerialization)
+                        .key(jsonWebKeyPair.jsonWebPublicKey())
+                        .validate();
+                assert validated;
+
                 compactSerialization = JWS.createSignature()
                         .webkey(jsonWebKeyPair)
                         .typ("JWT")
@@ -976,7 +982,24 @@ public class JWSUnit implements Traceable, WithAssertions {
                 tracer.out().printfIndentln("strJoseHeader = %s", compactSerialization.strJoseHeader());
                 tracer.out().printfIndentln("strPayload = %s", compactSerialization.strPayload());
 
-                boolean validated = JWS.createValidator()
+                validated = JWS.createValidator()
+                        .compactSerialization(compactSerialization)
+                        .key(jsonWebKeyPair.jsonWebPublicKey())
+                        .validate();
+                assert validated;
+
+                compactSerialization = JWS.createSignature()
+                        .webkey(jsonWebKeyPair)
+                        .typ("JWT")
+                        .kid(kid)
+                        .payload(strPayload)
+                        .sign();
+
+                tracer.out().printfIndentln("compactSerialization = %s", compactSerialization);
+                tracer.out().printfIndentln("strJoseHeader = %s", compactSerialization.strJoseHeader());
+                tracer.out().printfIndentln("strPayload = %s", compactSerialization.strPayload());
+
+                validated = JWS.createValidator()
                         .compactSerialization(compactSerialization)
                         .key(jsonWebKeyPair.jsonWebPublicKey())
                         .validate();
