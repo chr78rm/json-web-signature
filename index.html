@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>JSON Web Signature</title>
+    <style>
+      p.menu_item {
+          font-family: Calibri, sans-serif;
+          font-size: 1.25em;
+          font-weight: normal;
+          color: rgb(129,15,124)
+      }
+      ul.menu_item {
+          font-family: Calibri, sans-serif;
+          font-size: 1em;
+          font-weight: normal;
+          color: rgb(4,90,141);
+          list-style-type: none;
+          margin-top: -1em
+      }
+      ul.sub_menu_item {
+          list-style-type: none;
+          margin-top: 0em;
+          font-weight: normal
+      }
+      a:link{
+          text-decoration: underline
+      }
+      a:hover{
+          text-decoration: none;
+      }
+      a:visited{
+      }
+      a.content {
+          color: rgb(4,90,141)
+      }
+      a.menu_item {
+          text-decoration: none; color: rgb(129,15,124)
+      }
+      p.head_line_1 {
+          font-family: Calibri, sans-serif; color: rgb(136,65,157); font-size: 1.75em; font-weight: normal
+      }
+      p.head_line_2 {
+          font-family: Calibri, sans-serif; color: rgb(4,90,141); font-size: 1.25em; font-weight: bold
+      }
+      p.head_line_3 {
+          font-family: Calibri, sans-serif; color: rgb(4,90,141); font-size: 1.25em; font-weight: normal
+      }
+      p.section {
+          font-family: "Times New Roman", serif; color: rgb(2,56,88); font-size: 1em; font-weight: normal; text-align: justify;
+      }
+      p.code {
+          font-family: Consolas, monospace; font-size: 0.8em; color: rgb(2,56,88); background-color: rgb(253,224,221); padding-bottom: 0.2em; padding-top: 0.2em; padding-left: 1em; padding-right: 1em;
+          border-style: dotted; border-width: 1px; border-color: rgb(152,0,67); border-radius: 0.25em; white-space: pre; overflow-x: auto
+      }
+      span.code {
+          font-family: Consolas, monospace; font-size: 0.8em; color: rgb(2,56,88); background-color: rgb(253,224,221); border-style: dotted; border-width: 1px; border-color: rgb(152,0,67); 
+          border-radius: 0.25em; padding-left: 0.1em; padding-right: 0.1em
+      }
+      a.sub_menu_item_1 {
+          text-decoration: none; color: rgb(4,90,141)
+      }
+      ul.content {
+          font-family: "Times New Roman", serif;
+          font-size: 1em;
+          font-weight: normal;
+          color: rgb(2,56,88);
+          list-style-type: disc;
+          margin-top: -0.5em;
+      }
+      li.content {
+          margin-top: 0.5em
+      }
+    </style>
+  </head>
+  <body style="overflow-x: hidden">
+    <div style="width: 30%; position: fixed; top: 0; left: 0; bottom: 0; background-color: rgb(208,209,230);">
+      <div style="height: 2em; padding-right: 0em; margin-top: 1em; margin-left: 30%; border-bottom: solid rgb(2,56,88) 1px">
+        <div style="margin-left: 0em; font-family: Calibri, sans-serif; font-size: 1.25em; font-weight: bold; color: rgb(2,56,88)">JSON Web Signature (JWS) for Java</div>
+      </div>
+      <div style="height: 100%; overflow-y: auto">
+        <nav style="margin-top: 1em; margin-left: 30%; position: relative;">
+          <p class="menu_item">
+            <a href="#top" class="menu_item">Abstract</a>
+          </p>
+          <p class="menu_item">
+            <a href="#build" class="menu_item">Build</a>
+          </p>
+          <p class="menu_item">
+            <a href="#license" class="menu_item">License and Source Control</a>
+          </p>
+          <p class="menu_item">
+            <a href="#json-web-keys" class="menu_item">JSON Web Keys and Algorithms</a>
+          </p>
+          <ul class="menu_item">
+            <li style="margin-left: -2em; font-weight: bold">
+              <a href="#key-pairs" class="sub_menu_item_1">Key Pairs</a>
+              <ul class="sub_menu_item">
+                <li style="margin-left: -2em"><a href="#ec" class="sub_menu_item_1">EC</a></li>
+                <li style="margin-left: -2em"><a href="#rsa" class="sub_menu_item_1">RSA</a></li>
+              </ul>
+            </li>
+            <li style="margin-left: -2em; font-weight: bold"><a href="#public-keys" class="sub_menu_item_1">Public Keys</a></li>
+            <li style="margin-left: -2em; font-weight: bold"><a href="#hmacs" class="sub_menu_item_1">HMACs</a></li>
+          </ul>
+          <p class="menu_item">
+            <a href="#jose-header" class="menu_item">JOSE Header</a>
+          </p>
+          <p class="menu_item">
+            <a href="#fluent-api" class="menu_item">Fluent API</a>
+          </p>
+          <ul class="menu_item">
+            <li style="margin-left: -2em; font-weight: bold">
+              <a href="#example-1" class="sub_menu_item_1">Round Trip</a>
+              <ul class="sub_menu_item">
+                <li style="margin-left: -2em"><a href="#signing" class="sub_menu_item_1">Signing</a></li>
+                <li style="margin-left: -2em"><a href="#verifying" class="sub_menu_item_1">Verifying</a></li>
+              </ul>
+            </li>
+            <li style="margin-left: -2em; font-weight: bold">
+              <a href="#example-2" class="sub_menu_item_1">Validation of JWTs issued by Keycloak</a>
+              <ul class="sub_menu_item">
+                <li style="margin-left: -2em"><a href="#es256" class="sub_menu_item_1">ES256</a></li>
+                <li style="margin-left: -2em"><a href="#hs256" class="sub_menu_item_1">HS256</a></li>
+              </ul>
+            </li>
+          </ul>
+          <p class="menu_item">
+            <a href="" class="menu_item">Low Level API</a>
+          </p>
+          <ul class="menu_item">
+            <li style="margin-left: -2em; font-weight: bold">
+              JWSSigner
+            </li>
+            <li style="margin-left: -2em; font-weight: bold">
+              JWSValidator
+            </li>
+          </ul>
+          <p class="menu_item">
+            <a href="#uml" class="menu_item">UML Diagrams</a>
+          </p>
+          <ul class="menu_item">
+            <li style="margin-left: -2em; font-weight: bold">
+              <a href="#state-machine" class="sub_menu_item_1">State Machine Fluent API</a>
+            </li>
+            <li style="margin-left: -2em; font-weight: bold">
+              <a href="#jsonwebkey-class-diagram" class="sub_menu_item_1">JsonWebKey Class Diagram</a>
+            </li>
+          </ul>
+          <p class="menu_item">
+            <a href="#download" class="menu_item">Download</a>
+          </p>
+          <p class="menu_item">
+            <a href="" class="menu_item">JavaDocs</a>
+          </p>
+          <p class="menu_item">
+            <a href="#imprint" class="menu_item">Imprint</a>
+          </p>
+        </nav>
+      </div>
+    </div>
+    <div style="margin-left: 30%; background-color: rgb(236,231,242); width: 70%; position: absolute; top: 0; left: 0; border-left: solid 1px rgb(166,189,219);">
+      <div style="height: 2em; margin-top: 1em; width: 70%; text-align: right; border-bottom: solid rgb(2,56,88) 1px">
+        <div style="font-family: Calibri, sans-serif; font-size: 1em; font-style: italic; margin-top: 0em; color: rgb(2,56,88)">Last updated: 17-April-2025</div>
+      </div>
+      <div style="margin-left: 1em; width: 70%;">
+        <p id="abstract" class="head_line_1">
+          Abstract
+        </p>
+        <p class="section">
+          This library implements a subset of the RFCs <a class="content" href="https://www.rfc-editor.org/rfc/rfc7515.html">7515</a> (JSON Web Signature), 
+          <a class="content" href="https://www.rfc-editor.org/rfc/rfc7517.html">7517</a> (JSON Web Key) and
+          <a class="content" href="https://www.rfc-editor.org/rfc/rfc7518.html">7518</a> (JSON Web Algorithms). It uses and works together with 
+          <a class="content" href="https://jakarta.ee/specifications/jsonp/">Jakarta JSON Processing</a>. It supports the JWS Compact Serialization and it can therefore
+          be used, for instance, to validate digital signatures of JSON Web Tokens issued by an Open ID Connect Provider, e.g. Keycloak.
+        </p>
+        <p id="build" class="head_line_1">
+          Build
+        </p>
+        <p class="section">
+          <a class="content" href="https://maven.apache.org/">Maven</a> is required to build the project. First clone the project: 
+        </p>
+        <p class="code">git clone https://github.com/chr78rm/json-web-signature.git</p>
+        <p class="section">
+          and then you can install the library with 
+        </p>
+        <p class="code">cd json-web-signature
+mvn clean install</p>
+        <p class="section">
+          into the local Maven repo.
+        </p>
+        <p id="license" class="head_line_1">
+          License and Source Control
+        </p>
+        <p class="section">
+          The released source code is available in GitHub and is licensed under the GPLv3: 
+          <a class="content" href="https://github.com/chr78rm/json-web-signature">https://github.com/chr78rm/json-web-signature</a>.
+          <a class="content" href="https://www.gnu.org/licenses/gpl-3.0.en.html" style="float: right">
+            <img style="height: 1.75em; padding-left: 1em; padding-bottom: 0em; margin-top: 0.25em" src="https://www.gnu.org/graphics/gplv3-with-text-84x42.png" alt="gplv3"/>
+          </a>
+          Please note that the test suite does use some examples from the RFCs to validate its correctness. For this reason, I don't want left the 
+          Revised BSD License unmentioned. That BSD license covers the use of such code components in IETF documents, see 
+          <a class="content" href="https://trustee.ietf.org/documents/trust-legal-provisions/">Trust Legal Provisions</a> for details. The test suite, strictly speaking, is not
+          an integral part of the distribution. The downloads provided by this site and through Maven Central are coming without the tests.
+        </p>
+        <p id="json-web-keys" class="head_line_1">
+          JSON Web Keys and Algorithms
+        </p>
+        <p class="section">
+          JSON Web Keys are JSON data structures representing cryptographic keys. The RFC 7517 (JSON Web Key) defines only the common parameters such like the mandatory
+          "kty" (the key type identifying the cryptographic family of the key) or the optional "kid" (the key id which may be used by applications to look up, for instance, the key
+          required to validate a digital signature) and leaves the parameters specific to certain cryptographic algorithms to RFC 7518 (JSON Web Algorithms).
+          There are further RFCs describing the usage of additional algorithms like EdDSA and their respective specific keys not covered by RFC 7518.
+        </p>
+        <p class="section">
+          This distribution presently supports the algorithms HS256 (HMAC using SHA-256), RS256 (RSASSA-PKCS1-v1_5 using SHA-256), ES256 (ECDSA using P-256 and SHA-256)
+          and ES512 (ECDSA using P-521 and SHA-512) and their respective key types ("oct", "RSA and "EC"). Please note that RS256 is somewhat outdated and its use
+          is considered slightly unsecure (<a class="content" href="https://en.wikipedia.org/wiki/Adaptive_chosen-ciphertext_attack">Bleichenbacher's attack</a>). 
+          Therefore the application of RS256 is discouraged within financial applications. Use ES256 or ES512 instead.
+        </p>
+        <p id="key-pairs" class="head_line_2">
+          Key Pairs
+        </p>
+        <p id="ec" class="head_line_3">
+          EC
+        </p>
+        <p class="section">
+          The simplest way to create a JSON Web Keypair using this distribution is as following:
+        </p>
+        <p class="code">JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
+    .build();</p>
+        <p class="section">
+          One essential feature of this library is the representation of the relevant key parameters by an appropriate JSON object model using Jakarta JSON Processing. That is
+        </p>
+        <p class="code">JsonObject jsonObject = jsonWebKeyPair.toJson();</p>
+        <p class="section">
+          translates the internally generated key parameter into a JSON Object. Serializing (and pretty printing) gives you the textual representation of the
+          JSON Web Keypair within a file:
+        </p>
+        <p class="code">JsonWriterFactory jsonWriterFactory = Json.createWriterFactory(Map.of(JsonGenerator.PRETTY_PRINTING, Boolean.TRUE));
+Path path = Path.of("json", "examples", "my-first-jsonwebkeypair.json");
+try (FileOutputStream fileOutputStream = new FileOutputStream(path.toFile());
+     JsonWriter jsonWriter = jsonWriterFactory.createWriter(fileOutputStream)) {
+    jsonWriter.write(jsonWebKeyPair.toJson());
+}</p>
+        <p class="section">
+          That keypair looks like this:
+        </p>
+        <p class="code">{
+    "kty": "EC",
+    "crv": "P-256",
+    "x": "_hR0SZSiWB98ayiuE1TTWpF38HlYGe9l203mVsOOzSk",
+    "y": "ORoSVJOMPTGVXRgcJ8Zx7gQVb8nRaALVDrMOMEntLK4",
+    "d": "YLo5DRnKFFWc8PEWOCctb_vNwap_4uvueKn6dOv1_go"
+}</p>
+        <p class="section">
+          Per default this distribution generates an EC key pair using the curve <span class="code">P-256</span> specified within 
+          <a class="content" href="https://csrc.nist.gov/pubs/sp/800/186/final">NIST SP 800-186 Recommendations for Discrete Logarithm-based Cryptography: Elliptic Curve Domain Parameters</a>.
+          The point <span class="code">(x,y)</span> constitutes the public part of the key whereas the scalar <span class="code">d</span> represents the private part.  
+          The base point <span class="code">G</span> of the curve's public
+          domain parameter multiplied with the scalar <span class="code">d</span> yields <span class="code">(x,y)</span>. The reverse operation - computing <span class="code">d</span>
+          given only <span class="code">G</span> and <span class="code">(x,y)</span> - is difficult. This is the famous 
+          <a href="https://en.wikipedia.org/wiki/Discrete_logarithm">Discrete Logarithm</a> problem, but in additive formulation. All numbers are encoded using
+          Base64-URL-Encoding.
+        </p>
+        <p class="section">
+          To obtain just the public key part of the key pair you can simply write
+        </p>
+        <p class="code">JsonWebPublicKey jsonWebPublicKey = jsonWebKeyPair.jsonWebPublicKey();</p>
+        <p class="section">
+          Again, the appropriate JSON object can be retrieved by invoking <span class="code">jsonWebPublicKey.toJson()</span>:
+        </p>
+        <p class="code">{
+    "kty": "EC",
+    "crv": "P-256",
+    "x": "_hR0SZSiWB98ayiuE1TTWpF38HlYGe9l203mVsOOzSk",
+    "y": "ORoSVJOMPTGVXRgcJ8Zx7gQVb8nRaALVDrMOMEntLK4"
+}</p>
+        <p class="section">
+          The other way round is also possible. All <span class="code">JsonWebKey</span> classes exhibit a static <span class="code">fromJson(JsonObject jwkView)</span> method:
+        </p>
+        <p class="code">Path path = Path.of("json", "examples", "my-first-jsonwebkeypair.json");
+JsonObject jsonObject;
+try (FileInputStream fileInputStream = new FileInputStream(path.toFile());
+     JsonReader jsonReader = Json.createReader(fileInputStream)) {
+    jsonObject = jsonReader.readObject();
+}
+JsonWebKeyPair recoveredJsonWebKeyPair = JsonWebKeyPair.fromJson(jsonObject);
+assert recoveredJsonWebKeyPair.equals(jsonWebKeyPair);</p>
+        <p class="section">
+          Since the parameters of a <span class="code">JsonWebPublicKey</span> are a subset from the parameters of a <span class="code">JsonWebKeyPair</span> the following code works as well:
+        </p>
+        <p class="code">JsonWebPublicKey recoveredJsonWebPublicKey = JsonWebPublicKey.fromJson(jsonObject);
+assert recoveredJsonWebPublicKey.equals(jsonWebKeyPair.jsonWebPublicKey());</p>        
+        <p class="section">
+          You can add a key identification straight away when generating the key pair:
+        </p>
+        <p class="code">String kid = UUID.randomUUID().toString();
+JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
+        .withKid(kid)
+        .build();</p>        
+        <p class="section">
+          Now, the textual representation looks like:
+        </p>
+        <p class="code">{
+    "kty": "EC",
+    "kid": "3e3909ab-a73d-4116-86c8-3ea01aa0b380",
+    "crv": "P-256",
+    "x": "FOsdxkqUBUaH84csBFJC2fXIzNZ0ZNNL6tNS2eM9Y3Y",
+    "y": "onFu1ZkXfs2VmdpIZ4RpIwRD17N3guewL_jDwD83IMw",
+    "d": "9rNFXW1uqesR_qf0kpe5NfOedO7GIAdr61og0SoQARI"
+}</p>        
+        <p class="section">
+          Since we have created a new key pair, we have got new values for <span class="code">d</span> and <span class="code">(x,y)</span>.
+        </p>
+        <p class="section">
+          If you are not satisfied with the default algorithm parameter specified for the key generation you can provide
+          appropriate an <span class="code">AlgorithmParameterSpec</span> and optionally <span class="code">SecureRandom</span> instances by yourself:
+        </p>
+        <p class="code">ECParameterSpec secp521r1 = JsonWebKey.SECP521R1;
+JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of(secp521r1)
+        .withSecureRandom(SecureRandom.getInstanceStrong())
+        .build();</p>        
+        <p class="section">
+          Only certain <span class="code">ECGenParameterSpec</span> (or rather <span class="code">ECParameterSpec</span>) and <span class="code">RSAKeyGenParameterSpec</span> instances are presently 
+          supported. All three classes are implementing the <span class="code">AlgorithmParameterSpec</span> interface.
+          (The curve <span class="code">secp521r1</span> is identical to curve <span class="code">P-521</span>). That would look like:
+        </p>
+        <p class="code">{
+    "kty": "EC",
+    "crv": "P-521",
+    "x": "AUokWRQYHrxj3-Gu7T_f75pBjeNzmWPLAPNXRk-mJS6kz1RHZau1G7MZvU_R6Tfs0uDxnWrlykxZ-ApVWwhH1GVB",
+    "y": "ADnb-uI7BQan5TVYgIa_u5P1ymLUs0HqWcKGwithciXLXL_kcwwSdx5mHHqd2amEmZKHed1Mv7RRxMcBUuJa5A-C",
+    "d": "AeUiyAto1MbFy8GKV1Mkmx-f_GdcMupxKTal1lJsrFOTgrVs3Wbz0o6RscYefqMpsm61Ojx4K6Yd0d0ZR1SeFF21"
+}</p>        
+        <p class="section">
+          You might have got a key pair already, for example:
+        </p>
+        <p class="code">KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
+ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256r1");
+keyPairGenerator.initialize(ecGenParameterSpec);
+KeyPair keyPair = keyPairGenerator.generateKeyPair();</p>        
+        <p class="section">
+          (<span class="code">secp256r1</span> is another name for curve <span class="code">P-256</span>). Now you can write:
+        </p>
+        <p class="code">String kid = UUID.randomUUID().toString();
+JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of(keyPair)
+        .withKid(kid)
+        .build();</p>        
+        <p id="rsa" class="head_line_3">
+          RSA
+        </p>
+        <p class="section">
+          A 2048-bit sized RSA key pair can be generated as follows:
+        </p>
+        <p class="code">AlgorithmParameterSpec algorithmParameterSpec = new RSAKeyGenParameterSpec(2048, RSAKeyGenParameterSpec.F4);
+JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of(algorithmParameterSpec)
+        .build();</p>
+        <p class="section">
+          This gives something like that:
+        </p>
+        <p class="code">{
+    "kty": "RSA",
+    "n": "rAauSuJjlDArTum2mZZjhUvNceK0cYVb3vnl0dvLNlNoy0hz75vEKPhvPzEQauUMfjiiUV5Ayj6HkGZzQErgE88KKNIt2gotnjIfrgs9E7rzlwIu_Bl-9Fdlqfa5qiwPGF0qLdQyV4ejLfMRYIGFc57YTKbOe-V9amlotDwr-yYtkIF_DmTB3NE20T8QrxQyIw4nCXgq_OYsH_SMG-9Vz9QoSTOjsdZVhYER1C_zDuEEok6mCYvjsS_6OnHIUpCnycO7SObFXuyznQ81sVHPpErocKn9mMDbKm7avj3fXaBoy2EC4I2GKrXf1nuNEusyG6XZnP5ZLOt6EX7jSofFAw",
+    "e": "AQAB",
+    "d": "Sf4Rp9oalNnnNukmBof-RI5nTs4BaTbAXndEl_CfRr23vIBshaqNREYfq6GR-ziMGBqKDs-otJUSwFSgzA2otjx-lTJaUIfCOWI76COjYMIwFkr1JLBewAB7lRCvqXeMAqHIC7BS-v03fgMn_UeYvDOdu9KfzADY4hV22Nds33hFCWzVeAQLH08nYUDr_Q75F0Cbx4SA-rwxZRes0_lNHjn8NSB2BFC8xRZ6Jljxl-TdV3rFQ1u6Pyt6uMhdTa8b64Bca8Tw8KLMNWTGKdNT9AB7tXrccpDLlTXzmGssGx47_hT3aBAU5EqS7Vw-qwaEtsAbV7pij-Yo8wAPgwzEIQ"
+}</p>
+        <p id="public-keys" class="head_line_2">
+          Public Keys
+        </p>
+        <p class="section">
+          As we have seen, <span class="code">JsonWebPublicKey</span>s can be extracted from a <span class="code">JsonWebKeyPair</span> instance or its textual JSON representation.
+          But a <span class="code">JsonWebPublicKey</span> can also be created on its own. Supposing that someone has generated a key pair like this:
+        </p>
+        <p class="code">KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
+ECGenParameterSpec ecGenParameterSpec = new ECGenParameterSpec("secp256r1");
+keyPairGenerator.initialize(ecGenParameterSpec);
+KeyPair keyPair = keyPairGenerator.generateKeyPair();</p>
+        <p class="section">
+          The accompanying public key part can now be used to instantiate a <span class="code">JsonWebPublicKey</span>:
+        </p>
+<p class="code">PublicKey publicKey = keyPair.getPublic();
+JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.of(publicKey)
+        .build();</p>
+        <p id="hmacs" class="head_line_2">
+          HMACs
+        </p>
+        <p class="section">
+          A HMAC is a Message Authentication Code (MAC) based upon a cryptographic hash function and a secret (symmetric) key. This distribution supports the <span class="code">HS256</span>
+          algorithm which is a synonym for HMAC using SHA-256. One way to instantiate a <span class="code">JsonWebSecretKey</span> is shown below:
+        </p>
+<p class="code">String kid = UUID.randomUUID().toString();
+final int KEY_SIZE = 1024;
+final String ALGORITHM = "HmacSHA256";
+KeyGenerator keyGenerator = KeyGenerator.getInstance(ALGORITHM);
+keyGenerator.init(KEY_SIZE);
+SecretKey secretKey = keyGenerator.generateKey();
+JsonWebSecretKey jsonWebSecretKey = JsonWebSecretKey.of(secretKey)
+        .withKid(kid)
+        .build();</p>        
+        <p class="section">
+          Or you can go with the defaults (<span class="code">keysize=256 bits</span>, <span class="code">algorithm="HmacSHA256"</span>):
+        </p>
+<p class="code">String kid = UUID.randomUUID().toString();
+JsonWebSecretKey jsonWebSecretKey = JsonWebSecretKey.of()
+        .withKid(kid)
+        .build();</p>        
+        <p class="section">
+          The JSON key representation will look like that:
+        </p>
+<p class="code">{
+    "kty": "oct",
+    "kid": "4926395d-fea3-4d41-bd75-14072a7657ed",
+    "k": "7xSLzHAyoaIqG2IMoIKWjrx7zeRfTM1I7Ilf4RUtC9M",
+    "alg": "HS256"
+}</p>        
+        <p id="jose-header" class="head_line_1">
+          JOSE Header
+        </p>
+        <p class="section">
+          JOSE means JSON Object Signing and Encryption. A JOSE header describes the applied cryptographic operations and parameters. When using the JWS Compact Serialization the JOSE Header
+          is integrity protected by the digital signature, that is it cannot be modified without invalidating the signature as well. Of course you must have an idea which public key should be used
+          to validate this signature. An adversary might pretend being someone else and might try to smuggle in her own public key. Open ID Connect Provider, like Keycloak, exhibit
+          REST APIs which can be used to retrieve public keys and certificates indicated by key identifications (those <span class="code">kid</span>s are usually UUIDs). In the latter
+          scenario the authenticity of a particular Open ID Connect Provider can be established by HTTPS and accompanying certificate chains.
+        </p>
+        <p class="section">
+          You don't have to consult the <span class="code">JOSEHeader</span> class if you use the Fluent API to create JSON Web Signatures because then the JOSE Header will be inferred 
+          from your input. But it might be useful if you must provide a custom JOSE header, e.g. by directly using the <span class="code">JWSSigner</span>.
+        </p>
+        <p class="section">
+          This distribution presently supports the following JOSE header parameter
+        </p>
+        <ul class="content">
+          <li class="content"><span class="code">alg</span> identifies the applied cryptographic algorithm. This attribut is mandatory.</li>
+          <li class="content">
+            <span class="code">typ</span> indicates the (media) type of the complete JWS. Access tokens issued by a Open ID Connect provider normally use "JWT" for JSON Web Token. Usage of this
+            parameter is optional.
+          </li>
+          <li class="content"><span class="code">kid</span> the key identification (optional).</li>
+          <li class="content"><span class="code">jwk</span> the public key intended for the validation of the signature (optional).</li>
+        </ul>
+        <p class="section">
+          The <span class="code">alg</span> and <span class="code">jwk</span> parameters will preferably be inferred from a supplied <span class="code">JsonWebPublicKey</span>:
+        </p>
+<p class="code">JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
+        .build();
+JOSEHeader joseHeader = JOSEHeader.of(jsonWebKeyPair.jsonWebPublicKey())
+        .build();</p>
+        <p class="section">
+          The default key type when generating <span class="code">JsonWebKeyPair</span>s is EC (Elliptic Curve) using the curve <span class="code">P-256</span>. RFC 7518 (JSON Web Algorithms) 
+          couples the <span class="code">P-256</span> with the <span class="code">SHA-256</span> cryptographic hash function and calls it <span class="code">ES256</span>. The textual
+          representation of the <span class="code">JOSEHeader</span> will therefore look like:
+        </p>
+<p class="code">{
+    "alg": "ES256",
+    "jwk": {
+        "kty": "EC",
+        "crv": "P-256",
+        "x": "mWpT-lYmrYTpwWojzV2RP1Lpcj_YzLCZ2_YLr99HVHw",
+        "y": "IGd23KOnwgqM8TncSBCxHuEGFXEMq0buEiV05raehIo"
+    }
+}</p>
+        <p class="section">
+          You can add a <span class="code">kid</span> to the <span class="code">JsonWebKey</span> like this
+        </p>
+<p class="code">String kid = UUID.randomUUID().toString();
+JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
+        .withKid(kid)
+        .build();
+JOSEHeader joseHeader = JOSEHeader.of(jsonWebKeyPair.jsonWebPublicKey())
+        .build();</p>
+        <p class="section">
+          and it will be copied to the <span class="code">JOSEHeader</span>:
+        </p>
+<p class="code">{
+    "alg": "ES256",
+    "kid": "5b0882cb-ac41-4346-82e9-9c5ebefc7852",
+    "jwk": {
+        "kty": "EC",
+        "kid": "5b0882cb-ac41-4346-82e9-9c5ebefc7852",
+        "crv": "P-256",
+        "x": "hwiIvSiFzrFxCVV4UKKDH-1x6P6LEwurcfL4EhNWhb8",
+        "y": "pLzcIbPsaRAO9_PccHBCPphxHPlPHiMpAcJmdAZe8jY"
+    }
+}</p>        
+        <p class="section">
+          Alternatively you can indicate the <span class="code">kid</span> only within the <span class="code">JOSEHeader</span>:
+        </p>
+<p class="code">String kid = UUID.randomUUID().toString();
+JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
+        .build();
+JOSEHeader joseHeader = JOSEHeader.of(jsonWebKeyPair.jsonWebPublicKey())
+        .withKid(kid)
+        .build();</p>
+        <p class="section">
+          That will look like:
+        </p>
+<p class="code">{
+    "alg": "ES256",
+    "kid": "6f0137f3-9ab1-4e10-bc29-9a84fe89c23d",
+    "jwk": {
+        "kty": "EC",
+        "crv": "P-256",
+        "x": "pCzCkBESgNsXd4IY0QCjVNGbr19pE3JIkwi7GD_Ab8s",
+        "y": "PjXmEY1YC-iAeAm4oJmuAC4RZLs8eZeJ_f1JJUyjPyY"
+    }
+}</p>        
+        <p class="section">
+          When using both methods at once the <span class="code">kid</span>s must match or an <span class="code">IllegalArgumentException</span> will be raised.
+        </p>
+        <p class="section">
+          The <span class="code">typ</span> parameter doesn't have any influence on the signing process. Applications operating on JWS signatures may use it to differentiate between
+          multiple objects with signatures present in an application's data structure. The <span class="code">typ</span> value <span class="code">JOSE</span> indicates a generic JWS
+          using the Compact Serialization whereas the value <span class="code">JWT</span> indicates a JSON Web Token. <span class="code">JWT</span>s certificate certain claims that
+          can be used to determine which operations are allowed for the user presenting a particular <span class="code">JWT</span>.
+        </p>
+<p class="code">String kid = UUID.randomUUID().toString();
+JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
+        .build();
+JOSEHeader joseHeader = JOSEHeader.of(jsonWebKeyPair.jsonWebPublicKey())
+        .withKid(kid)
+        .withTyp("JOSE")
+        .build();</p>        
+        <p class="section">
+          This gives something like that:
+        </p>
+<p class="code">{
+    "alg": "ES256",
+    "typ": "JOSE",
+    "kid": "1b220040-1cd2-480e-b29a-49c453cb6e4f",
+    "jwk": {
+        "kty": "EC",
+        "crv": "P-256",
+        "x": "CZD8Mm42nXpV9Fl92oV4DB32hnTGM_-UnfcFAm5Udbg",
+        "y": "4KQ3kKv2i0B9nH7tc7_Xl98oYqEQYJPbWXe-CfrvkVI"
+    }
+}</p>
+        <p id="fluent-api" class="head_line_1">
+          Fluent API
+        </p>
+        <p class="section">
+          The fluent API is the preferred entry point to create (and verify) JWS signatures since it is considered more stable. The more low level classes like <span class="code">JWSSigner</span> are subject to 
+          changes. You may additionally want to look up the <a class="content" href="#state-machine">state machine diagram</a> that visualizes the different possibilities to create a JSON Web Signature
+          with the fluent API. You can see from the diagram that a (signing) key must be provided (of course!), either an instance of the discussed <span class="code">JsonWebKey</span>s 
+          (<span class="code">JsonWebKeyPair</span> or rather a <span class="code">JsonWebSecretKey</span>) or raw key material provided by objects of JDK classes 
+          (<span class="code">KeyPair</span> or rather a <span class="code">SecretKey</span>). After you have provided the key, you may skip directly to the provision of the actual payload since
+          neither <span class="code">typ</span> or <span class="code">kid</span> are mandatory. As an alternative a raw custom JOSE header can be supplied before submitting the payload.
+        </p>
+        <p id="example-1" class="head_line_2">
+          Round Trip
+        </p>
+        <p id="signing" class="head_line_3">
+          Signing
+        </p>
+        <p class="section">
+          Our first example uses a <span class="code">JsonWebKeyPair</span> whose private part is needed to produce the signature and whose public part is exposed within
+          the JOSE header:
+        </p>
+<p class="code">JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
+        .withSecureRandom(SecureRandom.getInstanceStrong())
+        .build();</p>
+        <p class="section">
+          Next, we need a payload. As an example, an OpenId Connect Provider certifies certain claims about an entity by creating a digitally signed JSON Web Token (JWT). That entity can be a user 
+          who wants to access a particular protected resource managed by an application. The application decides, based upon the certified claims, if it may grant access to the requested resource.
+        </p>
+        <p class="code">String strPayload = """
+        {
+            "iss": "OpenIDConnect-Provider",
+            "exp": 1744732996,
+            "aud": "Protected App",
+            "jti": "e575fa68-4d24-4398-a2c8-87432d8aa57b",
+            "name": "Tina Tester",
+            "email": "tina-tester@xyz.abc",
+            "roles": [
+                "app-user",
+                "app-tester"
+            ]
+        }
+        """;
+
+JsonObject payload;
+try (StringReader stringReader = new StringReader(strPayload);
+     JsonReader jsonReader = Json.createReader(stringReader)) {
+    payload = jsonReader.readObject();
+}</p>
+        <p class="section">
+          As shown above the user 'Tina Tester' has the roles 'app-user' and 'app-tester'. The token itself expires on 
+          Sunday, 1<span style="vertical-align: super; font-size: smaller">st</span> June 2025 10:00:00 (UTC). The audience of this token is the mentioned app managing a protected resource. Receiving 
+          the digitally signed token the app first validates the signature and then makes its decision depending on the actual claims.
+        </p>
+        <p class="section">
+          The workflow for creating a JSON Web Signature may look like this:
+        </p>
+        <p class="code">String kid = UUID.randomUUID().toString();
+JWSCompactSerialization compactSerialization = JWS.createSignature()
+        .webkey(jsonWebKeyPair)
+        .typ("JWT")
+        .kid(kid)
+        .payload(payload)
+        .sign();</p>        
+        <p class="section">
+          The textual representation of the JWS Compact Serialization are three Base64Url encoded parts separated by a dot, e.g.:
+        </p>
+        <p class="code">eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImRlOGQyOTA3LTk5YjAtNDQ5Zi04MzVjLTY5ZWZhNjc1YjBiNSIsImp3ayI6eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6ImhjTUF3X0JxUXN2NDU3RHh2UnprQVJXRDl4MWVsTm9EX3RTREwtcmVlUTAiLCJ5IjoiVmFjM0M4ejlscXdDNmdxbTl1bVNLb0tfRnE0OGU1MnJyd2xqeF81SFloMCJ9fQ.eyJpc3MiOiJPcGVuSURDb25uZWN0LVByb3ZpZGVyIiwiZXhwIjoxNzQ0NzMyOTk2LCJhdWQiOiJQcm90ZWN0ZWQgQXBwIiwianRpIjoiZTU3NWZhNjgtNGQyNC00Mzk4LWEyYzgtODc0MzJkOGFhNTdiIiwibmFtZSI6IlRpbmEgVGVzdGVyIiwiZW1haWwiOiJ0aW5hLXRlc3RlckB4eXouYWJjIiwicm9sZXMiOlsiYXBwLXVzZXIiLCJhcHAtdGVzdGVyIl19.XvBeAVcUHMvZj1f2xw4WRB52_Ii721u5DpGGqbRwpim4xkXWcppVdhYMb3xyLbJzK9ZoR3mgTJ8ZFx_eNpui9A</p>
+        <p class="section">
+          The first part is the (protected) JOSE Header, the second part is the actual payload and the last part constitutes the signature. You can recover the decoded JOSE Header simply by
+          invoking <span class="code">compactSerialization.strJoseHeader()</span>. This gives something like that:
+        </p>
+        <p class="code">{"alg":"ES256","typ":"JWT","kid":"de8d2907-99b0-449f-835c-69efa675b0b5","jwk":{"kty":"EC","crv":"P-256","x":"hcMAw_BqQsv457DxvRzkARWD9x1elNoD_tSDL-reeQ0","y":"Vac3C8z9lqwC6gqm9umSKoK_Fq48e52rrwljx_5HYh0"}}</p>
+        <p class="section">
+          Everything is squashed on one line! Indeed white spaces matter when generating the signature. That is to say logically identical headers and payloads may lead to different signatures
+          (and compact serializations) depending on line endings (Unix vs. Windows), indentation and things like that. The default procedure is to invoke <span class="code">toString()</span> on the 
+          JSON objects constituting header and payload prior to signing. The reference implementation of Jakarta JSON Processing 
+          (<a class="content" href="https://central.sonatype.com/artifact/org.eclipse.parsson/parsson">Eclipse Parsson</a>) 
+          depicts the JSON text of JSON structures without any (white) spaces. That may remove any ambiguities but it is unfortunately not specified. As an alternative you may inject your own
+          <span class="code">Json2StringConverter</span>. Such a <span class="code">Json2StringConverter</span> must implement the single method 
+          <span class="code">String convert(JsonStructure jsonStructure)</span>. This distribution comes with the <span class="code">PrettyStringConverter</span> that uses the
+          <span class="code">PRETTY_PRINTING</span> facility of Jakarta JSON Processing. That is we could also have written:
+        </p>
+        <p class="code">JWSCompactSerialization compactSerialization = JWS.createSignature()
+        .webkey(jsonWebKeyPair)
+        .typ("JWT")
+        .kid(kid)
+        .payload(payload)
+        .sign(new PrettyStringConverter());</p>
+        <p class="section">
+          Using the same key this leads to a different JWS Compact Serialization:
+        </p>
+        <p class="code">ewogICAgImFsZyI6ICJFUzI1NiIsCiAgICAidHlwIjogIkpXVCIsCiAgICAia2lkIjogImRlOGQyOTA3LTk5YjAtNDQ5Zi04MzVjLTY5ZWZhNjc1YjBiNSIsCiAgICAiandrIjogewogICAgICAgICJrdHkiOiAiRUMiLAogICAgICAgICJjcnYiOiAiUC0yNTYiLAogICAgICAgICJ4IjogImhjTUF3X0JxUXN2NDU3RHh2UnprQVJXRDl4MWVsTm9EX3RTREwtcmVlUTAiLAogICAgICAgICJ5IjogIlZhYzNDOHo5bHF3QzZncW05dW1TS29LX0ZxNDhlNTJycndsanhfNUhZaDAiCiAgICB9Cn0.ewogICAgImlzcyI6ICJPcGVuSURDb25uZWN0LVByb3ZpZGVyIiwKICAgICJleHAiOiAxNzQ0NzMyOTk2LAogICAgImF1ZCI6ICJQcm90ZWN0ZWQgQXBwIiwKICAgICJqdGkiOiAiZTU3NWZhNjgtNGQyNC00Mzk4LWEyYzgtODc0MzJkOGFhNTdiIiwKICAgICJuYW1lIjogIlRpbmEgVGVzdGVyIiwKICAgICJlbWFpbCI6ICJ0aW5hLXRlc3RlckB4eXouYWJjIiwKICAgICJyb2xlcyI6IFsKICAgICAgICAiYXBwLXVzZXIiLAogICAgICAgICJhcHAtdGVzdGVyIgogICAgXQp9.Z0sxGflB3Oh-sBsN4wz1v6qu5GtVLo3GluUpNYitAlLnye8Jp8jXjgl4T5cx-cdomFEXkHuRQLbE_4piEVPbuQ</p>
+        <p class="section">
+          Invoking <span class="code">compactSerialization.strJoseHeader()</span> gives now a more human-friendly text representation of the inferred JSON header:
+        </p>
+        <p class="code">{
+    "alg": "ES256",
+    "typ": "JWT",
+    "kid": "de8d2907-99b0-449f-835c-69efa675b0b5",
+    "jwk": {
+        "kty": "EC",
+        "crv": "P-256",
+        "x": "hcMAw_BqQsv457DxvRzkARWD9x1elNoD_tSDL-reeQ0",
+        "y": "Vac3C8z9lqwC6gqm9umSKoK_Fq48e52rrwljx_5HYh0"
+    }
+}</p>
+        <p class="section">
+          The same applies when invoking <span class="code">compactSerialization.strPayload()</span>. The optionally provided <span class="code">Json2StringConverter</span> works on both header and
+          payload.
+        </p>
+        <p class="section">
+          As an alternative you can pass both (custom) JOSE header and payload as String objects provided that both are valid text representations of JSON structures (objects or arrays).
+          RFC 7515 allows arbitrary payloads, that is payloads that aren't necessarily JSON structures, but this isn't presently supported by this distribution. The snippet below directly passes the
+          payload as string object:
+        </p>
+        <p class="code">JWSCompactSerialization compactSerialization = JWS.createSignature()
+        .webkey(jsonWebKeyPair)
+        .typ("JWT")
+        .kid(kid)
+        .payload(strPayload)
+        .sign();</p>
+        <p class="section">
+          JOSE headers and payloads passed as strings won't be processed by <span class="code">Json2StringConverter</span>s.
+        </p>
+        <p id="verifying" class="head_line_3">
+          Verifying
+        </p>
+        <p class="section">
+          The application needs, aside from the compact serialization, the correct public key for the verification of the signature. Correctness means not just any public key but in our case 
+          the public counterpart of the key used by the OpenID Connect Provider for signing the JWT. One way to achieve this would be to configure the Relying Party (OpenID Connect jargon for our 
+          App managing a protected resource) with the public key beforehand. Another possibility could be to use the provided key identification (<span class="code">kid</span>) to look up the key 
+          from the OpenID Connect Provider in real time. More about this in the next section. Keep in mind that an attack vector for an adversary would be to smuggle in her own public key. 
+        </p>
+        <p class="code">boolean validated = JWS.createValidator()
+        .compactSerialization(compactSerialization)
+        .key(jsonWebKeyPair.jsonWebPublicKey())
+        .validate();
+assert validated;</p>
+        <p id="example-2" class="head_line_2">
+          Validation of a JWT issued by Keycloak
+        </p>
+        <p class="section">
+          <a class="content" href="https://www.keycloak.org/">Keycloak</a>'s default algorithm for signing tokens is <span class="code">RS256</span> but you can change this easily either globally 
+          or per client application. I have used custom X.509 direct grants to request some access tokens as illustration. Client applications participating in a Single-Sign-On workflow, e.g. the 
+          <a class="content" href="https://quarkus.io/guides/images/authorization_code_flow.png">Authorization Code Flow</a>, are receiving such tokens
+          in exchange for an authorization code on the backchannel between client application and Keycloak.
+        </p>
+        <p id="es256" class="head_line_3">
+          ES256
+        </p>
+        <p class="section">
+          An access token signed with the <span class="code">ES256</span> algorithm is shown below:
+        </p>
+        <p class="code">eyJhbGciOiJFUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJSZjFjMHhyRTAzVWQ2OGthd1BOX1pHY1o5R1VObTFBdTFnSTBpZXF4QzQ0In0.eyJleHAiOjE3NDU0MTUyOTIsImlhdCI6MTc0NTQxNDk5MiwianRpIjoiNDllN2Q3MGMtZGYzYS00ZTRmLTlmNTQtMWFlNWEzZDk3OGQ3IiwiaXNzIjoiaHR0cHM6Ly9uZXh0LWtleWNsb2FrOjg0NDMvcmVhbG1zL3Rlc3QiLCJhdWQiOlsiZGF0ZXRpbWUtc2VydmljZSIsImFjY291bnQiXSwic3ViIjoiMGEwMmUxMWMtNzY1My00ZmE5LWFlYTctYzI2MDRkODViOTk1IiwidHlwIjoiQmVhcmVyIiwiYXpwIjoiZGF0ZXRpbWUtc2VydmljZSIsInNpZCI6ImEwMzI1OTgwLTRhZjAtNDA4Mi1iYWQ1LTM0MmIxMGE1NzUxNCIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiaHR0cDovL3VidW50dS12bSJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiZGVmYXVsdC1yb2xlcy10ZXN0Iiwib2ZmbGluZV9hY2Nlc3MiLCJ1bWFfYXV0aG9yaXphdGlvbiIsImFwcC10ZXN0ZXIiLCJhcHAtdXNlciJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoiZW1haWwgcHJvZmlsZSIsImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwibmFtZSI6IlRpbmEgVGVzdGVyIiwicHJlZmVycmVkX3VzZXJuYW1lIjoidGVzdGVyLTAiLCJnaXZlbl9uYW1lIjoiVGluYSIsImZhbWlseV9uYW1lIjoiVGVzdGVyIiwiZW1haWwiOiJ0aW5hLXRlc3RlckB4eXouYWJjIn0.eo4TZbETUntis2LcHBmsS-4SfRqExZqA8fTcvZkdDCcuCdHbS97U5retTnFlnm-LhNgF6-uE5Q8toMtsrzkSMQ</p>
+        <p class="section">
+          As explained above, the compact serialization consists of three Base64 URL encoded parts (header, payload and signature) separated by dots. This is the decoded header:
+        </p>
+        <p class="code">{
+    "alg": "ES256",
+    "typ": "JWT",
+    "kid": "Rf1c0xrE03Ud68kawPN_ZGcZ9GUNm1Au1gI0ieqxC44"
+}</p>
+        <p class="section">
+          And again everything would be an one-liner without white spaces. I have pretty printed the above and subsequent examples for clarity.
+          Keycloak provides JSON documents containing some metadata via <span class="code">/.well-known/openid-configuration</span> endpoints. Such endpoints are maintained for
+          every configured realm, thus <span class="code">https://&lt;KEYCLOAK_HOST&gt;:&lt;PORT&gt;/realms/&lt;REALM&gt;/.well-known/openid-configuration</span>. Consulting such an
+          endpoint gives you, among other things, an URL for retrieving the public keys. As of Keycloak 26 that would be
+          <span class="code">https://&lt;KEYCLOAK_HOST&gt;:&lt;PORT&gt;/realms/&lt;REALM&gt;/protocol/openid-connect/certs</span>. Querying this endpoint generates a 
+          <a class="content" href="https://www.rfc-editor.org/rfc/rfc7517#section-5">JSON Web Key Set</a> 
+          containing the public keys:
+        </p>
+        <p class="code">{
+    "keys": [
+        ...,
+        {
+            "kid": "Rf1c0xrE03Ud68kawPN_ZGcZ9GUNm1Au1gI0ieqxC44",
+            "kty": "EC",
+            "alg": "ES256",
+            "use": "sig",
+            "x5c": [
+                "MIIBCjCBsQIGAZZeJB20MAoGCCqGSM49BAMCMA8xDTALBgNVBAMMBHRlc3QwHhcNMjUwNDIyMTUzNDA3WhcNMzUwNDIyMTUzNTQ3WjAPMQ0wCwYDVQQDDAR0ZXN0MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAERVIMLIqI9KwvB1vxAlCdqGlot3IZJqR8F3f83zSWZahQAONXk269y2rQOKVHD9PJ6gHI0vWHospNHQGLfLdVuTAKBggqhkjOPQQDAgNIADBFAiEAysMhHPwt5ZUAE9/j2yWP2IpyLNPbfxRYKtK1PpkmpysCIBNJovLXZTjeSNMzOmhNMwjoCHcwCIJgAqZKwDyqQjBE"
+            ],
+            "x5t": "7ULGpBPoi5BLkWU_x1Ktl94x1XI",
+            "x5t#S256": "oxxEkbyWz_wCuvxHirk5kfystuyKpNZ1T6yid6PvdQ0",
+            "crv": "P-256",
+            "x": "RVIMLIqI9KwvB1vxAlCdqGlot3IZJqR8F3f83zSWZag",
+            "y": "UADjV5Nuvctq0DilRw_TyeoByNL1h6LKTR0Bi3y3Vbk"
+        },
+        ...
+    ]
+}</p>
+        <p class="section">
+          Selecting for the given <span class="code">kid</span> enables you to create the corresponding <span class="code">JsonWebPublicKey</span>:
+        </p>
+        <p class="code">Optional&lt;JsonWebPublicKey&gt; optionalJsonWebPublicKey = keys.getJsonArray("keys").stream()
+        .map(value -> value.asJsonObject())
+        .filter(key -> Objects.equals(key.getString("kid"), kid))
+        .findFirst()
+        .map(key -> {
+            try {
+                return JsonWebPublicKey.fromJson(key);
+            } catch (GeneralSecurityException ex) {
+                throw new RuntimeException(ex);
+            }
+        });</p>
+        <p class="section">
+          Now consider the decoded payload:
+        </p>
+        <p class="code">{
+    "exp": 1745415292,
+    "iat": 1745414992,
+    "jti": "49e7d70c-df3a-4e4f-9f54-1ae5a3d978d7",
+    "iss": "https://next-keycloak:8443/realms/test",
+    "aud": [
+        "datetime-service",
+        "account"
+    ],
+    "sub": "0a02e11c-7653-4fa9-aea7-c2604d85b995",
+    "typ": "Bearer",
+    "azp": "datetime-service",
+    "sid": "a0325980-4af0-4082-bad5-342b10a57514",
+    "acr": "1",
+    "allowed-origins": [
+        "http://ubuntu-vm"
+    ],
+    "realm_access": {
+        "roles": [
+            "default-roles-test",
+            "offline_access",
+            "uma_authorization",
+            "app-tester",
+            "app-user"
+        ]
+    },
+    "resource_access": {
+        "account": {
+            "roles": [
+                "manage-account",
+                "manage-account-links",
+                "view-profile"
+            ]
+        }
+    },
+    "scope": "email profile",
+    "email_verified": false,
+    "name": "Tina Tester",
+    "preferred_username": "tester-0",
+    "given_name": "Tina",
+    "family_name": "Tester",
+    "email": "tina-tester@xyz.abc"
+};</p>
+        <p class="section">
+          For a short (elapsed) time interval an application could have used the above 'claims' - presented within a HTTP header - to make a decision if the corresponding web request can be completed
+          or not. For this the authenticity of the token would have to be validated:
+        </p>
+        <p class="code">assert optionalJsonWebPublicKey.isPresent();
+assert JWS.createValidator()
+        .compactSerialization(compactSerialization)
+        .key(optionalJsonWebPublicKey.get())
+        .validate();</p>
+        <p id="hs256" class="head_line_3">
+          HS256
+        </p>
+        <p class="section">
+          HMACs are symmetric algorithms, hence the keys must be kept secret and cannot be transmitted via a publicly available interface like the public keys. Since the secret keys are
+          required for signing and(!) validation, they must be extracted from Keycloak beforehand. As of Keycloak 26 one way of doing this is to export the realm data into a JSON file and
+          the searching for the <span class="code">kid</span>. Please note that this is not officially documented and might change without notice. Assuming the <span class="code">kid</span> equals
+          <span class="code">cae8efe1-61c4-4210-8160-41b18fb50d77</span> an extract from the exported realm data may look like this:
+        </p>
+        <p class="code">...,
+{
+  "id" : "db786a2e-67d9-4a83-b67c-53f83f50218c",
+  "name" : "hmac-generated",
+  "providerId" : "hmac-generated",
+  "subComponents" : { },
+  "config" : {
+    "kid" : [ "cae8efe1-61c4-4210-8160-41b18fb50d77" ],
+    "active" : [ "true" ],
+    "secretSize" : [ "256" ],
+    "secret" : [ "SsOhd4No_X8So710mA1iSVQhgTZsq04aRm4FmDPjyvpJRsYwS7SlA9hZjyKdcJWthdEtpQ3Ur1Anz7O8mUIWW-jI9qE-FT5z-HINqh2C4WJXh8uNDGLn8gJlMUXIXBahva5YcQtnzJQ-dPSo1FRYMxSzVWTnug4KOX06I1Ir4FQxf9citnBV3HK0M4EY5kPtXI5JtkSW6yBBnBsWyIjPHldpw6aF-u8KkgWuf-we2t7N-k3l6xgSnMGFTQvHTDDh9O_CfzHXjDv_FOZnoKfmXvMwq4_J8at6elynROesL8YR5ydhV3ClUwXkLS7xP_hFN_rh9JCoyvICP8h0Q4hJ3A" ],
+    "priority" : [ "0" ],
+    "enabled" : [ "true" ],
+    "algorithm" : [ "HS256" ]
+  }
+},...</p>
+        <p class="section">
+          The JSON string referenced by <span class="code">secret</span> contains the Base64Url encoded key bytes.
+        </p>
+        <p id="low-level-api" class="head_line_1">
+          Low Level API
+        </p>
+        <p id="jws-signer" class="head_line_2">
+          JWSSigner
+        </p>
+        <p id="jws-validator" class="head_line_2">
+          JWSValidator
+        </p>
+        <p id="uml" class="head_line_1">
+          UML Diagrams
+        </p>
+        <p id="state-machine" class="head_line_2">
+          State Machine Fluent API
+        </p>
+        <div style="overflow-x: auto">
+            <img style="max-width: 100%" src="./images/state-diagram.gif" alt="state diagram"/>
+        </div>
+        <p id="jsonwebkey-class-diagram" class="head_line_2">
+          JsonWebKey Class Diagram
+        </p>
+        <div style="overflow-x: auto">
+            <img style="max-width: 100%" src="./images/jsonwebkey-class-diagram.gif" alt="jsonwebkey class diagram"/>
+        </div>
+        <p id="download" class="head_line_1">
+          Download
+        </p>
+      </div>
+      <div id="imprint" style="margin-left: 1em; height: 6em; margin-top: 1em; width: 70%; text-align: center; border-top: solid rgb(2,56,88) 1px">
+        <img style="margin-top: 1em" src="./images/imprint.gif" alt="imprint"/>
+      </div>
+    </div>
+  </body>
+</html>
