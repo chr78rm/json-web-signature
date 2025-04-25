@@ -273,13 +273,13 @@ public class JWS {
         }
 
         @Override
-        public ValidationEnd key(JsonWebPublicKey jsonWebPublicKey) {
+        public ValidationEnd webkey(JsonWebPublicKey jsonWebPublicKey) {
             this.key = jsonWebPublicKey.getPublicKey();
             return this;
         }
 
         @Override
-        public ValidationEnd key(JsonWebSecretKey jsonWebSecretKey) {
+        public ValidationEnd webkey(JsonWebSecretKey jsonWebSecretKey) {
             this.key = jsonWebSecretKey.getSecretKey();
             return this;
         }

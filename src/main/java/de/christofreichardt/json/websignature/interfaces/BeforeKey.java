@@ -49,7 +49,7 @@ public interface BeforeKey {
      * @param jsonWebPublicKey the given {@link de.christofreichardt.json.webkey.JsonWebPublicKey}.
      * @return the next stop within the workflow of the Fluent API regarding the validation of signatures.
      */
-    ValidationEnd key(JsonWebPublicKey jsonWebPublicKey);
+    ValidationEnd webkey(JsonWebPublicKey jsonWebPublicKey);
 
     /**
      * Notes the given {@link de.christofreichardt.json.webkey.JsonWebSecretKey}.
@@ -57,5 +57,5 @@ public interface BeforeKey {
      * @param jsonWebSecretKey the given {@link de.christofreichardt.json.webkey.JsonWebSecretKey}.
      * @return the next stop within the workflow of the Fluent API regarding the validation of signatures.
      */
-    ValidationEnd key(JsonWebSecretKey jsonWebSecretKey);
+    ValidationEnd webkey(JsonWebSecretKey jsonWebSecretKey);
 }

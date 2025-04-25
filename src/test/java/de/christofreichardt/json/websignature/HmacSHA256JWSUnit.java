@@ -278,8 +278,9 @@ public class HmacSHA256JWSUnit implements Traceable, WithAssertions {
             JWSCompactSerialization compactSerialization = JWSCompactSerialization.of(accessToken);
             boolean validated = JWS.createValidator()
                     .compactSerialization(compactSerialization)
-                    .key(jsonWebSecretKey)
+                    .webkey(jsonWebSecretKey)
                     .validate();
+            assert validated;
             assertThat(validated).isTrue();
         } finally {
             tracer.wayout();

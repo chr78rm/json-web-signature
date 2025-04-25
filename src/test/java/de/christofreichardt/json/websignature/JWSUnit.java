@@ -98,7 +98,7 @@ public class JWSUnit implements Traceable, WithAssertions {
 
             validated = JWS.createValidator()
                     .compactSerialization(compactSerialization)
-                    .key(jsonWebSecretKey)
+                    .webkey(jsonWebSecretKey)
                     .validate();
 
             assertThat(validated).isTrue();
@@ -163,7 +163,7 @@ public class JWSUnit implements Traceable, WithAssertions {
 
             validated = JWS.createValidator()
                     .compactSerialization(compactSerialization)
-                    .key(jsonWebKeyPair.jsonWebPublicKey())
+                    .webkey(jsonWebKeyPair.jsonWebPublicKey())
                     .validate();
 
             assertThat(validated).isTrue();
@@ -214,7 +214,7 @@ public class JWSUnit implements Traceable, WithAssertions {
 
             boolean validated = JWS.createValidator()
                     .compactSerialization(compactSerialization)
-                    .key(jsonWebPublicKey)
+                    .webkey(jsonWebPublicKey)
                     .validate();
 
             assertThat(validated).isTrue();
@@ -419,7 +419,7 @@ public class JWSUnit implements Traceable, WithAssertions {
 
             boolean validated = JWS.createValidator()
                     .compactSerialization(compactSerialization)
-                    .key(jsonWebPublicKey)
+                    .webkey(jsonWebPublicKey)
                     .validate();
             assertThat(validated).isTrue();
 
@@ -449,7 +449,7 @@ public class JWSUnit implements Traceable, WithAssertions {
 
             boolean falsified = JWS.createValidator()
                     .compactSerialization(compactSerialization)
-                    .key(wrongJsonWebPublicKey)
+                    .webkey(wrongJsonWebPublicKey)
                     .validate();
             assertThat(!falsified).isTrue();
         } finally {
@@ -520,7 +520,7 @@ public class JWSUnit implements Traceable, WithAssertions {
 
             validated = JWS.createValidator()
                     .compactSerialization(compactSerialization)
-                    .key(jsonWebSecretKey)
+                    .webkey(jsonWebSecretKey)
                     .validate();
 
             assertThat(validated).isTrue();
@@ -567,7 +567,7 @@ public class JWSUnit implements Traceable, WithAssertions {
 
             boolean validated = JWS.createValidator()
                     .compactSerialization(compactSerialization)
-                    .key(jsonWebKeyPair.jsonWebPublicKey())
+                    .webkey(jsonWebKeyPair.jsonWebPublicKey())
                     .validate();
 
             assertThat(validated).isTrue();
@@ -735,7 +735,7 @@ public class JWSUnit implements Traceable, WithAssertions {
 
             boolean validated = JWS.createValidator()
                     .compactSerialization(compactSerialization)
-                    .key(jsonWebSecretKey)
+                    .webkey(jsonWebSecretKey)
                     .validate();
 
             assertThat(validated).isTrue();
@@ -803,7 +803,7 @@ public class JWSUnit implements Traceable, WithAssertions {
 
             boolean validated = JWS.createValidator()
                     .compactSerialization(compactSerialization)
-                    .key(jsonWebKeyPair.jsonWebPublicKey())
+                    .webkey(jsonWebKeyPair.jsonWebPublicKey())
                     .validate();
 
             assertThat(validated).isTrue();
@@ -861,7 +861,7 @@ public class JWSUnit implements Traceable, WithAssertions {
 
             boolean validated = JWS.createValidator()
                     .compactSerialization(compactSerialization)
-                    .key(jsonWebSecretKey)
+                    .webkey(jsonWebSecretKey)
                     .validate();
 
             assertThat(validated).isTrue();
@@ -905,7 +905,7 @@ public class JWSUnit implements Traceable, WithAssertions {
 
             boolean validated = JWS.createValidator()
                     .compactSerialization(compactSerialization)
-                    .key(jsonWebKeyPair.jsonWebPublicKey())
+                    .webkey(jsonWebKeyPair.jsonWebPublicKey())
                     .validate();
 
             assertThat(validated).isTrue();
@@ -967,7 +967,7 @@ public class JWSUnit implements Traceable, WithAssertions {
 
                 boolean validated = JWS.createValidator()
                         .compactSerialization(compactSerialization)
-                        .key(jsonWebKeyPair.jsonWebPublicKey())
+                        .webkey(jsonWebKeyPair.jsonWebPublicKey())
                         .validate();
                 assert validated;
 
@@ -984,7 +984,7 @@ public class JWSUnit implements Traceable, WithAssertions {
 
                 validated = JWS.createValidator()
                         .compactSerialization(compactSerialization)
-                        .key(jsonWebKeyPair.jsonWebPublicKey())
+                        .webkey(jsonWebKeyPair.jsonWebPublicKey())
                         .validate();
                 assert validated;
 
@@ -1001,7 +1001,7 @@ public class JWSUnit implements Traceable, WithAssertions {
 
                 validated = JWS.createValidator()
                         .compactSerialization(compactSerialization)
-                        .key(jsonWebKeyPair.jsonWebPublicKey())
+                        .webkey(jsonWebKeyPair.jsonWebPublicKey())
                         .validate();
                 assert validated;
             } finally {
