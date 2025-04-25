@@ -146,6 +146,9 @@
             <li style="margin-left: -2em; font-weight: bold">
               <a href="#jsonwebkey-class-diagram" class="sub_menu_item_1">JsonWebKey Class Diagram</a>
             </li>
+            <li style="margin-left: -2em; font-weight: bold">
+              <a href="#jws-class-diagram" class="sub_menu_item_1">JWS Class Diagram</a>
+            </li>
           </ul>
           <p class="menu_item">
             <a href="#download" class="menu_item">Download</a>
@@ -419,8 +422,8 @@ JsonWebSecretKey jsonWebSecretKey = JsonWebSecretKey.of()
         </p>
         <p class="section">
           JOSE means JSON Object Signing and Encryption. A JOSE header describes the applied cryptographic operations and parameters. When using the JWS Compact Serialization the JOSE Header
-          is integrity protected by the digital signature, that is it cannot be modified without invalidating the signature as well. Of course you must have an idea which public key should be used
-          to validate this signature. An adversary might pretend being someone else and might try to smuggle in her own public key. Open ID Connect Provider, like Keycloak, exhibit
+          is integrity protected by the digital signature, that is it cannot be modified without invalidating the signature as well. Of course you must have an idea which (public) key should be used
+          to validate this signature. An adversary might pretend being someone else and might try to smuggle in her own (public) key. Open ID Connect Provider, like Keycloak, exhibit
           REST APIs which can be used to retrieve public keys and certificates indicated by key identifications (those <span class="code">kid</span>s are usually UUIDs). In the latter
           scenario the authenticity of a particular Open ID Connect Provider can be established by HTTPS and accompanying certificate chains.
         </p>
@@ -600,7 +603,7 @@ JWSCompactSerialization compactSerialization = JWS.createSignature()
         .payload(payload)
         .sign();</p>        
         <p class="section">
-          The textual representation of the JWS Compact Serialization are three Base64Url encoded parts separated by a dot, e.g.:
+          The textual representation of the JWS Compact Serialization are three Base64Url encoded parts separated by two dots, e.g.:
         </p>
         <p class="code">eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImRlOGQyOTA3LTk5YjAtNDQ5Zi04MzVjLTY5ZWZhNjc1YjBiNSIsImp3ayI6eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6ImhjTUF3X0JxUXN2NDU3RHh2UnprQVJXRDl4MWVsTm9EX3RTREwtcmVlUTAiLCJ5IjoiVmFjM0M4ejlscXdDNmdxbTl1bVNLb0tfRnE0OGU1MnJyd2xqeF81SFloMCJ9fQ.eyJpc3MiOiJPcGVuSURDb25uZWN0LVByb3ZpZGVyIiwiZXhwIjoxNzQ0NzMyOTk2LCJhdWQiOiJQcm90ZWN0ZWQgQXBwIiwianRpIjoiZTU3NWZhNjgtNGQyNC00Mzk4LWEyYzgtODc0MzJkOGFhNTdiIiwibmFtZSI6IlRpbmEgVGVzdGVyIiwiZW1haWwiOiJ0aW5hLXRlc3RlckB4eXouYWJjIiwicm9sZXMiOlsiYXBwLXVzZXIiLCJhcHAtdGVzdGVyIl19.XvBeAVcUHMvZj1f2xw4WRB52_Ii721u5DpGGqbRwpim4xkXWcppVdhYMb3xyLbJzK9ZoR3mgTJ8ZFx_eNpui9A</p>
         <p class="section">
@@ -789,7 +792,7 @@ assert validated;</p>
 };</p>
         <p class="section">
           For a short (elapsed) time interval an application could have used the above 'claims' - presented within a HTTP header - to make a decision if the corresponding web request can be completed
-          or not. For this the authenticity of the token would have to be validated:
+          or not. For this the authenticity of the token would have to be validated beforehand:
         </p>
         <p class="code">assert optionalJsonWebPublicKey.isPresent();
 assert JWS.createValidator()
@@ -805,25 +808,67 @@ assert JWS.createValidator()
           the searching for the <span class="code">kid</span>. Please note that this is not officially documented and might change without notice. Assuming the <span class="code">kid</span> equals
           <span class="code">cae8efe1-61c4-4210-8160-41b18fb50d77</span> an extract from the exported realm data may look like this:
         </p>
-        <p class="code">...,
-{
-  "id" : "db786a2e-67d9-4a83-b67c-53f83f50218c",
-  "name" : "hmac-generated",
-  "providerId" : "hmac-generated",
-  "subComponents" : { },
-  "config" : {
-    "kid" : [ "cae8efe1-61c4-4210-8160-41b18fb50d77" ],
-    "active" : [ "true" ],
-    "secretSize" : [ "256" ],
-    "secret" : [ "SsOhd4No_X8So710mA1iSVQhgTZsq04aRm4FmDPjyvpJRsYwS7SlA9hZjyKdcJWthdEtpQ3Ur1Anz7O8mUIWW-jI9qE-FT5z-HINqh2C4WJXh8uNDGLn8gJlMUXIXBahva5YcQtnzJQ-dPSo1FRYMxSzVWTnug4KOX06I1Ir4FQxf9citnBV3HK0M4EY5kPtXI5JtkSW6yBBnBsWyIjPHldpw6aF-u8KkgWuf-we2t7N-k3l6xgSnMGFTQvHTDDh9O_CfzHXjDv_FOZnoKfmXvMwq4_J8at6elynROesL8YR5ydhV3ClUwXkLS7xP_hFN_rh9JCoyvICP8h0Q4hJ3A" ],
-    "priority" : [ "0" ],
-    "enabled" : [ "true" ],
-    "algorithm" : [ "HS256" ]
-  }
-},...</p>
+        <p class="code">// This is extracted key material from a Keycloak realm JSON export
+String strKeyMaterial = """
+        {
+          "id" : "db786a2e-67d9-4a83-b67c-53f83f50218c",
+          "name" : "hmac-generated",
+          "providerId" : "hmac-generated",
+          "subComponents" : { },
+          "config" : {
+            "kid" : [ "cae8efe1-61c4-4210-8160-41b18fb50d77" ],
+            "active" : [ "true" ],
+            "secretSize" : [ "256" ],
+            "secret" : [ "SsOhd4No_X8So710mA1iSVQhgTZsq04aRm4FmDPjyvpJRsYwS7SlA9hZjyKdcJWthdEtpQ3Ur1Anz7O8mUIWW-jI9qE-FT5z-HINqh2C4WJXh8uNDGLn8gJlMUXIXBahva5YcQtnzJQ-dPSo1FRYMxSzVWTnug4KOX06I1Ir4FQxf9citnBV3HK0M4EY5kPtXI5JtkSW6yBBnBsWyIjPHldpw6aF-u8KkgWuf-we2t7N-k3l6xgSnMGFTQvHTDDh9O_CfzHXjDv_FOZnoKfmXvMwq4_J8at6elynROesL8YR5ydhV3ClUwXkLS7xP_hFN_rh9JCoyvICP8h0Q4hJ3A" ],
+            "priority" : [ "0" ],
+            "enabled" : [ "true" ],
+            "algorithm" : [ "HS256" ]
+          }
+        }""";</p>
         <p class="section">
-          The JSON string referenced by <span class="code">secret</span> contains the Base64Url encoded key bytes.
+          The JSON string referenced by <span class="code">secret</span> contains the Base64Url encoded key bytes:
         </p>
+        <p class="code">JsonObject keyMaterial;
+try (StringReader stringReader = new StringReader(strKeyMaterial);
+     JsonReader jsonReader = Json.createReader(stringReader)) {
+    keyMaterial = jsonReader.readObject();
+}
+String secret = keyMaterial.getJsonObject("config")
+        .getJsonArray("secret")
+        .getString(0);
+byte[] secretBytes = JWSBase.decodeToBytes(secret);
+SecretKeySpec secretKey = new SecretKeySpec(secretBytes, "HmacSHA256");
+JsonWebSecretKey jsonWebSecretKey = JsonWebSecretKey.of(secretKey)
+        .build();</p>
+        <p class="section">
+          Now we need an access token that we have requested from Keycloak:
+        </p>
+        <p class="code">String strOidcToken = """
+        {
+            "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJjYWU4ZWZlMS02MWM0LTQyMTAtODE2MC00MWIxOGZiNTBkNzcifQ.eyJleHAiOjE3NDU1MDE1NzAsImlhdCI6MTc0NTUwMTI3MCwianRpIjoiMGFhN2RjMWMtNTgwYy00NWRiLTlmOTYtMzA4M2Q1NmQzNzUxIiwiaXNzIjoiaHR0cHM6Ly9uZXh0LWtleWNsb2FrOjg0NDMvcmVhbG1zL3Rlc3QiLCJhdWQiOlsiaHMtMjU2LXRlc3QiLCJhY2NvdW50Il0sInN1YiI6IjBhMDJlMTFjLTc2NTMtNGZhOS1hZWE3LWMyNjA0ZDg1Yjk5NSIsInR5cCI6IkJlYXJlciIsImF6cCI6ImhzLTI1Ni10ZXN0Iiwic2lkIjoiOTlhNDg1YTAtMDI3MC00MGUwLThmMmQtMjdmNWQzZDExOTJkIiwiYWNyIjoiMSIsImFsbG93ZWQtb3JpZ2lucyI6WyIvKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiZGVmYXVsdC1yb2xlcy10ZXN0Iiwib2ZmbGluZV9hY2Nlc3MiLCJ1bWFfYXV0aG9yaXphdGlvbiIsImFwcC10ZXN0ZXIiLCJhcHAtdXNlciJdfSwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoiZW1haWwgcHJvZmlsZSIsImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwibmFtZSI6IlRpbmEgVGVzdGVyIiwicHJlZmVycmVkX3VzZXJuYW1lIjoidGVzdGVyLTAiLCJnaXZlbl9uYW1lIjoiVGluYSIsImZhbWlseV9uYW1lIjoiVGVzdGVyIiwiZW1haWwiOiJ0aW5hLXRlc3RlckB4eXouYWJjIn0.W5TM0JinK6igWO-mBCzHqPEdIFLVoSG-skXri29sWGo",
+            "expires_in": 300,
+            "refresh_expires_in": 1800,
+            "refresh_token": "eyJhbGciOiJIUzUxMiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICI5YTY3ZmRkZS03MzFmLTRhODUtYThmOS05NWMwMjAwNTg4YjIifQ.eyJleHAiOjE3NDU1MDMwNzAsImlhdCI6MTc0NTUwMTI3MCwianRpIjoiZGU3ZmQ1ZTMtNTk3NC00YTlhLTk4MDUtNjZiNGYzNjRmMTFiIiwiaXNzIjoiaHR0cHM6Ly9uZXh0LWtleWNsb2FrOjg0NDMvcmVhbG1zL3Rlc3QiLCJhdWQiOiJodHRwczovL25leHQta2V5Y2xvYWs6ODQ0My9yZWFsbXMvdGVzdCIsInN1YiI6IjBhMDJlMTFjLTc2NTMtNGZhOS1hZWE3LWMyNjA0ZDg1Yjk5NSIsInR5cCI6IlJlZnJlc2giLCJhenAiOiJocy0yNTYtdGVzdCIsInNpZCI6Ijk5YTQ4NWEwLTAyNzAtNDBlMC04ZjJkLTI3ZjVkM2QxMTkyZCIsInNjb3BlIjoid2ViLW9yaWdpbnMgcm9sZXMgYmFzaWMgZW1haWwgYWNyIHByb2ZpbGUifQ.DTQES5aPjcRguoZEML7247FvscyALYunDJif7sG6HId7vAo6flHyUJ4goC9LP9AjF3PTCu4NW0lRfTOQfric2g",
+            "token_type": "Bearer",
+            "not-before-policy": 0,
+            "session_state": "99a485a0-0270-40e0-8f2d-27f5d3d1192d",
+            "scope": "email profile"
+        }""";
+JsonObject oidcToken;
+try (StringReader stringReader = new StringReader(strOidcToken);
+     JsonReader jsonReader = Json.createReader(stringReader)) {
+    oidcToken = jsonReader.readObject();
+}
+String accessToken = oidcToken.getString("access_token");</p>
+        <p class="section">
+          Finally, we can validate the token:
+        </p>
+        <p class="code">JWSCompactSerialization compactSerialization = JWSCompactSerialization.of(accessToken);
+boolean validated = JWS.createValidator()
+        .compactSerialization(compactSerialization)
+        .key(jsonWebSecretKey)
+        .validate();
+assert validated;</p>
         <p id="low-level-api" class="head_line_1">
           Low Level API
         </p>
@@ -844,6 +889,12 @@ assert JWS.createValidator()
         </div>
         <p id="jsonwebkey-class-diagram" class="head_line_2">
           JsonWebKey Class Diagram
+        </p>
+        <div style="overflow-x: auto">
+            <img style="max-width: 100%" src="./images/jsonwebkey-class-diagram.gif" alt="jsonwebkey class diagram"/>
+        </div>
+        <p id="jws-class-diagram" class="head_line_2">
+          JWS Class Diagram
         </p>
         <div style="overflow-x: auto">
             <img style="max-width: 100%" src="./images/jsonwebkey-class-diagram.gif" alt="jsonwebkey class diagram"/>
