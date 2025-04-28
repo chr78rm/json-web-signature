@@ -126,14 +126,14 @@
             </li>
           </ul>
           <p class="menu_item">
-            <a href="" class="menu_item">Low Level API</a>
+            <a href="#low-level-api" class="menu_item">Low Level API</a>
           </p>
           <ul class="menu_item">
             <li style="margin-left: -2em; font-weight: bold">
-              JWSSigner
+              <a href="#jws-signer" class="sub_menu_item_1">JWSSigner</a>
             </li>
             <li style="margin-left: -2em; font-weight: bold">
-              JWSValidator
+              <a href="#jws-validator" class="sub_menu_item_1">JWSValidator</a>
             </li>
           </ul>
           <p class="menu_item">
@@ -145,6 +145,9 @@
             </li>
             <li style="margin-left: -2em; font-weight: bold">
               <a href="#jsonwebkey-class-diagram" class="sub_menu_item_1">JsonWebKey Class Diagram</a>
+            </li>
+            <li style="margin-left: -2em; font-weight: bold">
+              <a href="#jwa-class-diagram" class="sub_menu_item_1">JWA Class Diagram</a>
             </li>
             <li style="margin-left: -2em; font-weight: bold">
               <a href="#jws-class-diagram" class="sub_menu_item_1">JWS Class Diagram</a>
@@ -164,7 +167,7 @@
     </div>
     <div style="margin-left: 30%; background-color: rgb(236,231,242); width: 70%; position: absolute; top: 0; left: 0; border-left: solid 1px rgb(166,189,219);">
       <div style="height: 2em; margin-top: 1em; width: 70%; text-align: right; border-bottom: solid rgb(2,56,88) 1px">
-        <div style="font-family: Calibri, sans-serif; font-size: 1em; font-style: italic; margin-top: 0em; color: rgb(2,56,88)">Last updated: 17-April-2025</div>
+        <div style="font-family: Calibri, sans-serif; font-size: 1em; font-style: italic; margin-top: 0em; color: rgb(2,56,88)">Last updated: 1-June-2025</div>
       </div>
       <div style="margin-left: 1em; width: 70%;">
         <p id="abstract" class="head_line_1">
@@ -263,7 +266,7 @@ try (FileOutputStream fileOutputStream = new FileOutputStream(path.toFile());
           The base point <span class="code">G</span> of the curve's public
           domain parameter multiplied with the scalar <span class="code">d</span> yields <span class="code">(x,y)</span>. The reverse operation - computing <span class="code">d</span>
           given only <span class="code">G</span> and <span class="code">(x,y)</span> - is difficult. This is the famous 
-          <a href="https://en.wikipedia.org/wiki/Discrete_logarithm">Discrete Logarithm</a> problem, but in additive formulation. All numbers are encoded using
+          <a class="content" href="https://en.wikipedia.org/wiki/Discrete_logarithm">Discrete Logarithm</a> problem, but in additive formulation. All numbers are encoded using
           Base64-URL-Encoding.
         </p>
         <p class="section">
@@ -797,7 +800,7 @@ assert validated;</p>
         <p class="code">assert optionalJsonWebPublicKey.isPresent();
 assert JWS.createValidator()
         .compactSerialization(compactSerialization)
-        .key(optionalJsonWebPublicKey.get())
+        .webkey(optionalJsonWebPublicKey.get())
         .validate();</p>
         <p id="hs256" class="head_line_3">
           HS256
@@ -866,18 +869,115 @@ String accessToken = oidcToken.getString("access_token");</p>
         <p class="code">JWSCompactSerialization compactSerialization = JWSCompactSerialization.of(accessToken);
 boolean validated = JWS.createValidator()
         .compactSerialization(compactSerialization)
-        .key(jsonWebSecretKey)
+        .webkey(jsonWebSecretKey)
         .validate();
 assert validated;</p>
         <p id="low-level-api" class="head_line_1">
           Low Level API
         </p>
+        <p class="section">
+          These two classes (<span class="code">JWSSigner</span> and <span class="code">JWSValidator</span>) and their underlying infrastructure are certainly subject to change. 
+          E.g. coming versions will allow arbitrary payloads that aren't necessarily valid JSON structures. This is currently not supported. The subsequent example has been taken from RFC7515,
+          see <a class="content" href="https://www.rfc-editor.org/rfc/rfc7515.html#appendix-A.3">appendix A.3</a>, followed to the letter. 
+        </p>
         <p id="jws-signer" class="head_line_2">
           JWSSigner
         </p>
+        <p class="section">
+          The <span class="code">alg</span> header parameter is the only one that is mandatory within the JOSE header and indeed this parameter will be used by the 
+          <span class="code">JWSSigner</span> to deduce the signature algorithm:
+        </p>
+        <p class="code">String strHeader = """
+        {"alg":"ES256"}""";</p>
+        <p class="section">
+          Next, we use the literal payload as given by Appendix A.3:
+        </p>
+        <p class="code">String strPayload = """
+        {"iss":"joe",\r
+         "exp":1300819380,\r
+         "http://example.com/is_root":true}""";</p>
+        <p class="section">
+          Finally, we need a signing key. Appendix A.3 demonstrates JWS using ECDSA with curve P-256 and SHA-256, so here we go:
+        </p>
+        <p class="code">String strKeyPair = """
+        {"kty":"EC",
+         "crv":"P-256",
+         "x":"f83OJ3D2xF1Bg8vub9tLe1gHMzV76e8Tus9uPHvRVEU",
+         "y":"x_FEzRu9m36HLN_tue659LNpXW6pCyStikYjKIWI5a0",
+         "d":"jpsQnnGQmL-YBIffH1136cspYG6-0iY7X1fCE9-E9LI"
+        }""";
+JsonObject webKey;
+try (StringReader stringReader = new StringReader(strKeyPair);
+     JsonReader jsonReader = Json.createReader(stringReader)) {
+    webKey = jsonReader.readObject();
+}
+JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.fromJson(webKey);</p>
+        <p class="section">
+          Now we have everything together to create the signature:
+        </p>
+        <p class="code">JWSSigner jwsSigner = new JWSSigner(strHeader, strPayload);
+JWSCompactSerialization compactSerialization = jwsSigner.sign(jsonWebKeyPair.getKeyPair().getPrivate());</p>
+        <p class="section">
+          The compact serialization looks like:
+        </p>
+        <p class="code">eyJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ.oj7YrUP7wptjpLzu8KlOfdgoZSpl3PTJRrSShXdmy3RrpbYhXKwicNn-f3oO_D_z0PUvxUxlM4x-f1MdBohGUQ</p>
+        <p class="section">
+          The first two parts (Base64-URL encoded header and payload) of the compact serialization shown above are exactly the same as depicted in Appendix A.3 but since the signing process is 
+          non-deterministic we have got a different, but nevertheless valid, signature:
+        </p>
+        <p class="code">assert Objects.equals(compactSerialization.encodedHeader(), "eyJhbGciOiJFUzI1NiJ9");
+assert Objects.equals(compactSerialization.encodedPayload(), "eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ");
+JWSValidator jwsValidator = new JWSValidator(compactSerialization);
+assert jwsValidator.validate(jsonWebKeyPair.jsonWebPublicKey().getPublicKey());</p>
         <p id="jws-validator" class="head_line_2">
           JWSValidator
         </p>
+        <p class="section">
+          To verify the exact signature given in Appendix A.3, which is equally valid, we must first make some preparations. Below, I am showing the signature octets from A.3:
+        </p>
+        <p class="code">byte[] r = {14, (byte) 209, 33, 83, 121, 99, 108, 72, 60, 47, 127, 21, 88, 7, (byte) 212, 2, (byte) 163, (byte) 178, 40, 3, 58, (byte) 249, 124, 126, 23, (byte) 129,
+        (byte) 154, (byte) 195, 22, (byte) 158, (byte) 166, 101};
+byte[] s = {(byte) 197, 10, 7, (byte) 211, (byte) 140, 60, 112, (byte) 229, (byte) 216, (byte) 241, 45, (byte) 175, 8, 74, 84, (byte) 128, (byte) 166, 101, (byte) 144,
+        (byte) 197, (byte) 242, (byte) 147, 80, (byte) 154, (byte) 143, 63, 127, (byte) 138, (byte) 131, (byte) 163, 84, (byte) 213};</p>
+        <p class="section">
+          Both <span class="code">r</span> and <span class="code">s</span> can be appended and then Base64-URL encoded to obtain the actual signature:
+        </p>
+        <p class="code">System.arraycopy(r, 0, signature, 0, r.length);
+System.arraycopy(s, 0, signature, 32, s.length);
+String encodedSignature = JWSBase.encode(signature);
+assert Objects.equals(encodedSignature, "DtEhU3ljbEg8L38VWAfUAqOyKAM6-Xx-F4GawxaepmXFCgfTjDxw5djxLa8ISlSApmWQxfKTUJqPP3-Kg6NU1Q");</p>
+        <p class="section">
+          Next, we combine JOSE header, payload and prepared signature to manufacture a compact serialization which can again be validated:
+        </p>
+        <p class="code">JWSCompactSerialization compactSerializationByAppendixA3 = JWSCompactSerialization.of(
+        "%s.%s.%s".formatted(compactSerialization.encodedHeader(), compactSerialization.encodedPayload(), encodedSignature)
+);
+jwsValidator = new JWSValidator(compactSerializationByAppendixA3);
+assert jwsValidator.validate(jsonWebKeyPair.jsonWebPublicKey().getPublicKey());</p>
+        <p class="section">
+          If we arbitrarily flip even only one bit of the signature provided by A.3, e.g. we change the sixth octet (<span class="code">99</span> == <span class="code">01100011<sub>2</sub></span>) into
+          <span class="code">67</span> == <span class="code">01000011<sub>2</sub></span>, we get very likely an invalid signature:
+        </p>
+        <p class="code">signature[5] = 67;
+String fakedSignature = JWSBase.encode(signature);
+JWSCompactSerialization fakedcompactSerialization = JWSCompactSerialization.of(
+        "%s.%s.%s".formatted(compactSerialization.encodedHeader(), compactSerialization.encodedPayload(), fakedSignature)
+);
+jwsValidator = new JWSValidator(fakedcompactSerialization);
+assert !jwsValidator.validate(jsonWebKeyPair.jsonWebPublicKey().getPublicKey());</p>
+        <p class="section">
+          Similarily, if we tamper with the payload - leaving original header and signature untouched - we get another faked compact serialization that fails to validate:
+        </p>
+        <p class="code">String fakePayload = """
+        {"iss":"donald",\r
+         "exp":1300819380,\r
+         "http://example.com/is_root":true}""";
+JWSCompactSerialization anotherFakedcompactSerialization = JWSCompactSerialization.of(
+        "%s.%s.%s".formatted(compactSerialization.encodedHeader(), JWSBase.encode(fakePayload), encodedSignature)
+);
+jwsValidator = new JWSValidator(anotherFakedcompactSerialization);
+assert !jwsValidator.validate(jsonWebKeyPair.jsonWebPublicKey().getPublicKey());
+</p>
         <p id="uml" class="head_line_1">
           UML Diagrams
         </p>
@@ -893,11 +993,17 @@ assert validated;</p>
         <div style="overflow-x: auto">
             <img style="max-width: 100%" src="./images/jsonwebkey-class-diagram.gif" alt="jsonwebkey class diagram"/>
         </div>
+        <p id="jwa-class-diagram" class="head_line_2">
+          JWA Class Diagram
+        </p>
+        <div style="overflow-x: auto">
+            <img style="max-width: 100%" src="./images/jwa-class-diagram.gif" alt="jwa class diagram"/>
+        </div>
         <p id="jws-class-diagram" class="head_line_2">
           JWS Class Diagram
         </p>
         <div style="overflow-x: auto">
-            <img style="max-width: 100%" src="./images/jsonwebkey-class-diagram.gif" alt="jsonwebkey class diagram"/>
+            <img style="max-width: 100%" src="./images/jws-class-diagram.gif" alt="jws class diagram"/>
         </div>
         <p id="download" class="head_line_1">
           Download
