@@ -20,6 +20,7 @@ import java.security.interfaces.ECPrivateKey;
 import java.security.spec.ECFieldFp;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.ECParameterSpec;
+import java.util.Objects;
 import org.assertj.core.api.WithAssertions;
 import org.junit.jupiter.api.*;
 
@@ -287,6 +288,79 @@ public class SHA256WithECDSAUnit implements Traceable, WithAssertions {
             JsonWebPublicKey wrongJsonWebPublicKey = JsonWebPublicKey.fromJson(wrongWebKey);
             this.jsonTracer.trace(wrongJsonWebPublicKey.toJson());
             assertThat(jwsValidator.validate(wrongJsonWebPublicKey.getPublicKey())).isFalse();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void exampleFromRFC7515() throws GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "exampleFromRFC7515()");
+
+        try {
+            String strHeader = """
+                    {"alg":"ES256"}""";
+            String strPayload = """
+                    {"iss":"joe",\r
+                     "exp":1300819380,\r
+                     "http://example.com/is_root":true}""";
+            String strKeyPair = """
+                    {"kty":"EC",
+                     "crv":"P-256",
+                     "x":"f83OJ3D2xF1Bg8vub9tLe1gHMzV76e8Tus9uPHvRVEU",
+                     "y":"x_FEzRu9m36HLN_tue659LNpXW6pCyStikYjKIWI5a0",
+                     "d":"jpsQnnGQmL-YBIffH1136cspYG6-0iY7X1fCE9-E9LI"
+                    }""";
+            JsonObject webKey;
+            try (StringReader stringReader = new StringReader(strKeyPair);
+                 JsonReader jsonReader = Json.createReader(stringReader)) {
+                webKey = jsonReader.readObject();
+            }
+            JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.fromJson(webKey);
+            JWSSigner jwsSigner = new JWSSigner(strHeader, strPayload);
+            JWSCompactSerialization compactSerialization = jwsSigner.sign(jsonWebKeyPair.getKeyPair().getPrivate());
+            tracer.out().printfIndentln("compactSerialization = %s", compactSerialization);
+            assert Objects.equals(compactSerialization.encodedHeader(), "eyJhbGciOiJFUzI1NiJ9");
+            assert Objects.equals(compactSerialization.encodedPayload(), "eyJpc3MiOiJqb2UiLA0KICJleHAiOjEzMDA4MTkzODAsDQogImh0dHA6Ly9leGFtcGxlLmNvbS9pc19yb290Ijp0cnVlfQ");
+            JWSValidator jwsValidator = new JWSValidator(compactSerialization);
+            assert jwsValidator.validate(jsonWebKeyPair.jsonWebPublicKey().getPublicKey());
+
+            byte[] r = {14, (byte) 209, 33, 83, 121, 99, 108, 72, 60, 47, 127, 21, 88, 7, (byte) 212, 2, (byte) 163, (byte) 178, 40, 3, 58, (byte) 249, 124, 126, 23, (byte) 129,
+                    (byte) 154, (byte) 195, 22, (byte) 158, (byte) 166, 101};
+            byte[] s = {(byte) 197, 10, 7, (byte) 211, (byte) 140, 60, 112, (byte) 229, (byte) 216, (byte) 241, 45, (byte) 175, 8, 74, 84, (byte) 128, (byte) 166, 101, (byte) 144,
+                    (byte) 197, (byte) 242, (byte) 147, 80, (byte) 154, (byte) 143, 63, 127, (byte) 138, (byte) 131, (byte) 163, 84, (byte) 213};
+            tracer.out().printfIndentln("len(r) = %d, len(s) = %d", r.length, s.length);
+            byte[] signature = new byte[64];
+            System.arraycopy(r, 0, signature, 0, r.length);
+            System.arraycopy(s, 0, signature, 32, s.length);
+            String encodedSignature = JWSBase.encode(signature);
+            tracer.out().printfIndentln("encodedSignature = %s", encodedSignature);
+            assert Objects.equals(encodedSignature, "DtEhU3ljbEg8L38VWAfUAqOyKAM6-Xx-F4GawxaepmXFCgfTjDxw5djxLa8ISlSApmWQxfKTUJqPP3-Kg6NU1Q");
+            JWSCompactSerialization compactSerializationByAppendixA3 = JWSCompactSerialization.of(
+                    "%s.%s.%s".formatted(compactSerialization.encodedHeader(), compactSerialization.encodedPayload(), encodedSignature)
+            );
+            jwsValidator = new JWSValidator(compactSerializationByAppendixA3);
+            assert jwsValidator.validate(jsonWebKeyPair.jsonWebPublicKey().getPublicKey());
+
+            assert signature[5] == 99;
+            signature[5] = 67;
+            String fakedSignature = JWSBase.encode(signature);
+            JWSCompactSerialization fakedcompactSerialization = JWSCompactSerialization.of(
+                    "%s.%s.%s".formatted(compactSerialization.encodedHeader(), compactSerialization.encodedPayload(), fakedSignature)
+            );
+            jwsValidator = new JWSValidator(fakedcompactSerialization);
+            assert !jwsValidator.validate(jsonWebKeyPair.jsonWebPublicKey().getPublicKey());
+
+            String fakePayload = """
+                    {"iss":"donald",\r
+                     "exp":1300819380,\r
+                     "http://example.com/is_root":true}""";
+            JWSCompactSerialization anotherFakedcompactSerialization = JWSCompactSerialization.of(
+                    "%s.%s.%s".formatted(compactSerialization.encodedHeader(), JWSBase.encode(fakePayload), encodedSignature)
+            );
+            jwsValidator = new JWSValidator(anotherFakedcompactSerialization);
+            assert !jwsValidator.validate(jsonWebKeyPair.jsonWebPublicKey().getPublicKey());
         } finally {
             tracer.wayout();
         }
