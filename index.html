@@ -214,7 +214,7 @@ mvn clean install</p>
         </p>
         <p class="section">
           JSON Web Keys are JSON data structures representing cryptographic keys. The RFC 7517 (JSON Web Key) defines only the common parameters such like the mandatory
-          "kty" (the key type identifying the cryptographic family of the key) or the optional "kid" (the key id which may be used by applications to look up, for instance, the key
+          "kty" (the key type identifying the cryptographic family of the key) or the optional "kid" (the key id which may be used by an application to look up, for instance, the key
           required to validate a digital signature) and leaves the parameters specific to certain cryptographic algorithms to RFC 7518 (JSON Web Algorithms).
           There are further RFCs describing the usage of additional algorithms like EdDSA and their respective specific keys not covered by RFC 7518.
         </p>
@@ -431,8 +431,8 @@ JsonWebSecretKey jsonWebSecretKey = JsonWebSecretKey.of()
           scenario the authenticity of a particular Open ID Connect Provider can be established by HTTPS and accompanying certificate chains.
         </p>
         <p class="section">
-          You don't have to consult the <span class="code">JOSEHeader</span> class if you use the Fluent API to create JSON Web Signatures because then the JOSE Header will be inferred 
-          from your input. But it might be useful if you must provide a custom JOSE header, e.g. by directly using the <span class="code">JWSSigner</span>.
+          You don't have to consult the <span class="code">JOSEHeader</span> class if you use the <a class="content" href="#fluent-api">Fluent API</a> to create JSON Web Signatures because then 
+          the JOSE Header will be inferred from your input. But it might be useful if you must provide a custom JOSE header, e.g. by directly using the <span class="code">JWSSigner</span>.
         </p>
         <p class="section">
           This distribution presently supports the following JOSE header parameter
@@ -606,7 +606,7 @@ JWSCompactSerialization compactSerialization = JWS.createSignature()
         .payload(payload)
         .sign();</p>        
         <p class="section">
-          The textual representation of the JWS Compact Serialization are three Base64Url encoded parts separated by two dots, e.g.:
+          The textual representation of the JWS Compact Serialization are three Base64-URL encoded parts separated by two dots, e.g.:
         </p>
         <p class="code">eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImRlOGQyOTA3LTk5YjAtNDQ5Zi04MzVjLTY5ZWZhNjc1YjBiNSIsImp3ayI6eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6ImhjTUF3X0JxUXN2NDU3RHh2UnprQVJXRDl4MWVsTm9EX3RTREwtcmVlUTAiLCJ5IjoiVmFjM0M4ejlscXdDNmdxbTl1bVNLb0tfRnE0OGU1MnJyd2xqeF81SFloMCJ9fQ.eyJpc3MiOiJPcGVuSURDb25uZWN0LVByb3ZpZGVyIiwiZXhwIjoxNzQ0NzMyOTk2LCJhdWQiOiJQcm90ZWN0ZWQgQXBwIiwianRpIjoiZTU3NWZhNjgtNGQyNC00Mzk4LWEyYzgtODc0MzJkOGFhNTdiIiwibmFtZSI6IlRpbmEgVGVzdGVyIiwiZW1haWwiOiJ0aW5hLXRlc3RlckB4eXouYWJjIiwicm9sZXMiOlsiYXBwLXVzZXIiLCJhcHAtdGVzdGVyIl19.XvBeAVcUHMvZj1f2xw4WRB52_Ii721u5DpGGqbRwpim4xkXWcppVdhYMb3xyLbJzK9ZoR3mgTJ8ZFx_eNpui9A</p>
         <p class="section">
@@ -829,7 +829,7 @@ String strKeyMaterial = """
           }
         }""";</p>
         <p class="section">
-          The JSON string referenced by <span class="code">secret</span> contains the Base64Url encoded key bytes:
+          The JSON string referenced by <span class="code">secret</span> contains the Base64-URL encoded key bytes:
         </p>
         <p class="code">JsonObject keyMaterial;
 try (StringReader stringReader = new StringReader(strKeyMaterial);
@@ -942,7 +942,8 @@ byte[] s = {(byte) 197, 10, 7, (byte) 211, (byte) 140, 60, 112, (byte) 229, (byt
         <p class="section">
           Both <span class="code">r</span> and <span class="code">s</span> can be appended and then Base64-URL encoded to obtain the actual signature:
         </p>
-        <p class="code">System.arraycopy(r, 0, signature, 0, r.length);
+        <p class="code">byte[] signature = new byte[64];
+System.arraycopy(r, 0, signature, 0, r.length);
 System.arraycopy(s, 0, signature, 32, s.length);
 String encodedSignature = JWSBase.encode(signature);
 assert Objects.equals(encodedSignature, "DtEhU3ljbEg8L38VWAfUAqOyKAM6-Xx-F4GawxaepmXFCgfTjDxw5djxLa8ISlSApmWQxfKTUJqPP3-Kg6NU1Q");</p>
