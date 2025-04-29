@@ -33,7 +33,7 @@ import jakarta.json.JsonStructure;
  *
  * @author Christof Reichardt
  */
-public class JWSBase {
+abstract public class JWSBase {
 
     static final Base64.Encoder BASE64_URL_ENCODER = Base64.getUrlEncoder().withoutPadding();
     static final Base64.Decoder BASE64_URL_DECODER = Base64.getUrlDecoder();
