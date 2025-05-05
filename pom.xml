@@ -67,6 +67,7 @@
                         <include>de/christofreichardt/json/webkey/JsonWebKeySetUnit.java</include>
                         <include>de/christofreichardt/json/websignature/JWSUnit.java</include>
                         <include>de/christofreichardt/json/websignature/SHA512WithECDSAUnit.java</include>
+                        <include>de/christofreichardt/asn1/ASN1Unit</include>
                     </includes>
                     <argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine>
                     <systemPropertyVariables>
