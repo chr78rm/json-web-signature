@@ -2,8 +2,8 @@ package de.christofreichardt.asn1;
 
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
-import java.util.Arrays;
 import java.util.HexFormat;
+import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
 public final class ASN1IntSequence extends ASN1 {
@@ -16,7 +16,7 @@ public final class ASN1IntSequence extends ASN1 {
         }
     }
 
-    class Iterator implements java.util.Iterator<ASN1Integer>, Traceable {
+    public class Iterator implements java.util.Iterator<ASN1Integer>, Traceable {
         int remaining = ASN1IntSequence.this.asn1Length.rawLength() - ASN1IntSequence.this.asn1Length.startIndex();
         int index = ASN1IntSequence.this.asn1Length.startIndex();
 
@@ -31,6 +31,9 @@ public final class ASN1IntSequence extends ASN1 {
             tracer.entry("ASN1Integer", this, "next()");
 
             try {
+                if (this.remaining <= 0) {
+                    throw new NoSuchElementException();
+                }
                 ASN1Integer asn1Integer = new ASN1Integer(ASN1IntSequence.this.bytes, this.index);
                 int consumed = asn1Integer.asn1Length.startIndex() + asn1Integer.asn1Length.detectedLength();
                 this.remaining = this.remaining - consumed;

@@ -5,6 +5,7 @@ import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import java.util.Arrays;
 import java.util.HexFormat;
+import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.stream.Stream;
 import org.assertj.core.api.WithAssertions;
@@ -36,8 +37,10 @@ public class ASN1Unit implements Traceable, WithAssertions {
         return bytes;
     }
 
-    static Stream<byte[]> byteArrayProvider() {
-        short[][] values = {
+    record ASN1ES256SignatureTestParam(byte[] encodedSeq, byte[] r, byte[] s) {}
+
+    static Stream<ASN1ES256SignatureTestParam> encoded_ASN1_ES256_SignatureStream() {
+        short[][] encodedASN1IntSequences = {
                 {
                         0x30, 0x45,
                         0x02, 0x20,
@@ -60,28 +63,40 @@ public class ASN1Unit implements Traceable, WithAssertions {
                         0x00, 0xb1, 0xc1, 0x78, 0xa9, 0xa8, 0x7a, 0x45, 0x46, 0x0d, 0xf7, 0x3b, 0xbe, 0x7e, 0xe8, 0x29, 0x62, 0x43, 0x85, 0x82, 0xcd, 0x64, 0x1c, 0x59, 0x8b, 0x50, 0x2c, 0x69, 0x82, 0xf2, 0xfa, 0x34, 0x34
                 },
         };
-        byte[][] myBytes = new byte[values.length][];
-        for (int i=0; i<values.length; i++) {
-            myBytes[i] = convert(values[i]);
+        short[][] r = {
+                {0x52, 0x35, 0x22, 0x13, 0xdb, 0x3f, 0xe3, 0xe3, 0xe7, 0x53, 0x95, 0x65, 0x49, 0xcb, 0xca, 0xff, 0x05, 0x6b, 0x3b, 0xc8, 0xdc, 0xb5, 0x3b, 0x1e, 0xb7, 0x2d, 0x4d, 0x47, 0xce, 0x9d, 0xe8, 0x40},
+                {0x39, 0x97, 0xa0, 0x83, 0xd7, 0x74, 0xe6, 0xf6, 0x1c, 0x1a, 0xf5, 0x17, 0xa3, 0xd5, 0x18, 0x44, 0x7c, 0x91, 0x2e, 0x89, 0x69, 0xa1, 0x61, 0x5f, 0x70, 0xf8, 0xfe, 0xfe, 0xce, 0xa6, 0x98, 0xf6},
+                {0x00, 0x9c, 0x3d, 0x52, 0x34, 0x62, 0x69, 0xaa, 0x0d, 0xc7, 0x8e, 0x21, 0x47, 0x94, 0xa4, 0xf4, 0x5a, 0x58, 0x2a, 0xb0, 0x0e, 0x1f, 0x2e, 0x6f, 0x53, 0x57, 0xd0, 0x0d, 0x35, 0x6f, 0x65, 0x3d, 0xcf},
+        };
+        short[][] s = {
+                {0x00, 0x96, 0x46, 0xaf, 0x75, 0x4f, 0x0a, 0x81, 0x00, 0x0c, 0x85, 0xfc, 0x84, 0xee, 0xaf, 0x7f, 0xc4, 0x8a, 0x2e, 0xb4, 0x9c, 0x62, 0xff, 0x31, 0x86, 0x37, 0x54, 0x8f, 0x20, 0xb6, 0xc8, 0x77, 0x50},
+                {0x23, 0xe2, 0x5b, 0x79, 0xaf, 0x15, 0x6b, 0xd7, 0x02, 0x17, 0xfd, 0xb4, 0xe1, 0x3c, 0x7b, 0xdb, 0xe1, 0xe1, 0x6f, 0xd5, 0xc8, 0x39, 0x8f, 0xb3, 0xb4, 0xb7, 0xde, 0xf3, 0xcf, 0xff, 0xe9, 0x22},
+                {0x00, 0xb1, 0xc1, 0x78, 0xa9, 0xa8, 0x7a, 0x45, 0x46, 0x0d, 0xf7, 0x3b, 0xbe, 0x7e, 0xe8, 0x29, 0x62, 0x43, 0x85, 0x82, 0xcd, 0x64, 0x1c, 0x59, 0x8b, 0x50, 0x2c, 0x69, 0x82, 0xf2, 0xfa, 0x34, 0x34},
+        };
+        ASN1ES256SignatureTestParam[] params = new ASN1ES256SignatureTestParam[encodedASN1IntSequences.length];
+        for (int i=0; i<encodedASN1IntSequences.length; i++) {
+            params[i] = new ASN1ES256SignatureTestParam(convert(encodedASN1IntSequences[i]), convert(r[i]), convert(s[i]));
         }
-        return Stream.of(myBytes);
+        return Stream.of(params);
     }
 
     @ParameterizedTest
-    @MethodSource("byteArrayProvider")
-    void decodeSignaturesWithShortFormLength(byte[] bytes) {
+    @MethodSource("encoded_ASN1_ES256_SignatureStream")
+    void decodeSignaturesWithShortFormLength(ASN1ES256SignatureTestParam asn1ES256SignatureTestParam) {
         AbstractTracer tracer = getCurrentTracer();
-        tracer.entry("void", this, "decodeSignaturesWithShortFormLength()");
+        tracer.entry("void", this, "decodeSignaturesWithShortFormLength(byte[] bytes)");
 
         try {
-            tracer.out().printfIndentln("bytes = %s", HexFormat.ofDelimiter(" ").formatHex(bytes));
-            ASN1IntSequence asn1IntSequence = new ASN1IntSequence(bytes);
+            tracer.out().printfIndentln("bytes = %s", HexFormat.ofDelimiter(" ").formatHex(asn1ES256SignatureTestParam.encodedSeq()));
+            ASN1IntSequence asn1IntSequence = new ASN1IntSequence(asn1ES256SignatureTestParam.encodedSeq());
             tracer.out().printfIndentln("asn1IntSequence = %s", asn1IntSequence);
             ASN1IntSequence.Iterator iter = asn1IntSequence.iterator();
-            while (iter.hasNext()) {
-                ASN1Integer asn1Integer = iter.next();
-                tracer.out().printfIndentln("asn1Integer = %s", asn1Integer);
-            }
+            ASN1Integer r = iter.next();
+            assertThat(r.actualBytes()).isEqualTo(asn1ES256SignatureTestParam.r());
+            ASN1Integer s = iter.next();
+            assertThat(s.actualBytes()).isEqualTo(asn1ES256SignatureTestParam.s());
+            assertThat(iter.hasNext()).isFalse();
+            assertThatExceptionOfType(NoSuchElementException.class).isThrownBy(() -> iter.next());
         } finally {
             tracer.wayout();
         }
