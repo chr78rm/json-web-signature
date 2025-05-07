@@ -37,9 +37,9 @@ public class ASN1Unit implements Traceable, WithAssertions {
         return bytes;
     }
 
-    record ASN1ES256SignatureTestParam(byte[] encodedSeq, byte[] r, byte[] s) {}
+    record ASN1_SignatureTestParam(byte[] encodedSeq, byte[] r, byte[] s) {}
 
-    static Stream<ASN1ES256SignatureTestParam> encoded_ASN1_ES256_SignatureStream() {
+    static Stream<ASN1_SignatureTestParam> encoded_ASN1_ES256_SignatureStream() {
         short[][] encodedASN1IntSequences = {
                 {
                         0x30, 0x45,
@@ -73,16 +73,16 @@ public class ASN1Unit implements Traceable, WithAssertions {
                 {0x23, 0xe2, 0x5b, 0x79, 0xaf, 0x15, 0x6b, 0xd7, 0x02, 0x17, 0xfd, 0xb4, 0xe1, 0x3c, 0x7b, 0xdb, 0xe1, 0xe1, 0x6f, 0xd5, 0xc8, 0x39, 0x8f, 0xb3, 0xb4, 0xb7, 0xde, 0xf3, 0xcf, 0xff, 0xe9, 0x22},
                 {0x00, 0xb1, 0xc1, 0x78, 0xa9, 0xa8, 0x7a, 0x45, 0x46, 0x0d, 0xf7, 0x3b, 0xbe, 0x7e, 0xe8, 0x29, 0x62, 0x43, 0x85, 0x82, 0xcd, 0x64, 0x1c, 0x59, 0x8b, 0x50, 0x2c, 0x69, 0x82, 0xf2, 0xfa, 0x34, 0x34},
         };
-        ASN1ES256SignatureTestParam[] params = new ASN1ES256SignatureTestParam[encodedASN1IntSequences.length];
+        ASN1_SignatureTestParam[] params = new ASN1_SignatureTestParam[encodedASN1IntSequences.length];
         for (int i=0; i<encodedASN1IntSequences.length; i++) {
-            params[i] = new ASN1ES256SignatureTestParam(convert(encodedASN1IntSequences[i]), convert(r[i]), convert(s[i]));
+            params[i] = new ASN1_SignatureTestParam(convert(encodedASN1IntSequences[i]), convert(r[i]), convert(s[i]));
         }
         return Stream.of(params);
     }
 
     @ParameterizedTest
     @MethodSource("encoded_ASN1_ES256_SignatureStream")
-    void decodeSignaturesWithShortFormLength(ASN1ES256SignatureTestParam asn1ES256SignatureTestParam) {
+    void decodeSignaturesWithShortFormLength(ASN1_SignatureTestParam asn1ES256SignatureTestParam) {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "decodeSignaturesWithShortFormLength(byte[] bytes)");
 
