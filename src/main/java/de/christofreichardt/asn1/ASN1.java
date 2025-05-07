@@ -6,7 +6,7 @@ import de.christofreichardt.diagnosis.TracerFactory;
 import java.util.Arrays;
 
 public sealed abstract class ASN1 implements Traceable permits ASN1Integer, ASN1IntSequence {
-    static public final int mask = 0x80;
+    static public final int LENGTH_FORM_DISCRIMINATOR = 0x80, LENGTH_OCTETS_MASK = 0x7f;
     static public final int SHORT_LENGTH = 127;
     final byte[] bytes;
     final ASN1.Length asn1Length;
@@ -24,7 +24,7 @@ public sealed abstract class ASN1 implements Traceable permits ASN1Integer, ASN1
 
         try {
             int detectedLength, startIndex;
-            if ((this.bytes[1] & mask) == 0) { // short form
+            if ((this.bytes[1] & LENGTH_FORM_DISCRIMINATOR) == 0) { // short form
                 tracer.out().printfIndentln("Short form detected ...");
                 detectedLength = this.bytes[1];
                 tracer.out().printfIndentln("detectedLength = %d", detectedLength);
@@ -35,7 +35,20 @@ public sealed abstract class ASN1 implements Traceable permits ASN1Integer, ASN1
                 startIndex = 2;
             } else { // long form
                 tracer.out().printfIndentln("Long form detected ...");
-                throw new UnsupportedOperationException("ToDo.");
+                int lengthOctets = this.bytes[1] & LENGTH_OCTETS_MASK;
+                tracer.out().printfIndentln("lengthOctets = %d", lengthOctets);
+                if (lengthOctets == 0) {
+                    throw new IllegalArgumentException("Number of length octets must not be zero.");
+                } else if (lengthOctets > 1) {
+                    throw new UnsupportedOperationException("ToDo.");
+                }
+                detectedLength = this.bytes[2] & 0xff;
+                tracer.out().printfIndentln("detectedLength = %d", detectedLength);
+                int actualLength = this.bytes.length - 3;
+                if (detectedLength > actualLength) {
+                    throw new IllegalArgumentException("Too few bytes (=%d) for detected detectedLength (=%d).".formatted(actualLength, detectedLength));
+                }
+                startIndex = 3;
             }
 
             return new Length(this.bytes.length, detectedLength, startIndex);

@@ -12,10 +12,7 @@ import java.security.KeyPairGenerator;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.ECGenParameterSpec;
 import org.assertj.core.api.WithAssertions;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.*;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SHA512WithECDSAUnit implements Traceable, WithAssertions {
@@ -31,10 +28,10 @@ public class SHA512WithECDSAUnit implements Traceable, WithAssertions {
         }
     }
 
-    @Test
+    @RepeatedTest(25)
     void withJsonObjects() throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
-        tracer.entry("void", this, "dummy()");
+        tracer.entry("void", this, "withJsonObjects()");
 
         try {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
