@@ -24,7 +24,7 @@ public final class ASN1Integer extends ASN1 {
         return HexFormat.ofDelimiter(" ").withPrefix("0x").formatHex(encoded());
     }
 
-    static ASN1Integer fromBytes(byte[] bytes) {
+    public static ASN1Integer fromBytes(byte[] bytes) {
         if (bytes.length <= 127) {
             byte[] encoded = new byte[bytes.length + 2];
             encoded[0] = tag;

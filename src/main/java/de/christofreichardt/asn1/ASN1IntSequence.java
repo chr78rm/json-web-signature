@@ -54,24 +54,32 @@ public final class ASN1IntSequence extends ASN1 {
         return new Iterator();
     }
 
-    static ASN1IntSequence fromASN1Integers(ASN1Integer... asn1Integers) {
+    public static ASN1IntSequence fromASN1Integers(ASN1Integer... asn1Integers) {
         int length = Stream.of(asn1Integers)
                 .mapToInt(value -> value.asn1Length.rawLength())
                 .sum();
         int startIndex;
+        byte[] encoded;
         if (length <= ASN1.SHORT_LENGTH) {
-            byte[] encoded = new byte[length + 2];
+            encoded = new byte[length + 2];
             encoded[0] = tag;
             encoded[1] = (byte) length;
             startIndex = 2;
-            for (ASN1Integer asn1Integer : asn1Integers) {
-                System.arraycopy(asn1Integer.encoded(), 0, encoded, startIndex, asn1Integer.asn1Length.rawLength());
-                startIndex += asn1Integer.asn1Length.rawLength();
-            }
-            return new ASN1IntSequence(encoded);
+        } else if (length <= 255) {
+            encoded = new byte[length + 3];
+            encoded[0] = tag;
+            encoded[1] = (byte) 0x81;
+            encoded[2] = (byte) length;
+            startIndex = 3;
         } else {
             throw new UnsupportedOperationException("ToDo.");
         }
+        for (ASN1Integer asn1Integer : asn1Integers) {
+            System.arraycopy(asn1Integer.encoded(), 0, encoded, startIndex, asn1Integer.asn1Length.rawLength());
+            startIndex += asn1Integer.asn1Length.rawLength();
+        }
+
+        return new ASN1IntSequence(encoded);
     }
 
     @Override

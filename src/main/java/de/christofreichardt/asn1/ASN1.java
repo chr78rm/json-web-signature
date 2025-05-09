@@ -57,11 +57,11 @@ public sealed abstract class ASN1 implements Traceable permits ASN1Integer, ASN1
         }
     }
 
-    byte[] encoded() {
+    public byte[] encoded() {
         return Arrays.copyOfRange(this.bytes, 0, this.asn1Length.detectedLength() + this.asn1Length.startIndex());
     }
 
-    byte[] actualBytes() {
+    public byte[] actualBytes() {
         return Arrays.copyOfRange(this.bytes, this.asn1Length.startIndex(), this.asn1Length.startIndex() + this.asn1Length.detectedLength());
     }
 

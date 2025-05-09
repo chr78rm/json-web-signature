@@ -17,6 +17,8 @@
 
 package de.christofreichardt.json.websignature;
 
+import de.christofreichardt.asn1.ASN1IntSequence;
+import de.christofreichardt.asn1.ASN1Integer;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.json.webkey.JsonWebKeyUtils;
@@ -146,17 +148,15 @@ public class SHA256withECDSA implements JWSAlgorithm {
                 throw new IllegalArgumentException("Short form of length octets required.");
             }
 
-            byte[] r = new byte[lengthOfInteger1];
-            System.arraycopy(signature, 4, r, 0, lengthOfInteger1);
-            tracer.out().printfIndentln("r = %s", hexFormat.formatHex(r));
-            r = JsonWebKeyUtils.alignBytes(r, 32);
-            tracer.out().printfIndentln("aligned(r) = %s", hexFormat.formatHex(r));
-
-            byte[] s = new byte[lengthOfInteger2];
-            System.arraycopy(signature, 3 + lengthOfInteger1 + 3, s, 0, lengthOfInteger2);
-            tracer.out().printfIndentln("s = %s", hexFormat.formatHex(s));
-            s = JsonWebKeyUtils.alignBytes(s, 32);
-            tracer.out().printfIndentln("aligned(s) = %s", hexFormat.formatHex(s));
+            ASN1IntSequence asn1IntSequence = new ASN1IntSequence(signature);
+            ASN1IntSequence.Iterator iter = asn1IntSequence.iterator();
+            ASN1Integer asn1_r = iter.next();
+            ASN1Integer asn1_s = iter.next();
+            if (iter.hasNext()) {
+               throw new IllegalArgumentException("Only two integers expected.");
+            }
+            byte[] r = JsonWebKeyUtils.alignBytes(asn1_r.actualBytes(), 32);
+            byte[] s = JsonWebKeyUtils.alignBytes(asn1_s.actualBytes(), 32);
 
             signature = new byte[64];
             System.arraycopy(r, 0, signature, 0, 32);
@@ -189,19 +189,11 @@ public class SHA256withECDSA implements JWSAlgorithm {
             System.arraycopy(signature, 32, s, 0, 32);
             s = JsonWebKeyUtils.skipLeadingZeroes(s);
 
-            byte[] asn1Encoding = new byte[r.length + s.length + 6]; // 6 ASN.1 tags
-            asn1Encoding[0] = 0x30; // tag for SEQUENCE
-            asn1Encoding[1] = (byte) (r.length + s.length + 4); // denotes length of SEQUENCE
-            asn1Encoding[2] = 0x02; // tag for INTEGER
-            asn1Encoding[3] = (byte) r.length; // denotes length of INTEGER
-            asn1Encoding[3 + r.length + 1] = 0x02; // tag for INTEGER
-            asn1Encoding[3 + r.length + 2] = (byte) s.length; // denotes length of INTEGER
-            System.arraycopy(r, 0, asn1Encoding, 4, r.length);
-            System.arraycopy(s, 0, asn1Encoding, 3 + r.length + 3, s.length);
+            ASN1Integer asn1_r = ASN1Integer.fromBytes(r);
+            ASN1Integer asn1_s = ASN1Integer.fromBytes(s);
+            ASN1IntSequence asn1Signature = ASN1IntSequence.fromASN1Integers(asn1_r, asn1_s);
 
-            tracer.out().printfIndentln("asn1Encoding = %s", hexFormat.formatHex(asn1Encoding));
-
-            return asn1Encoding;
+            return asn1Signature.encoded();
         } finally {
             tracer.wayout();
         }
