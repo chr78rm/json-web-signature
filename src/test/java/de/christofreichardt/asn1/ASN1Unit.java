@@ -3,14 +3,16 @@ package de.christofreichardt.asn1;
 import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
-import java.util.Arrays;
-import java.util.HexFormat;
-import java.util.NoSuchElementException;
-import java.util.Random;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.SecureRandom;
+import java.util.*;
 import java.util.stream.Stream;
 import org.assertj.core.api.WithAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -18,12 +20,25 @@ import org.junit.jupiter.params.provider.MethodSource;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ASN1Unit implements Traceable, WithAssertions {
 
+    Random random = new SecureRandom();
+
     @BeforeAll
-    void init() {
+    void init() throws IOException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("void", this, "init()");
 
         try {
+            Path path = Path.of("seeds", "asn1-unit-seed.txt");
+            long seed;
+            if (Files.exists(path)) {
+                tracer.out().printfIndentln("Using configured seed ...");
+                List<String> lines = Files.readAllLines(path);
+                seed = Long.parseLong(lines.get(0));
+            } else {
+                seed = this.random.nextLong();
+            }
+            tracer.out().printfIndentln("seed = %d", seed);
+            this.random.setSeed(seed);
         } finally {
             tracer.wayout();
         }
@@ -109,7 +124,7 @@ public class ASN1Unit implements Traceable, WithAssertions {
         }
     }
 
-    static Stream<ASN1SeqTestParam> asn1IntSequenceStream(int seqCount, int maxIntByteCount, int seqMaxByteCount, int maxSeqLength) {
+    Stream<ASN1SeqTestParam> asn1IntSequenceStream(int seqCount, int maxIntByteCount, int seqMaxByteCount, int maxSeqLength) {
         AbstractTracer tracer = TracerFactory.getInstance().getCurrentPoolTracer();
         tracer.entry("Stream<ASN1IntSequence>", ASN1Unit.class, "asn1IntSequenceStream()");
 
@@ -118,18 +133,17 @@ public class ASN1Unit implements Traceable, WithAssertions {
                     seqCount, maxIntByteCount, seqMaxByteCount, maxSeqLength);
 
             ASN1SeqTestParam[] asn1SeqTestParams = new ASN1SeqTestParam[seqCount];
-            Random random = new Random();
             int index = 0;
             do {
-                int intCount = random.nextInt(maxSeqLength);
+                int intCount = this.random.nextInt(maxSeqLength);
                 tracer.out().printfIndentln("index = %d, intCount = %d", index, intCount);
                 int sum = 0;
                 ASN1Integer[] asn1Integers = new ASN1Integer[intCount];
                 for (int j=0; j<intCount; j++) {
-                    int length = random.nextInt(maxIntByteCount);
+                    int length = this.random.nextInt(maxIntByteCount);
                     tracer.out().printfIndentln("length = %d", length);
                     byte[] bytes = new byte[length];
-                    random.nextBytes(bytes);
+                    this.random.nextBytes(bytes);
                     ASN1Integer asn1Integer = ASN1Integer.fromBytes(bytes);
                     tracer.out().printfIndentln("asn1Integer = %s", asn1Integer);
                     sum += asn1Integer.asn1Length.rawLength();
@@ -153,7 +167,7 @@ public class ASN1Unit implements Traceable, WithAssertions {
         }
     }
 
-    static Stream<ASN1SeqTestParam> asn1IntShortSequenceStream() {
+    Stream<ASN1SeqTestParam> asn1IntShortSequenceStream() {
         return asn1IntSequenceStream(25, 32, ASN1.SHORT_LENGTH, 16);
     }
 
@@ -243,7 +257,7 @@ public class ASN1Unit implements Traceable, WithAssertions {
         }
     }
 
-    static Stream<ASN1SeqTestParam> asn1IntNotSoShortSequenceStream() {
+    Stream<ASN1SeqTestParam> asn1IntNotSoShortSequenceStream() {
         return asn1IntSequenceStream(25, 64, 255, 8);
     }
 
@@ -264,6 +278,23 @@ public class ASN1Unit implements Traceable, WithAssertions {
                 assertThat(asn1Integer.toString()).isEqualTo(asn1SeqTestParam.asn1Integers()[index++].toString());
             }
             assertThat(index).isEqualTo(asn1SeqTestParam.asn1Integers.length);
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void seeding() {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "seeding()");
+
+        try {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (int i=0; i<25; i++) {
+                stringBuilder.append(this.random.nextInt(100));
+                stringBuilder.append(" ");
+            }
+            tracer.out().printfIndentln("random ints = %s", stringBuilder.toString());
         } finally {
             tracer.wayout();
         }
