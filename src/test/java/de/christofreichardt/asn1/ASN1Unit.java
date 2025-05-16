@@ -124,51 +124,48 @@ public class ASN1Unit implements Traceable, WithAssertions {
         }
     }
 
-    Stream<ASN1SeqTestParam> asn1IntSequenceStream(int seqCount, int maxIntByteCount, int seqMaxByteCount, int maxSeqLength) {
+    Stream<ASN1SeqTestParam> asn1IntSequenceStream(int seqCount, int maxIntByteCount, int seqMaxByteCount, int seqMinByteCount, int maxSeqLength) {
         AbstractTracer tracer = TracerFactory.getInstance().getCurrentPoolTracer();
         tracer.entry("Stream<ASN1IntSequence>", ASN1Unit.class, "asn1IntSequenceStream()");
 
+        record IntermediateTestParam(int sum, ASN1Integer[] asn1Integers) {}
+
         try {
-            tracer.out().printfIndentln("seqCount = %d, maxIntByteCount = %d, seqMaxByteCount = %d, maxSeqLength = %d",
-                    seqCount, maxIntByteCount, seqMaxByteCount, maxSeqLength);
-
-            ASN1SeqTestParam[] asn1SeqTestParams = new ASN1SeqTestParam[seqCount];
-            int index = 0;
-            do {
-                int intCount = this.random.nextInt(maxSeqLength);
-                tracer.out().printfIndentln("index = %d, intCount = %d", index, intCount);
-                int sum = 0;
-                ASN1Integer[] asn1Integers = new ASN1Integer[intCount];
-                for (int j=0; j<intCount; j++) {
-                    int length = this.random.nextInt(maxIntByteCount);
-                    tracer.out().printfIndentln("length = %d", length);
-                    byte[] bytes = new byte[length];
-                    this.random.nextBytes(bytes);
-                    ASN1Integer asn1Integer = ASN1Integer.fromBytes(bytes);
-                    tracer.out().printfIndentln("asn1Integer = %s", asn1Integer);
-                    sum += asn1Integer.asn1Length.rawLength();
-                    asn1Integers[j] = asn1Integer;
-                }
-                tracer.out().printfIndentln("sum = %d", sum);
-                if (sum < seqMaxByteCount) {
-                    asn1SeqTestParams[index] = new ASN1SeqTestParam(ASN1IntSequence.fromASN1Integers(asn1Integers), asn1Integers);
-                    tracer.out().printfIndentln("asn1SeqTestParams[%d] = %s", index, asn1SeqTestParams[index]);
-                    index++;
-                    if (index >= seqCount) {
-                        break;
-                    }
-                }
-                tracer.out().printfIndentln("------------------------------------");
-            } while(true);
-
-            return Stream.of(asn1SeqTestParams);
+            if (seqMinByteCount > seqMaxByteCount) {
+                throw new IllegalArgumentException();
+            }
+            return Stream.generate(() -> {
+                        int intCount = this.random.nextInt(maxSeqLength);
+                        tracer.out().printfIndentln("intCount = %d", intCount);
+                        int sum = 0;
+                        ASN1Integer[] asn1Integers = new ASN1Integer[intCount];
+                        for (int j = 0; j < intCount; j++) {
+                            int length = this.random.nextInt(maxIntByteCount);
+                            tracer.out().printfIndentln("length = %d", length);
+                            byte[] bytes = new byte[length];
+                            this.random.nextBytes(bytes);
+                            ASN1Integer asn1Integer = ASN1Integer.fromBytes(bytes);
+                            tracer.out().printfIndentln("asn1Integer = %s", asn1Integer);
+                            sum += asn1Integer.asn1Length.rawLength();
+                            asn1Integers[j] = asn1Integer;
+                        }
+                        tracer.out().printfIndentln("sum = %d", sum);
+                        tracer.out().printfIndentln("------------------------------------");
+                        return new IntermediateTestParam(sum, asn1Integers);
+                    })
+                    .filter(intermediateTestParam -> intermediateTestParam.sum() <= seqMaxByteCount)
+                    .filter(intermediateTestParam -> intermediateTestParam.sum() >= seqMinByteCount)
+                    .map(intermediateTestParam -> new ASN1SeqTestParam(
+                            ASN1IntSequence.fromASN1Integers(intermediateTestParam.asn1Integers()), intermediateTestParam.asn1Integers()
+                    ))
+                    .limit(seqCount);
         } finally {
             tracer.wayout();
         }
     }
 
     Stream<ASN1SeqTestParam> asn1IntShortSequenceStream() {
-        return asn1IntSequenceStream(25, 32, ASN1.SHORT_LENGTH, 16);
+        return asn1IntSequenceStream(100, 32, ASN1.SHORT_LENGTH, 0,16);
     }
 
     @ParameterizedTest
@@ -258,7 +255,7 @@ public class ASN1Unit implements Traceable, WithAssertions {
     }
 
     Stream<ASN1SeqTestParam> asn1IntNotSoShortSequenceStream() {
-        return asn1IntSequenceStream(25, 64, 255, 8);
+        return asn1IntSequenceStream(100, 64, 255, ASN1.SHORT_LENGTH + 1, 8);
     }
 
     @ParameterizedTest
@@ -269,6 +266,8 @@ public class ASN1Unit implements Traceable, WithAssertions {
 
         try {
             tracer.out().printfIndentln("asn1SeqTestParam = %s", asn1SeqTestParam);
+            tracer.out().printfIndentln("asn1SeqTestParam.asn1IntSequence.isShortForm() = %b", asn1SeqTestParam.asn1IntSequence.isShortForm());
+            assertThat(asn1SeqTestParam.asn1IntSequence.isShortForm()).isFalse();
             ASN1IntSequence.Iterator iter = asn1SeqTestParam.asn1IntSequence().iterator();
             int index = 0;
             while (iter.hasNext()) {
