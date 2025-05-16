@@ -71,6 +71,6 @@ public sealed abstract class ASN1 implements Traceable permits ASN1Integer, ASN1
 
     @Override
     public AbstractTracer getCurrentTracer() {
-        return TracerFactory.getInstance().getCurrentPoolTracer();
+        return TracerFactory.getInstance().getDefaultTracer();
     }
 }

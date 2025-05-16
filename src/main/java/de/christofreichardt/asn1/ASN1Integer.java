@@ -35,9 +35,4 @@ public final class ASN1Integer extends ASN1 {
             throw new UnsupportedOperationException("ToDo.");
         }
     }
-
-    @Override
-    public AbstractTracer getCurrentTracer() {
-        return TracerFactory.getInstance().getDefaultTracer();
-    }
 }
