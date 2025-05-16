@@ -111,47 +111,21 @@ public class SHA256withECDSA implements JWSAlgorithm {
         tracer.entry("String", this, "postSigning(byte[] signature)");
 
         try {
-            int mask = 0x80;
-            HexFormat hexFormat = HexFormat.ofDelimiter(" ");
-            tracer.out().printfIndentln("signature.length = %d, signature = %s", signature.length, hexFormat.formatHex(signature));
-            tracer.out().printfIndentln("mask = %s, signature[1] = %s, mask AND signature[1] = %s",
-                    hexFormat.toHexDigits(mask), hexFormat.toHexDigits((int) signature[1]), hexFormat.toHexDigits(mask & signature[1]));
-
-            byte type = signature[0]; // should be 0x30 meaning SEQUENCE
-            byte lengthOfSequence = signature[1];
-            byte dataType1 = signature[2]; // should be 0x02 meaning INTEGER
-            byte lengthOfInteger1 = signature[3];
-            byte dataType2 = signature[3 + lengthOfInteger1 + 1]; // should be 0x02 meaning INTEGER
-            byte lengthOfInteger2 = signature[3 + lengthOfInteger1 + 2];
-            tracer.out().printfIndentln("type = 0x%02x, lengthOfSequence = %d, dataType1 = 0x%02x, lengthOfInteger1 = %d, dataType2 = 0x%02x, lengthOfInteger2 = %d",
-                    type, lengthOfSequence, dataType1, lengthOfInteger1, dataType2, lengthOfInteger2);
-
-            if (type != 0x30) {
-                throw new IllegalArgumentException("ASN.1 SEQUENCE expected.");
-            }
-            if ((mask & (int) lengthOfSequence) != 0) {
-                throw new IllegalArgumentException("Short form of length octets required.");
-            }
-            if (lengthOfSequence != signature.length - 2) {
-                throw new IllegalArgumentException("Denoted length of the ASN.1 SEQUENCE doesn't match.");
-            }
-            if (dataType1 != 0x02) {
-                throw new IllegalArgumentException("ASN.1 INTEGER expected.");
-            }
-            if ((mask & (int) lengthOfInteger1) != 0) {
-                throw new IllegalArgumentException("Short form of length octets required.");
-            }
-            if (dataType2 != 0x02) {
-                throw new IllegalArgumentException("ASN.1 INTEGER expected.");
-            }
-            if ((mask & (int) lengthOfInteger2) != 0) {
-                throw new IllegalArgumentException("Short form of length octets required.");
-            }
+            tracer.out().printfIndentln("signature.length = %d, signature = %s", signature.length, HexFormat.ofDelimiter(" ").formatHex(signature));
 
             ASN1IntSequence asn1IntSequence = new ASN1IntSequence(signature);
+            if (!asn1IntSequence.isShortForm()) {
+                throw new IllegalArgumentException("Short form of length octets required.");
+            }
             ASN1IntSequence.Iterator iter = asn1IntSequence.iterator();
             ASN1Integer asn1_r = iter.next();
+            if (!asn1_r.isShortForm()) {
+                throw new IllegalArgumentException("Short form of length octets required.");
+            }
             ASN1Integer asn1_s = iter.next();
+            if (!asn1_s.isShortForm()) {
+                throw new IllegalArgumentException("Short form of length octets required.");
+            }
             if (iter.hasNext()) {
                throw new IllegalArgumentException("Only two integers expected.");
             }
