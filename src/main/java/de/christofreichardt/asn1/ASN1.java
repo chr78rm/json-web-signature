@@ -17,7 +17,7 @@ public sealed abstract class ASN1 implements Traceable permits ASN1Integer, ASN1
     }
 
     public boolean isShortForm() {
-        return this.asn1Length.detectedLength < SHORT_LENGTH;
+        return this.asn1Length.detectedLength <= SHORT_LENGTH;
     }
 
     record Length(int rawLength, int detectedLength, int startIndex) {}
