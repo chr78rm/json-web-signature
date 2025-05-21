@@ -75,11 +75,11 @@
   </head>
   <body style="overflow-x: hidden">
     <div style="width: 30%; position: fixed; top: 0; left: 0; bottom: 0; background-color: rgb(208,209,230);">
-      <div style="height: 2em; padding-right: 0em; margin-top: 1em; margin-left: 30%; border-bottom: solid rgb(2,56,88) 1px">
+      <div style="height: 2em; padding-right: 0em; margin-top: 1em; margin-left: 30%; border-bottom: solid rgb(2,56,88) 1px; overflow-x: auto">
         <div style="margin-left: 0em; font-family: Calibri, sans-serif; font-size: 1.25em; font-weight: bold; color: rgb(2,56,88)">JSON Web Signature (JWS) for Java</div>
       </div>
-      <div style="height: 100%; overflow-y: auto">
-        <nav style="margin-top: 1em; margin-left: 30%; position: relative;">
+      <div style="height: 100%;">
+        <nav style="margin-top: 1em; margin-left: 30%; position: relative; height: 90%; overflow-y: auto">
           <p class="menu_item">
             <a href="#top" class="menu_item">Abstract</a>
           </p>
@@ -184,7 +184,7 @@
           Build
         </p>
         <p class="section">
-          <a class="content" href="https://maven.apache.org/">Maven</a> is required to build the project. First clone the project: 
+          <a class="content" href="https://maven.apache.org/">Maven</a> and a JDK 17+ are required to build the project. First clone the project: 
         </p>
         <p class="code">git clone https://github.com/chr78rm/json-web-signature.git</p>
         <p class="section">
@@ -1010,7 +1010,7 @@ assert !jwsValidator.validate(jsonWebKeyPair.jsonWebPublicKey().getPublicKey());
           Download
         </p>
       </div>
-      <div id="imprint" style="margin-left: 1em; height: 6em; margin-top: 1em; width: 70%; text-align: center; border-top: solid rgb(2,56,88) 1px">
+      <div id="imprint" style="margin-left: 0em; height: 6em; margin-top: 1em; width: 70%; text-align: center; border-top: solid rgb(2,56,88) 1px">
         <img style="margin-top: 1em" src="./images/imprint.gif" alt="imprint"/>
       </div>
     </div>
