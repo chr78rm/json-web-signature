@@ -56,7 +56,13 @@ abstract public class JWSBase {
     static byte[] decode(byte[] input) {
         return BASE64_URL_DECODER.decode(input);
     }
-    
+
+    /**
+     * Decodes a Base64-URL-encoded string into bytes.
+     *
+     * @param input the Base64-URL-encoded string
+     * @return the decoded bytes
+     */
     public static byte[] decodeToBytes(String input) {
         return BASE64_URL_DECODER.decode(input);
     }
@@ -71,7 +77,7 @@ abstract public class JWSBase {
 
         JWSAlgorithm algorithm() {
 
-            String alg = JsonUtils.orElseThrow(joseHeader, "alg", JsonString.class, () -> new IllegalArgumentException("Required header parameter 'alg' is missing.")).getString();
+            String alg = JsonUtils.orElseThrow(joseHeader, "alg", JsonString.class).getString();
             if (!ALGO_MAP.containsKey(alg)) {
                 throw new RuntimeException(String.format("Unsupported algorithm %s.", alg));
             }

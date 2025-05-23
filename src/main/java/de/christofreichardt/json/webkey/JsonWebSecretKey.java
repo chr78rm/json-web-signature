@@ -42,8 +42,8 @@ import jakarta.json.JsonString;
  */
 final public class JsonWebSecretKey extends JsonWebKey {
 
-    final static public Map<String, String> JDK2JSON_ALGO_MAP = Map.of("HmacSHA256", "HS256", "HmacSHA512", "HS512");
-    final static public Map<String, String> JSON2JDK_ALGO_MAP = new HashMap<>();
+    final static Map<String, String> JDK2JSON_ALGO_MAP = Map.of("HmacSHA256", "HS256", "HmacSHA512", "HS512");
+    final static Map<String, String> JSON2JDK_ALGO_MAP = new HashMap<>();
 
     static {
         JDK2JSON_ALGO_MAP.forEach((key, value) -> JSON2JDK_ALGO_MAP.put(value, key));
@@ -181,11 +181,24 @@ final public class JsonWebSecretKey extends JsonWebKey {
         String algorithm = "HmacSHA256";
         int keysize = 256;
 
+        /**
+         * Indicates the {@code keysize} to be used when generating the {@code SecretKey}.
+         *
+         * @param keysize the to be used {@code keysize}
+         * @return this {@code JsonWebSecretKey.Builder} instance
+         */
         public Builder withKeysize(int keysize) {
             this.keysize = keysize;
             return this;
         }
 
+        /**
+         * Indicates the {@code algorithm} to be used when generating the {@code SecretKey}.
+         *
+         * @param algorithm the to be used {@code algorithm}
+         * @return this {@code JsonWebSecretKey.Builder} instance
+         * @throws NoSuchAlgorithmException if the requested algorithm is not supported
+         */
         public Builder withAlgorithm(String algorithm) throws NoSuchAlgorithmException {
             if (!JDK2JSON_ALGO_MAP.containsKey(algorithm)) {
                 throw new NoSuchAlgorithmException();
@@ -194,6 +207,12 @@ final public class JsonWebSecretKey extends JsonWebKey {
             return this;
         }
 
+        /**
+         * Builds the {@code JsonWebSecretKey} with the configured parameters.
+         *
+         * @return the appropriately configured {@code JsonWebSecretKey} instance
+         * @throws NoSuchAlgorithmException relayed from the underlying "Java Cryptography Architecture"
+         */
         @Override
         public JsonWebSecretKey build() throws NoSuchAlgorithmException {
             KeyGenerator keyGenerator = KeyGenerator.getInstance(this.algorithm);
@@ -209,13 +228,24 @@ final public class JsonWebSecretKey extends JsonWebKey {
     public static class SecretKeyBuilder extends JsonWebKey.Builder<SecretKeyBuilder> {
         final SecretKey secretKey;
 
-        public SecretKeyBuilder(SecretKey secretKey) throws IllegalArgumentException {
+        /**
+         * Creates the {@code JsonWebSecretKey.SecretKeyBuilder} preconfigured with the given {@code SecretKey}.
+         *
+         * @param secretKey the to be used {@code algorithm}
+         * @throws IllegalArgumentException if the requested algorithm is not supported
+         */
+        public SecretKeyBuilder(SecretKey secretKey) throws IllegalArgumentException { // TODO: think about making this a NoSuchAlgorithmException
             if (!JDK2JSON_ALGO_MAP.containsKey(secretKey.getAlgorithm())) {
                 throw new IllegalArgumentException();
             }
             this.secretKey = secretKey;
         }
 
+        /**
+         * Builds the {@code JsonWebSecretKey} with the configured {@code SecretKey}.
+         *
+         * @return the appropriately configured {@code JsonWebSecretKey} instance
+         */
         @Override
         public JsonWebSecretKey build() {
             return new JsonWebSecretKey(this);

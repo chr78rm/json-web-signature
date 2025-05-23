@@ -318,6 +318,13 @@ final public class JsonWebKeyPair extends JsonWebKey {
         SecureRandom secureRandom;
         final AlgorithmParameterSpec algorithmGenParameterSpec = new ECGenParameterSpec("secp256r1");
 
+        /**
+         * Builds the {@code JsonWebKeyPair} instance with the configured parameters.
+         *
+         * @return the appropriately configured {@code JsonWebKeyPair} instance
+         * @throws NoSuchAlgorithmException relayed from the underlying "Java Cryptography Architecture"
+         * @throws InvalidAlgorithmParameterException relayed from the underlying "Java Cryptography Architecture"
+         */
         @Override
         public JsonWebKeyPair build() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
             KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
@@ -331,6 +338,12 @@ final public class JsonWebKeyPair extends JsonWebKey {
             return new JsonWebKeyPair(this);
         }
 
+        /**
+         * Indicates the {@code SecureRandom} instance to be used when generating the {@code JsonWebKeyPair}.
+         *
+         * @param secureRandom the to be used {@code SecureRandom} instance
+         * @return this {@code JsonWebKeyPair.Builder} instance
+         */
         public Builder withSecureRandom(SecureRandom secureRandom) {
             this.secureRandom = secureRandom;
             return this;
@@ -343,10 +356,20 @@ final public class JsonWebKeyPair extends JsonWebKey {
     public static class KeyPairBuilder extends JsonWebKey.Builder<KeyPairBuilder> {
         final KeyPair keyPair;
 
+        /**
+         * Creates the {@code JsonWebKeyPair.KeyPairBuilder} preconfigured with the given {@code KeyPair}.
+         *
+         * @param keyPair the requested {@code KeyPair}
+         */
         public KeyPairBuilder(KeyPair keyPair) {
             this.keyPair = keyPair;
         }
 
+        /**
+         * Builds the {@code JsonWebKeyPair} with the configured parameters.
+         *
+         * @return the appropriately configured {@code JsonWebKeyPair} instance
+         */
         @Override
         public JsonWebKeyPair build() {
             return new JsonWebKeyPair(this);
@@ -362,15 +385,32 @@ final public class JsonWebKeyPair extends JsonWebKey {
         KeyPair keyPair;
         SecureRandom secureRandom;
 
+        /**
+         * Creates the {@code JsonWebKeyPair.ParameterSpecBuilder} preconfigured with the given {@code AlgorithmParameterSpec}.
+         *
+         * @param algorithmParameterSpec the requested {@code AlgorithmParameterSpec}
+         */
         public ParameterSpecBuilder(AlgorithmParameterSpec algorithmParameterSpec) {
             this.algorithmParameterSpec = algorithmParameterSpec;
         }
 
+        /**
+         * Indicates the {@code SecureRandom} instance to be used when generating the {@code JsonWebKeyPair}.
+         *
+         * @param secureRandom the to be used {@code SecureRandom} instance
+         * @return this {@code JsonWebKeyPair.Builder} instance
+         */
         public ParameterSpecBuilder withSecureRandom(SecureRandom secureRandom) {
             this.secureRandom = secureRandom;
             return this;
         }
 
+        /**
+         * Builds the {@code JsonWebKeyPair} with the configured parameters.
+         *
+         * @return the appropriately configured {@code JsonWebKeyPair} instance
+         * @throws GeneralSecurityException relayed from the underlying "Java Cryptography Architecture"
+         */
         @Override
         public JsonWebKeyPair build() throws GeneralSecurityException {
             KeyPairGenerator keyPairGenerator;

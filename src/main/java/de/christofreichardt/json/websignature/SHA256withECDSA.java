@@ -34,7 +34,7 @@ import java.util.Objects;
 /**
  * An apapter to the underlying Signature instance provided by the Java platform which has the same name.
  *
- * @see <a href="https://docs.oracle.com/en/java/javase/19/docs/api/java.base/java/security/Signature.html">Signature</a>
+ * @see <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/Signature.html">Signature</a>
  * @author Christof Reichardt
  */
 public class SHA256withECDSA implements JWSAlgorithm {

@@ -28,12 +28,20 @@ import java.security.GeneralSecurityException;
  */
 public interface SignatureEnd {
     /**
-     * Uses the gathered information to create a JSON Web Signature using the JWS Compact Serialization.
+     * Uses the gathered information to create a JSON Web Signature.
      *
-     * @return a {@link de.christofreichardt.json.websignature.JWSCompactSerialization}.
-     * @throws GeneralSecurityException passed through from the underlying implementations of the algorithms by the JDK.
+     * @return a {@link de.christofreichardt.json.websignature.JWSCompactSerialization}
+     * @throws GeneralSecurityException passed through from the underlying implementations of the algorithms by the JDK
      */
     JWSCompactSerialization sign() throws GeneralSecurityException;
 
+    /**
+     * Uses the gathered information to create a JSON Web Signature. The provided {@link Json2StringConverter} is used to
+     * predictably format the JSON input prior to generating the signature.
+     *
+     * @param converter the to be used {@code Json2StringConverter}
+     * @return a {@link de.christofreichardt.json.websignature.JWSCompactSerialization}
+     * @throws GeneralSecurityException passed through from the underlying implementations of the algorithms by the JDK
+     */
     JWSCompactSerialization sign(Json2StringConverter converter) throws GeneralSecurityException;
 }

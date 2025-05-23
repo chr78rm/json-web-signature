@@ -64,16 +64,26 @@ public record JWSCompactSerialization(String encodedHeader, String encodedPayloa
 
     /**
      * Decodes the BASE64 URL encoded payload and constructs an appropriate {@code JsonObject}.
-     * @return
+     * @return the parsed {@code JsonObject}
      */
     public JsonObject payload() {
         return JWSBase.read(JWSBase.decode(this.encodedPayload)).asJsonObject();
     }
 
+    /**
+     * Returns the decoded (protected) JOSE header.
+     *
+     * @return the decoded JOSE header
+     */
     public String strJoseHeader() {
         return JWSBase.decode(this.encodedHeader);
     }
 
+    /**
+     * Returns the decoded payload.
+     *
+     * @return the decoded payload
+     */
     public String strPayload() {
         return JWSBase.decode(this.encodedPayload);
     }

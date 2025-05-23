@@ -32,12 +32,25 @@ import java.security.Key;
 public class JWSValidator extends JWSBase implements Traceable {
 
     final byte[] signatureOctets;
-    
+
+    /**
+     * Creates a {@code JWSValidator} by taking a JWS compact serialization as input.
+     *
+     * @param compactSerialization the to be validated JWS compact serialization
+     */
     public JWSValidator(JWSCompactSerialization compactSerialization) {
         super(compactSerialization.makeJWSStruct());
         this.signatureOctets = decode(compactSerialization.encodedSignature().getBytes(StandardCharsets.ISO_8859_1));
     }
-    
+
+    /**
+     * Validates the JSON web signature by using the given {@code Key}. In the event of assymetric algorithms (indicated by the JOSE header) this
+     * MUST be a {@link java.security.PublicKey}  whereas symmetric algorithms require a {@link javax.crypto.SecretKey}.
+     *
+     * @param key the to used {@code Key}
+     * @return indicates if the signature is valid
+     * @throws GeneralSecurityException indicates that a problem occured during the signing process
+     */
     public boolean validate(Key key) throws GeneralSecurityException {
         AbstractTracer tracer = getCurrentTracer();
         tracer.entry("boolean", this, "validate(Key signingKey)");

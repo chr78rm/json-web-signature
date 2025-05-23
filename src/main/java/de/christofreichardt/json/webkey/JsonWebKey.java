@@ -41,8 +41,16 @@ import jakarta.json.JsonObjectBuilder;
  */
 abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyPair, JsonWebPublicKey, JsonWebSecretKey {
 
+    /**
+     * Maps curve names on appropriate {@code ECParameterSpec}s.
+     */
     public static final Map<String, ECParameterSpec> EC_PARAMETER_SPEC_MAP;
 
+    /**
+     * Public parameters of curve 'secp256r1'.
+     *
+     * @see <a href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-186.pdf">Recommendations for Discrete Logarithm-based Cryptography: Elliptic Curve Domain Parameters</a>
+     */
     public static final ECParameterSpec SECP256R1;
     static {
         BigInteger p = new BigInteger("115792089210356248762697446949407573530086143415290314195533631308867097853951");
@@ -58,6 +66,11 @@ abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyP
         SECP256R1 = new NamedECParameterSpec("secp256r1 [NIST P-256,X9.62 prime256v1] (1.2.840.10045.3.1.7)", secp256r1, generator, order, 1);
     }
 
+    /**
+     * Public parameters of curve 'secp521r1'.
+     *
+     * @see <a href="https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-186.pdf">Recommendations for Discrete Logarithm-based Cryptography: Elliptic Curve Domain Parameters</a>
+     */
     public static final ECParameterSpec SECP521R1;
     static {
         BigInteger p = new BigInteger("6864797660130609714981900799081393217269435300143305409394463459185543183397656052122559640661454554977296311391480858037121987999716643812574028291115057151");
@@ -87,6 +100,13 @@ abstract public sealed class JsonWebKey implements Traceable permits JsonWebKeyP
     abstract public static class Builder<T extends Builder<T>> {
         String kid = null;
 
+        /**
+         * Augments the builder instance with the "kid" parameter.
+         * @param kid denotes the key ID.
+         * @return this {@code JsonWebKey.Builder} instance.
+         *
+         * @see <a href="https://www.rfc-editor.org/rfc/rfc7515.html#section-4.1.4">Section 4.1.4 of RFC 7515</a>
+         */
         public T withKid(String kid) {
             this.kid = kid;
             @SuppressWarnings("unchecked")

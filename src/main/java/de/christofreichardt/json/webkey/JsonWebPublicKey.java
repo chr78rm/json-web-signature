@@ -220,10 +220,20 @@ final public class JsonWebPublicKey extends JsonWebKey {
 
         final PublicKey publicKey;
 
+        /**
+         * Creates the {@code JsonWebPublicKey.Builder} preconfigured with the given {@code PublicKey}.
+         *
+         * @param publicKey the requested {@code PublicKey}
+         */
         public Builder(PublicKey publicKey) {
             this.publicKey = publicKey;
         }
 
+        /**
+         * Builds the {@code JsonWebPublicKey} with the configured parameters.
+         *
+         * @return the appropriately configured {@code JsonWebPublicKey} instance
+         */
         @Override
         public JsonWebPublicKey build() {
             return new JsonWebPublicKey(this);

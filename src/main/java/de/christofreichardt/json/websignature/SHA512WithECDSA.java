@@ -16,11 +16,17 @@ import java.security.spec.ECParameterSpec;
 import java.util.HexFormat;
 import java.util.Objects;
 
+/**
+ * An apapter to the underlying Signature instance provided by the Java platform which has the same name.
+ *
+ * @see <a href="https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/security/Signature.html">Signature</a>
+ * @author Christof Reichardt
+ */
 public class SHA512WithECDSA implements JWSAlgorithm {
 
     final Signature signature;
 
-    public SHA512WithECDSA() throws NoSuchAlgorithmException {
+    SHA512WithECDSA() throws NoSuchAlgorithmException {
         this.signature = Signature.getInstance("SHA512withECDSA");
     }
 

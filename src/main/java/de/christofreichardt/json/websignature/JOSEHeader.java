@@ -175,20 +175,48 @@ public class JOSEHeader implements Traceable {
         String typ = null;
         String kid = null;
 
+        /**
+         * Creates the builder preconfigured with given "alg" parameter.
+         *
+         * @param alg denotes the algorithm.
+         *
+         * @see <a href="https://www.rfc-editor.org/rfc/rfc7515.html#section-4.1.1">Section 4.1.1 of RFC 7515</a>
+         */
         public AlgorithmBuilder(String alg) {
             this.alg = alg;
         }
 
+        /**
+         * Augments the builder instance with the "typ" parameter.
+         *
+         * @param typ denotes the (media) type.
+         * @return this {@code AlgorithmBuilder} instance.
+         *
+         * @see <a href="https://www.rfc-editor.org/rfc/rfc7515.html#section-4.1.9">Section 4.1.9 of RFC 7515</a>
+         */
         public AlgorithmBuilder withTyp(String typ) {
             this.typ = typ;
             return this;
         }
 
+        /**
+         * Augments the builder instance with the "kid" parameter.
+         *
+         * @param kid denotes the key ID.
+         * @return this {@code AlgorithmBuilder} instance.
+         *
+         * @see <a href="https://www.rfc-editor.org/rfc/rfc7515.html#section-4.1.4">Section 4.1.4 of RFC 7515</a>
+         */
         public AlgorithmBuilder withKid(String kid) {
             this.kid = kid;
             return this;
         }
 
+        /**
+         * Builds the {@code JOSEHeader} instance with the configured parameters.
+         *
+         * @return the appropriately configured {@code JOSEHeader} instance
+         */
         public JOSEHeader build() {
             return new JOSEHeader(this);
         }
@@ -208,6 +236,10 @@ public class JOSEHeader implements Traceable {
         String kid;
         String typ = null;
 
+        /**
+         * Creates the builder preconfigured with the given {@code JsonWebPublicKey}.
+         * @param jsonWebPublicKey the requested {@code JsonWebPublicKey}.
+         */
         public PublicKeyBuilder(JsonWebPublicKey jsonWebPublicKey) {
             this.jsonWebPublicKey = jsonWebPublicKey;
             this.alg = algorithm();
@@ -245,6 +277,13 @@ public class JOSEHeader implements Traceable {
             }
         }
 
+        /**
+         * Augments the builder instance with the "kid" parameter.
+         * @param kid denotes the key ID.
+         * @return this {@code PublicKeyBuilder} instance.
+         *
+         * @see <a href="https://www.rfc-editor.org/rfc/rfc7515.html#section-4.1.4">Section 4.1.4 of RFC 7515</a>
+         */
         public PublicKeyBuilder withKid(String kid) {
             if (Objects.nonNull(this.kid) && !Objects.equals(this.kid, kid)) {
                 throw new IllegalArgumentException("Ambigous kids.");
@@ -253,11 +292,22 @@ public class JOSEHeader implements Traceable {
             return this;
         }
 
+        /**
+         * Augments the builder instance with the "typ" parameter.
+         * @param typ denotes the (media) type
+         * @return this {@code PublicKeyBuilder} instance
+         *
+         * @see <a href="https://www.rfc-editor.org/rfc/rfc7515.html#section-4.1.9">Section 4.1.9 of RFC 7515</a>
+         */
         public PublicKeyBuilder withTyp(String typ) {
             this.typ = typ;
             return this;
         }
 
+        /**
+         * Builds the {@code JOSEHeader} instance with the configured parameters.
+         * @return the appropriately configured {@code JOSEHeader} instance
+         */
         public JOSEHeader build() {
             return new JOSEHeader(this);
         }
@@ -271,7 +321,7 @@ public class JOSEHeader implements Traceable {
     /**
      * Converts this {@code JOSEHeader} into a plain {@code JsonObject}.
      *
-     * @return a {@code JsonObject} corresponding to this {@code JOSEHeader}.
+     * @return a {@code JsonObject} corresponding to this {@code JOSEHeader}
      * @see <a href="https://jakarta.ee/specifications/platform/10/apidocs/jakarta/json/jsonobject">JsonObject (Jakarta EE Platform API)</a>
      */
     public JsonObject toJson() {
