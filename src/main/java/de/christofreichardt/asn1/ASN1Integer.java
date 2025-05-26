@@ -61,7 +61,7 @@ public final class ASN1Integer extends ASN1 {
      * @param bytes the content octets that is the actual value.
      * @return a proper ASN.1 INTEGER.
      */
-    public static ASN1Integer fromBytes(byte[] bytes) {
+    public static ASN1Integer encode(byte[] bytes) {
         if (bytes.length <= 127) {
             byte[] encoded = new byte[bytes.length + 2];
             encoded[0] = tag;

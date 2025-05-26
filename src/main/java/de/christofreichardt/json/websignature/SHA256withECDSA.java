@@ -163,8 +163,8 @@ public class SHA256withECDSA implements JWSAlgorithm {
             System.arraycopy(signature, 32, s, 0, 32);
             s = JsonWebKeyUtils.skipLeadingZeroes(s);
 
-            ASN1Integer asn1_r = ASN1Integer.fromBytes(r);
-            ASN1Integer asn1_s = ASN1Integer.fromBytes(s);
+            ASN1Integer asn1_r = ASN1Integer.encode(r);
+            ASN1Integer asn1_s = ASN1Integer.encode(s);
             ASN1IntSequence asn1Signature = ASN1IntSequence.fromASN1Integers(asn1_r, asn1_s);
 
             return asn1Signature.encoded();

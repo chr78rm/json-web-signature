@@ -152,8 +152,8 @@ public class SHA512WithECDSA implements JWSAlgorithm {
             System.arraycopy(signature, 66, s, 0, 66);
             s = JsonWebKeyUtils.skipLeadingZeroes(s);
 
-            ASN1Integer asn1_r = ASN1Integer.fromBytes(r);
-            ASN1Integer asn1_s = ASN1Integer.fromBytes(s);
+            ASN1Integer asn1_r = ASN1Integer.encode(r);
+            ASN1Integer asn1_s = ASN1Integer.encode(s);
             ASN1IntSequence asn1Signature = ASN1IntSequence.fromASN1Integers(asn1_r, asn1_s);
 
             return asn1Signature.encoded();

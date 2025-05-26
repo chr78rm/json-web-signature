@@ -144,7 +144,7 @@ public class ASN1Unit implements Traceable, WithAssertions {
                             tracer.out().printfIndentln("length = %d", length);
                             byte[] bytes = new byte[length];
                             this.random.nextBytes(bytes);
-                            ASN1Integer asn1Integer = ASN1Integer.fromBytes(bytes);
+                            ASN1Integer asn1Integer = ASN1Integer.encode(bytes);
                             tracer.out().printfIndentln("asn1Integer = %s", asn1Integer);
                             sum += asn1Integer.asn1Length.rawLength();
                             asn1Integers[j] = asn1Integer;
