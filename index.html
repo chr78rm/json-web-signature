@@ -74,12 +74,12 @@
     </style>
   </head>
   <body style="overflow-x: hidden">
-    <div style="width: 30%; position: fixed; top: 0; left: 0; bottom: 0; background-color: rgb(208,209,230);">
-      <div style="height: 2em; padding-right: 0em; margin-top: 1em; margin-left: 30%; border-bottom: solid rgb(2,56,88) 1px; overflow-x: auto">
-        <div style="margin-left: 0em; font-family: Calibri, sans-serif; font-size: 1.25em; font-weight: bold; color: rgb(2,56,88)">JSON Web Signature (JWS) for Java</div>
+    <div style="width: 25%; position: fixed; top: 0; left: 0; bottom: 0; background-color: rgb(208,209,230)">
+      <div style="height: 2em; padding-right: 0em; margin-top: 1em; margin-left: 15%; border-bottom: solid rgb(2,56,88) 1px;">
+        <div style="margin-left: 0em; font-family: Calibri, sans-serif; font-size: 1.25em; font-weight: bold; color: rgb(2,56,88); min-width: 200em;">JSON Web Signature for Java</div>
       </div>
       <div style="height: 100%;">
-        <nav style="margin-top: 1em; margin-left: 30%; position: relative; height: 90%; overflow-y: auto">
+        <nav style="margin-top: 1em; margin-left: 15%; position: relative; height: 90%; overflow-y: auto">
           <p class="menu_item">
             <a href="#top" class="menu_item">Abstract</a>
           </p>
@@ -165,11 +165,11 @@
         </nav>
       </div>
     </div>
-    <div style="margin-left: 30%; background-color: rgb(236,231,242); width: 70%; position: absolute; top: 0; left: 0; border-left: solid 1px rgb(166,189,219);">
-      <div style="height: 2em; margin-top: 1em; width: 70%; text-align: right; border-bottom: solid rgb(2,56,88) 1px">
+    <div style="margin-left: 25%; background-color: rgb(236,231,242); width: 75%; position: absolute; top: 0; left: 0; border-left: solid 1px rgb(166,189,219);">
+      <div style="height: 2em; margin-top: 1em; width: 80%; text-align: right; border-bottom: solid rgb(2,56,88) 1px">
         <div style="font-family: Calibri, sans-serif; font-size: 1em; font-style: italic; margin-top: 0em; color: rgb(2,56,88)">Last updated: 1-June-2025</div>
       </div>
-      <div style="margin-left: 1em; width: 70%;">
+      <div style="margin-left: 1em; width: 80%;">
         <p id="abstract" class="head_line_1">
           Abstract
         </p>
@@ -677,7 +677,7 @@ JWSCompactSerialization compactSerialization = JWS.createSignature()
         </p>
         <p class="code">boolean validated = JWS.createValidator()
         .compactSerialization(compactSerialization)
-        .key(jsonWebKeyPair.jsonWebPublicKey())
+        .webkey(jsonWebKeyPair.jsonWebPublicKey())
         .validate();
 assert validated;</p>
         <p id="example-2" class="head_line_2">
@@ -736,7 +736,8 @@ assert validated;</p>
         <p class="section">
           Selecting for the given <span class="code">kid</span> enables you to create the corresponding <span class="code">JsonWebPublicKey</span>:
         </p>
-        <p class="code">Optional&lt;JsonWebPublicKey&gt; optionalJsonWebPublicKey = keys.getJsonArray("keys").stream()
+        <p class="code">String kid = "Rf1c0xrE03Ud68kawPN_ZGcZ9GUNm1Au1gI0ieqxC44";
+Optional&lt;JsonWebPublicKey&gt; optionalJsonWebPublicKey = keys.getJsonArray("keys").stream()
         .map(value -> value.asJsonObject())
         .filter(key -> Objects.equals(key.getString("kid"), kid))
         .findFirst()
