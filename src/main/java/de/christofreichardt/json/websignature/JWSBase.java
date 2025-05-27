@@ -41,11 +41,23 @@ abstract public class JWSBase {
             "HS256", HmacSHA256.class, "RS256", SHA256withRSA.class, "ES256", SHA256withECDSA.class, "ES512", SHA512WithECDSA.class
     );
 
-    static String encode(String input) {
+    /**
+     * Encodes the given {@code input} by first taking its UTF-8 encoded bytes and next using the base64-url-encoding scheme.
+     *
+     * @param input the to be encoded {@code String}
+     * @return the resulting base64-url-encoded {@code String}
+     */
+    public static String encode(String input) {
         return BASE64_URL_ENCODER.encodeToString(input.getBytes(StandardCharsets.UTF_8));
     }
 
-    static String encode(byte[] input) {
+    /**
+     * Encodes the given {@code input} using the base64-url-encoding scheme.
+     *
+     * @param input the to be encoded bytes
+     * @return the resulting base64-url-encoded {@code String}
+     */
+    public static String encode(byte[] input) {
         return BASE64_URL_ENCODER.encodeToString(input);
     }
 
