@@ -75,27 +75,27 @@ import javax.crypto.SecretKey;
  * <pre>String kid = UUID.randomUUID().toString();
  *JWSCompactSerialization compactSerialization = JWS.createSignature()
  *         .webkey(jsonWebKeyPair)
- *         .typ("JWT")
+ *         .typ("JOSE")
  *         .kid(kid)
  *         .payload(sepaTransfer)
  *         .sign(new PrettyStringConverter());</pre>
  * This will create the following JOSE header within the first part of the JWS Compact Serialization:
  * <pre>{
  *     "alg": "ES256",
- *     "typ": "JWT",
- *     "kid": "52caf5f3-ca84-41ea-9241-e44bdcb9f5bb",
+ *     "typ": "JOSE",
+ *     "kid": "2973fb0a-3a6b-48b9-ad5f-c1c9ef1bc79e",
  *     "jwk": {
  *         "kty": "EC",
  *         "crv": "P-256",
- *         "x": "2iNREIQdjgcRWVPEVT4Vpru9OTcbGaRIawFYQrYGz6E",
- *         "y": "AElWBUTORzAfmET1Eol9SBbyG5o_N4LiAxacS4XjSJ0"
+ *         "x": "RV9KxZnDewjiQjoalsYUpjT3n1bbt-62b6HcDOt0lCE",
+ *         "y": "Y7wtjOBdD9nPW-DMdUw0qL-PCBn4031vA-TMvGMVBe8"
  *     }
- *}</pre>
+ * }</pre>
  * (You will get other x,y coordinates with virtual certainty).
  * <p style="font-weight: bold">Example 2: Validating</p>
  * Firstly, we need a {@code JsonWebPublicKey}. For this example we simply create one from the given "jwk" header parameter:
  * <pre>JsonWebPublicKey jsonWebPublicKey = JsonWebPublicKey.fromJson(compactSerialization.joseHeader().getJsonObject("jwk"));</pre>
- * In the real world, however, you would need to check at least if the "kid" parameter checks.
+ * In the real world, however, you would need to verify at least if the "kid" parameter checks, that is it refers to the authentic key (pair).
  * Now we can validate the signature:
  * <pre>boolean validated = JWS.createValidator()
  *         .compactSerialization(compactSerialization)
