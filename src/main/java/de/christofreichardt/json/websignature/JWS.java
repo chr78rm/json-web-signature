@@ -56,7 +56,7 @@ import javax.crypto.SecretKey;
  *               "name": "Max Mustermann"
  *             },
  *             "date-time": "2025-05-28T13:32:07.1821996+02:00[Europe/Berlin]",
- *             "transfer-amount": "123,45",
+ *             "transfer-amount": 123.45,
  *             "purpose": "Rechnung-1234",
  *             "recipient": {
  *               "iban": "AT022040400040102634",
