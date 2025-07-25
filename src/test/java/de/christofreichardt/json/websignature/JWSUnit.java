@@ -4,16 +4,15 @@ import de.christofreichardt.diagnosis.AbstractTracer;
 import de.christofreichardt.diagnosis.Traceable;
 import de.christofreichardt.diagnosis.TracerFactory;
 import de.christofreichardt.json.JsonTracer;
+import de.christofreichardt.json.JsonUtils;
 import de.christofreichardt.json.webkey.JsonWebKeyPair;
 import de.christofreichardt.json.webkey.JsonWebPublicKey;
 import de.christofreichardt.json.webkey.JsonWebSecretKey;
+import jakarta.json.JsonString;
 import java.io.*;
 import java.math.BigInteger;
 import java.nio.file.Path;
-import java.security.GeneralSecurityException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.SecureRandom;
+import java.security.*;
 import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.RSAKeyGenParameterSpec;
@@ -902,6 +901,121 @@ public class JWSUnit implements Traceable, WithAssertions {
             this.jsonTracer.trace(compactSerialization.joseHeader());
 
             assertThat(compactSerialization.joseHeader().getString("kid")).isEqualTo(kid);
+
+            boolean validated = JWS.createValidator()
+                    .compactSerialization(compactSerialization)
+                    .webkey(jsonWebKeyPair.jsonWebPublicKey())
+                    .validate();
+
+            assertThat(validated).isTrue();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void skipTypAndKidHeaderParameter() throws GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "skipTypAndKidHeaderParameter()");
+
+        try {
+            JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
+                    .build();
+
+            JsonObject payload = Json.createObjectBuilder()
+                    .add("iss", "joe")
+                    .add("exp", 1300819380)
+                    .add("http://example.com/is_root", "true")
+                    .build();
+
+            JWSCompactSerialization compactSerialization = JWS.createSignature()
+                    .webkey(jsonWebKeyPair)
+                    .payload(payload)
+                    .sign();
+
+            tracer.out().printfIndentln("signature = %s", compactSerialization);
+            this.jsonTracer.trace(compactSerialization.joseHeader());
+
+            assertThatThrownBy(() -> JsonUtils.orElseThrow(compactSerialization.joseHeader(), "typ", JsonString.class)).isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> JsonUtils.orElseThrow(compactSerialization.joseHeader(), "kid", JsonString.class)).isInstanceOf(IllegalArgumentException.class);
+
+            boolean validated = JWS.createValidator()
+                    .compactSerialization(compactSerialization)
+                    .webkey(jsonWebKeyPair.jsonWebPublicKey())
+                    .validate();
+
+            assertThat(validated).isTrue();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void skipTypHeaderParameter() throws GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "skipTypHeaderParameter()");
+
+        try {
+            String kid = UUID.randomUUID().toString();
+
+            JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
+                    .build();
+
+            JsonObject payload = Json.createObjectBuilder()
+                    .add("iss", "joe")
+                    .add("exp", 1300819380)
+                    .add("http://example.com/is_root", "true")
+                    .build();
+
+            JWSCompactSerialization compactSerialization = JWS.createSignature()
+                    .webkey(jsonWebKeyPair)
+                    .kid(kid)
+                    .payload(payload)
+                    .sign();
+
+            tracer.out().printfIndentln("signature = %s", compactSerialization);
+            this.jsonTracer.trace(compactSerialization.joseHeader());
+
+            assertThatThrownBy(() -> JsonUtils.orElseThrow(compactSerialization.joseHeader(), "typ", JsonString.class)).isInstanceOf(IllegalArgumentException.class);
+            assertThat(JsonUtils.orElseThrow(compactSerialization.joseHeader(), "kid", JsonString.class).getString()).isEqualTo(kid);
+
+            boolean validated = JWS.createValidator()
+                    .compactSerialization(compactSerialization)
+                    .webkey(jsonWebKeyPair.jsonWebPublicKey())
+                    .validate();
+
+            assertThat(validated).isTrue();
+        } finally {
+            tracer.wayout();
+        }
+    }
+
+    @Test
+    void skipKidHeaderParameter() throws GeneralSecurityException {
+        AbstractTracer tracer = getCurrentTracer();
+        tracer.entry("void", this, "skipKidHeaderParameter()");
+
+        try {
+            JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
+                    .build();
+
+            JsonObject payload = Json.createObjectBuilder()
+                    .add("iss", "joe")
+                    .add("exp", 1300819380)
+                    .add("http://example.com/is_root", "true")
+                    .build();
+
+            JWSCompactSerialization compactSerialization = JWS.createSignature()
+                    .webkey(jsonWebKeyPair)
+                    .typ("JWT")
+                    .payload(payload)
+                    .sign();
+
+            tracer.out().printfIndentln("signature = %s", compactSerialization);
+            this.jsonTracer.trace(compactSerialization.joseHeader());
+
+            assertThatThrownBy(() -> JsonUtils.orElseThrow(compactSerialization.joseHeader(), "kid", JsonString.class)).isInstanceOf(IllegalArgumentException.class);
+            assertThat(JsonUtils.orElseThrow(compactSerialization.joseHeader(), "typ", JsonString.class).getString()).isEqualTo("JWT");
 
             boolean validated = JWS.createValidator()
                     .compactSerialization(compactSerialization)
