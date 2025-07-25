@@ -349,7 +349,7 @@ public class JOSEHeader implements Traceable {
      * @see <a href="https://jakarta.ee/specifications/platform/10/apidocs/jakarta/json/jsonobject">JsonObject (Jakarta EE Platform API)</a>
      */
     static public JOSEHeader fromJson(JsonObject joseHeaderView) throws GeneralSecurityException {
-        AbstractTracer tracer = TracerFactory.getInstance().getCurrentPoolTracer();
+        AbstractTracer tracer = TracerFactory.getInstance().getDefaultTracer();
         tracer.entry("void", JOSEHeader.class, "fromJson(JsonObject joseHeaderView)");
 
         try {
@@ -408,6 +408,6 @@ public class JOSEHeader implements Traceable {
 
     @Override
     public AbstractTracer getCurrentTracer() {
-        return TracerFactory.getInstance().getCurrentPoolTracer();
+        return TracerFactory.getInstance().getDefaultTracer();
     }
 }
