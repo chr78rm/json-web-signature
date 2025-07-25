@@ -4,7 +4,7 @@
     
     <groupId>de.christofreichardt</groupId>
     <artifactId>json-web-signature</artifactId>
-    <version>1.0.0-rc1</version>
+    <version>1.0.0</version>
     <name>json-web-signature</name>
     <description>A partial implementation of the RFCs 7515, 7517 and 7518</description>
 
