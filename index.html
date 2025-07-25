@@ -180,7 +180,7 @@
       <div style="height: 4em; margin-top: 1em; width: 80%; text-align: right; border-bottom: solid rgb(2,56,88) 1px">
         <div style="font-family: Calibri, sans-serif; font-size: 1em; font-style: italic; margin-top: 0em; color: rgb(2,56,88); display: flex; align-items: flex-end; 
              height: 100%; justify-content: flex-end;">
-          <span style="margin-bottom: 0.25em">Last updated: 3-June-2025</span>
+          <span style="margin-bottom: 0.25em">Last updated: 25-July-2025</span>
         </div>
       </div>
       <div style="margin-left: 1em; width: 80%;">
@@ -335,7 +335,7 @@ JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of()
         </p>
         <p class="section">
           If you are not satisfied with the default algorithm parameter specified for the key generation you can provide
-          appropriate an <span class="code">AlgorithmParameterSpec</span> and optionally <span class="code">SecureRandom</span> instances by yourself:
+          an appropriate <span class="code">AlgorithmParameterSpec</span> and optionally <span class="code">SecureRandom</span> instances by yourself:
         </p>
         <p class="code">ECParameterSpec secp521r1 = JsonWebKey.SECP521R1;
 JsonWebKeyPair jsonWebKeyPair = JsonWebKeyPair.of(secp521r1)
@@ -1074,7 +1074,11 @@ assert !jwsValidator.validate(jsonWebKeyPair.jsonWebPublicKey().getPublicKey());
                 </a>
               </td>
               <td>2025-06-02 15:39</td>
-              <td>baa19b91ee24e238dc9f61d66b027cdec2f2039f351fdbf8ff0339de623f57f3</td>
+              <td>
+                <a class="content" href="./json-web-signature-1.0.0-rc1.sha256.txt">
+                  json-web-signature-1.0.0-rc1.sha256
+                </a>
+              </td>
             </tr>
           </tbody>
         </table>
