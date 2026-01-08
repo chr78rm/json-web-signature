@@ -88,7 +88,7 @@
                 <configuration>
                     <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
                     <header>json-web-signature ${project.version} API</header>
-                    <bottom>Copyright &#x00A9; 2022, 2025 Christof Reichardt - Paul-Ehrlich-Weg 1 - D-63110 Rodgau</bottom>
+                    <bottom>Copyright &#x00A9; 2022, 2026 Christof Reichardt - Paul-Ehrlich-Weg 1 - D-63110 Rodgau</bottom>
                     <additionalJOptions>
                         <additionalJOption>-J-Duser.language=en</additionalJOption>
                     </additionalJOptions>
